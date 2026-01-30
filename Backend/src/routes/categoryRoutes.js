@@ -5,22 +5,27 @@ const {
   getCategoryById,
   createCategory,
   updateCategory,
-  deleteCategory
+  deleteCategory,
+  getCategoryProducts
 } = require('../controllers/categoryController');
+const { authenticate, isAdmin, optionalAuth } = require('../middleware/authMiddleware');
 
-// Get all categories
+// Get all categories (public)
 router.get('/', getCategories);
 
-// Get category by ID
+// Get category by ID (public)
 router.get('/:id', getCategoryById);
 
-// Create new category
-router.post('/', createCategory);
+// Get products in category (public)
+router.get('/:id/products', getCategoryProducts);
 
-// Update category
-router.put('/:id', updateCategory);
+// Create new category (Admin only)
+router.post('/', authenticate, isAdmin, createCategory);
 
-// Delete category
-router.delete('/:id', deleteCategory);
+// Update category (Admin only)
+router.put('/:id', authenticate, isAdmin, updateCategory);
+
+// Delete category (Admin only)
+router.delete('/:id', authenticate, isAdmin, deleteCategory);
 
 module.exports = router;
