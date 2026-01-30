@@ -1,0 +1,133 @@
+.product-detail-page {
+  padding: 2rem 0;
+}
+
+.product-detail-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.product-images {
+  width: 100%;
+}
+
+.main-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.product-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.product-title {
+  font-size: 2rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.product-price {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #d4a574;
+  margin: 0;
+}
+
+.product-description {
+  color: #666;
+  line-height: 1.8;
+  padding: 1rem 0;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.product-info-item {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.product-info-item strong {
+  color: #333;
+  margin-right: 0.5rem;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.quantity-selector label {
+  font-weight: 500;
+  color: #333;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qty-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.qty-btn:hover {
+  background-color: #f5f5f5;
+  border-color: #d4a574;
+}
+
+.quantity-controls input {
+  width: 60px;
+  height: 32px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.add-to-cart-btn-large {
+  width: 100%;
+  padding: 1.25rem;
+  background-color: #d4a574;
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.add-to-cart-btn-large:hover:not(:disabled) {
+  background-color: #c49563;
+}
+
+.add-to-cart-btn-large:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+@media (max-width: 968px) {
+  .product-detail-container {
+    grid-template-columns: 1fr;
+  }
+}
