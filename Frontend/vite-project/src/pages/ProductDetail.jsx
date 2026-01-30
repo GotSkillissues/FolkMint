@@ -5,6 +5,9 @@ import { useCart } from '../context';
 import { Loading } from '../components';
 import './ProductDetail.css';
 
+// Default demo image if product has no image
+const DEFAULT_IMAGE = '/ed4499261f9f09b4204779485704913d.jpg';
+
 const ProductDetail = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
@@ -47,7 +50,7 @@ const ProductDetail = () => {
       <div className="product-detail-container">
         <div className="product-images">
           <img 
-            src={product.image || '/placeholder-product.jpg'} 
+            src={product.image || DEFAULT_IMAGE} 
             alt={product.name}
             className="main-image"
           />

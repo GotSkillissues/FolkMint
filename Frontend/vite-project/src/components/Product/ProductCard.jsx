@@ -10,11 +10,14 @@ const ProductCard = ({ product }) => {
     addToCart(product, 1);
   };
 
+  // Default demo image if product has no image
+  const DEFAULT_IMAGE = '/ed4499261f9f09b4204779485704913d.jpg';
+
   return (
     <Link to={`/products/${product._id}`} className="product-card">
       <div className="product-image">
         <img 
-          src={product.image || '/placeholder-product.jpg'} 
+          src={product.image || DEFAULT_IMAGE} 
           alt={product.name}
         />
       </div>

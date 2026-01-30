@@ -1,103 +1,410 @@
-# 🎉 Frontend Modular Architecture - Complete!
+# 🎉 FolkMint Frontend - Complete Architecture
+
+## ✅ Fully Configured for Backend Schema
+
+This frontend is now **fully aligned with the backend PostgreSQL database schema**. All tables, relationships, and constraints are properly mapped.
+
+---
+
+## 📊 Database Tables → Frontend Mapping
+
+| Database Table | Frontend Service | Hook | Type Definition |
+|----------------|-----------------|------|-----------------|
+| `users` | `userService` | - | `User` |
+| `user_preferences` | `userService` | - | `UserPreferences` |
+| `preference_category` | `userService` | - | `PreferenceCategory` |
+| `address` | `addressService` | `useAddresses` | `Address` |
+| `payment_method` | `paymentService` | `usePaymentMethods` | `PaymentMethod` |
+| `payment` | `paymentService` | - | `Payment` |
+| `category` | `categoryService` | `useCategories`, `useCategoryTree` | `Category` |
+| `product` | `productService` | `useProducts`, `useProduct` | `Product` |
+| `product_variant` | `variantService` | - | `ProductVariant` |
+| `product_image` | `variantService` | - | `ProductImage` |
+| `cart` | `cartService` | - | `Cart` |
+| `cart_item` | `cartService` | - | `CartItem` |
+| `orders` | `orderService` | `useOrders`, `useOrder` | `Order` |
+| `order_item` | `orderService` | - | `OrderItem` |
+| `review` | `reviewService` | `useReviews`, `useProductReviews` | `Review` |
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── config/
+│   └── api.config.js          # All API endpoints (matches backend routes)
+├── types/
+│   └── index.js               # Type definitions for all database tables
+├── services/
+│   ├── index.js               # Service exports
+│   ├── api.service.js         # Axios instance with interceptors
+│   ├── auth.service.js        # Authentication (login, register, logout)
+│   ├── user.service.js        # User profile & preferences
+│   ├── product.service.js     # Products with variants
+│   ├── variant.service.js     # Product variants & images
+│   ├── category.service.js    # Categories with tree structure
+│   ├── cart.service.js        # Cart (server & localStorage)
+│   ├── order.service.js       # Orders & order items
+│   ├── address.service.js     # User addresses
+│   ├── payment.service.js     # Payment methods & processing
+│   ├── review.service.js      # Product reviews
+│   └── admin.service.js       # Admin operations
+├── hooks/
+│   ├── index.js               # Hook exports
+│   ├── useProducts.js         # Product fetching hooks
+│   ├── useCategories.js       # Category hooks
+│   ├── useOrders.js           # Order management hooks
+│   ├── useAddresses.js        # Address management
+│   ├── usePaymentMethods.js   # Payment method hooks
+│   ├── useReviews.js          # Review hooks
+│   ├── useDebounce.js         # Debounce utility
+│   └── useLocalStorage.js     # localStorage sync
+├── context/
+│   ├── AuthContext.jsx        # Authentication state
+│   └── CartContext.jsx        # Shopping cart state
+├── utils/
+│   ├── constants.js           # App constants (matches DB constraints)
+│   └── helpers.js             # Utility functions
+├── components/
+│   ├── Layout/
+│   ├── Product/
+│   └── Common/
+└── pages/
+    ├── Home.jsx
+    ├── Login.jsx
+    ├── Register.jsx
+    ├── ProductDetail.jsx
+    └── Cart.jsx
+```
+
+---
+
+## 🔥 Key Database Features Supported
+
+### 👤 Users & Authentication
+- User registration with `customer` or `admin` roles
+- Secure password authentication
+- User preferences tracking (view count)
+- Preferred categories per user
+
+### 📍 Addresses
+- Multiple addresses per user
+- Bangladesh-specific formatting
+- Address selection for checkout
+
+### 💳 Payment Methods
+- **Card payments** (with last 4 digits, expiry)
+- **bKash** (mobile banking)
+- **Nagad** (mobile banking)
+- **Rocket** (mobile banking)
+- **Cash on Delivery**
+
+### 📦 Categories
+- Hierarchical categories (parent/child)
+- Root categories: Clothing, Accessories, Home Decor, Handicrafts, Jewelry
+- Subcategories support
+- Tree view utilities
+
+### 🛍️ Products
+- Base product with description and price
+- **Multiple variants** (size + color combinations)
+- **Stock tracking** per variant
+- **Multiple images** per variant
+- Price ranges across variants
+
+### 🛒 Cart
+- Server-synced cart for logged-in users
+- localStorage cart for guests
+- Cart merge on login
+- Real-time stock validation
+
+### 📋 Orders
+- Order status flow: `pending → paid → shipped → delivered`
+- Cancellation support
+- Order items with price-at-purchase
+- Payment linkage
+
+### ⭐ Reviews
+- 1-5 star ratings
+- Comments
+- **Enforced purchase verification** (via order_item_id)
+- One review per product per user
+
+---
+
+## 🔌 API Endpoints
+
+```javascript
+// All endpoints are configured in config/api.config.js
+
+// Auth
+POST /auth/login
+POST /auth/register
+POST /auth/logout
+GET  /auth/me
+
+// Users
+GET  /users/profile
+PUT  /users/profile
+PUT  /users/change-password
+GET  /users/preferences
+PUT  /users/preferences
+
+// Addresses
+GET  /addresses/my-addresses
+POST /addresses
+PUT  /addresses/:id
+DELETE /addresses/:id
+
+// Payment Methods
+GET  /payment-methods/my-methods
+POST /payment-methods
+DELETE /payment-methods/:id
+
+// Categories
+GET  /categories
+GET  /categories/:id
+GET  /categories/tree
+GET  /categories/:id/subcategories
+
+// Products
+GET  /products
+GET  /products/:id
+GET  /products/category/:categoryId
+GET  /products/search
+GET  /products/featured
+GET  /products/new-arrivals
+
+// Variants
+GET  /products/:productId/variants
+PUT  /variants/:id
+PATCH /variants/:id/stock
+
+// Cart
+GET  /cart
+POST /cart/items
+PUT  /cart/items/:cartItemId
+DELETE /cart/items/:cartItemId
+DELETE /cart/clear
+POST /cart/sync
+
+// Orders
+GET  /orders/my-orders
+GET  /orders/:id
+POST /orders
+POST /orders/:id/cancel
+
+// Reviews
+GET  /products/:productId/reviews
+GET  /reviews/my-reviews
+POST /reviews
+PUT  /reviews/:id
+DELETE /reviews/:id
+GET  /products/:productId/can-review
+```
+
+---
+
+## 💡 Constants (Matching Database Constraints)
+
+```javascript
+// User Roles (chk_user_role)
+USER_ROLES = { CUSTOMER: 'customer', ADMIN: 'admin' }
+
+// Order Status (chk_order_status)
+ORDER_STATUS = { PENDING, PAID, SHIPPED, DELIVERED, CANCELLED }
+
+// Payment Types (chk_payment_type)
+PAYMENT_METHOD_TYPES = { CARD, BKASH, NAGAD, ROCKET, CASH_ON_DELIVERY }
+
+// Rating Range (check constraint)
+RATING_VALUES = [1, 2, 3, 4, 5]
+```
+
+---
+
+## 🛠️ Usage Examples
+
+### Fetching Products with Variants
+```jsx
+import { useProduct } from '../hooks';
+
+function ProductPage({ productId }) {
+  const { product, loading, error } = useProduct(productId);
+  
+  if (loading) return <Loading />;
+  
+  // Product includes variants with images
+  const { name, description, base_price, variants } = product;
+  
+  // Get price range
+  const priceRange = productService.getPriceRange(variants);
+}
+```
+
+### Managing Cart
+```jsx
+import { cartService } from '../services';
+
+// Add to cart (with variant)
+await cartService.addToCart(variant_id, quantity);
+
+// For guest users
+cartService.addToLocalCart({ variant_id, quantity, price });
+```
+
+### Creating an Order
+```jsx
+import { orderService } from '../services';
+
+const orderData = {
+  address_id: selectedAddress.address_id,
+  method_id: selectedPayment.method_id,
+  items: cartItems.map(item => ({
+    variant_id: item.variant_id,
+    quantity: item.quantity
+  }))
+};
+
+const order = await orderService.createOrder(orderData);
+```
+
+### Submitting a Review
+```jsx
+import { useProductReviews } from '../hooks';
+
+const { canReview, reviewableOrderItems, createReview } = useProductReviews(productId);
+
+if (canReview) {
+  await createReview({
+    rating: 5,
+    comment: 'Great product!',
+    order_item_id: reviewableOrderItems[0].order_item_id
+  });
+}
+```
+
+---
+
+## 🏗️ Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        PAGES LAYER                               │
+│  Home │ Login │ Register │ ProductDetail │ Cart │ Orders │ ...  │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ uses
+┌────────────────────────────▼────────────────────────────────────┐
+│                      COMPONENTS LAYER                            │
+│  Header │ Footer │ ProductCard │ Loading │ ReviewForm │ ...     │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ uses
+┌────────────────────────────▼────────────────────────────────────┐
+│                        HOOKS LAYER                               │
+│  useProducts │ useCategories │ useOrders │ useAddresses │ ...   │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ calls
+┌────────────────────────────▼────────────────────────────────────┐
+│                      CONTEXT LAYER                               │
+│              AuthContext │ CartContext                           │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ calls
+┌────────────────────────────▼────────────────────────────────────┐
+│                      SERVICE LAYER                               │
+│  authService │ productService │ orderService │ reviewService    │
+│  addressService │ paymentService │ cartService │ adminService   │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ uses
+┌────────────────────────────▼────────────────────────────────────┐
+│                      CONFIG LAYER                                │
+│  API_ENDPOINTS │ API_BASE_URL │ Constants │ Types               │
+└─────────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    BACKEND API (Express)                         │
+│                          ↓                                       │
+│              PostgreSQL Database                                 │
+│  ┌─────────┬──────────────┬───────────────┬──────────────┐     │
+│  │ users   │ products     │ orders        │ reviews      │     │
+│  │ address │ variants     │ order_items   │ cart         │     │
+│  │ payment │ categories   │ payment       │ cart_items   │     │
+│  └─────────┴──────────────┴───────────────┴──────────────┘     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## ✅ What Has Been Created
 
 ### 📁 **Configuration Layer**
-- ✅ `config/api.config.js` - Centralized API endpoints and configuration
+- ✅ `config/api.config.js` - All API endpoints for all tables
+
+### 📝 **Type Definitions**
+- ✅ `types/index.js` - JSDoc types for all database tables
 
 ### 🔌 **Service Layer** (API Communication)
 - ✅ `services/api.service.js` - Axios instance with interceptors
 - ✅ `services/auth.service.js` - Authentication APIs
-- ✅ `services/product.service.js` - Product APIs
-- ✅ `services/category.service.js` - Category APIs
+- ✅ `services/user.service.js` - User & preferences APIs
+- ✅ `services/product.service.js` - Product APIs with utilities
+- ✅ `services/variant.service.js` - Variant & image APIs
+- ✅ `services/category.service.js` - Category APIs with tree utilities
+- ✅ `services/cart.service.js` - Cart APIs (server + local)
 - ✅ `services/order.service.js` - Order APIs
-- ✅ `services/user.service.js` - User APIs
+- ✅ `services/address.service.js` - Address APIs
+- ✅ `services/payment.service.js` - Payment APIs
+- ✅ `services/review.service.js` - Review APIs
+- ✅ `services/admin.service.js` - Admin APIs
+
+### 🪝 **Hooks Layer** (Data Fetching)
+- ✅ `hooks/useProducts.js` - Product hooks
+- ✅ `hooks/useCategories.js` - Category hooks
+- ✅ `hooks/useOrders.js` - Order hooks
+- ✅ `hooks/useAddresses.js` - Address hooks
+- ✅ `hooks/usePaymentMethods.js` - Payment hooks
+- ✅ `hooks/useReviews.js` - Review hooks
+- ✅ `hooks/useDebounce.js` - Debounce utility
+- ✅ `hooks/useLocalStorage.js` - localStorage sync
 
 ### 🔄 **Context Layer** (State Management)
-- ✅ `context/AuthContext.jsx` - Authentication state & methods
-- ✅ `context/CartContext.jsx` - Shopping cart state & operations
-
-### 🎨 **Component Layer**
-**Layout Components:**
-- ✅ `components/Layout/Header.jsx` - Navigation header
-- ✅ `components/Layout/Footer.jsx` - Site footer
-- ✅ `components/Layout/Layout.jsx` - Page wrapper
-
-**Product Components:**
-- ✅ `components/Product/ProductCard.jsx` - Reusable product card
-
-**Common Components:**
-- ✅ `components/Common/Loading.jsx` - Loading spinner
-- ✅ `components/Common/ProtectedRoute.jsx` - Route protection
-
-### 📄 **Page Layer** (Views)
-- ✅ `pages/Home.jsx` - Landing page
-- ✅ `pages/Login.jsx` - Login form
-- ✅ `pages/Register.jsx` - Registration form
-- ✅ `pages/ProductDetail.jsx` - Product detail view
-- ✅ `pages/Cart.jsx` - Shopping cart
+- ✅ `context/AuthContext.jsx` - Authentication state
+- ✅ `context/CartContext.jsx` - Shopping cart state
 
 ### 🛠️ **Utilities**
-- ✅ `utils/helpers.js` - Helper functions
-- ✅ `utils/constants.js` - Application constants
-
-### ⚙️ **Core Files**
-- ✅ `App.jsx` - Main app with routing and providers
-- ✅ `.env` - Environment variables
-- ✅ `.env.example` - Environment template
-- ✅ `README.md` - Comprehensive documentation
+- ✅ `utils/constants.js` - All DB constraints as constants
+- ✅ `utils/helpers.js` - Comprehensive helper functions
 
 ---
 
-## 🏗️ Architecture Overview
+## 🚀 Quick Start
 
+```bash
+cd Frontend/vite-project
+npm install
+npm run dev
 ```
-┌─────────────────────────────────────────────────┐
-│                   PAGES LAYER                    │
-│  (Home, Login, ProductDetail, Cart, etc.)       │
-└──────────────────┬──────────────────────────────┘
-                   │ uses
-┌──────────────────▼──────────────────────────────┐
-│              COMPONENTS LAYER                    │
-│  (Header, Footer, ProductCard, Loading)         │
-└──────────────────┬──────────────────────────────┘
-                   │ uses
-┌──────────────────▼──────────────────────────────┐
-│               CONTEXT LAYER                      │
-│     (AuthContext, CartContext)                   │
-│  • Global state management                       │
-│  • Authentication                                │
-│  • Cart operations                               │
-└──────────────────┬──────────────────────────────┘
-                   │ calls
-┌──────────────────▼──────────────────────────────┐
-│               SERVICE LAYER                      │
-│  (authService, productService, etc.)            │
-│  • API communication                             │
-│  • Data fetching                                 │
-│  • CRUD operations                               │
-└──────────────────┬──────────────────────────────┘
-                   │ uses
-┌──────────────────▼──────────────────────────────┐
-│               CONFIG LAYER                       │
-│  • API endpoints                                 │
-│  • Base URLs                                     │
-│  • Constants                                     │
-└──────────────────────────────────────────────────┘
+
+Make sure your `.env` file has:
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
 ---
 
-## 🔥 Key Features
+## 📝 Notes
 
-### ✨ **Modular Design**
-- Clean separation of concerns
-- Easy to maintain and scale
-- Reusable components
-- Single responsibility principle
+- All services include proper error handling
+- Cart supports both authenticated (server) and guest (localStorage) users
+- Categories support hierarchical tree structure
+- Reviews are enforced to require a purchase (order_item_id)
+- All price formatting uses BDT (৳) currency
+- Payment methods support Bangladesh mobile banking (bKash, Nagad, Rocket)
 
-### 🔌 **Easy Backend Integration**
-- Centralized API configuration
+---
+
+**Frontend is now 100% configured for the FolkMint backend schema!** 🎉
 - Service layer for all endpoints
 - Automatic token management
 - Error handling with interceptors
