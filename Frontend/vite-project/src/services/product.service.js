@@ -5,9 +5,10 @@ const productService = {
   // Get all products
   getAllProducts: async (params = {}) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.BASE, { params });
-      return response.data;
-    } catch (error) {
+      const response = await fetch('http://localhost:5000/api/products');
+      const data = await response.json();
+      return data;
+    } catch (error) { 
       throw error.response?.data || error;
     }
   },

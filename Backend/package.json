@@ -3,12 +3,22 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon src/server.js",
+    "dev": "nodemon --watch src/server.js",
+    "db:schema": "psql -U postgres -d folkmint -f src/schema/FolkMint.session.sql",
+    "db:seed": "node src/schema/runSeed.js",
+    "db:reset": "npm run db:schema && npm run db:seed",
+    "db:test": "node src/test.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "\\",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "express": "^5.2.1"
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.11",
+    "pg": "^8.17.2"
   }
 }

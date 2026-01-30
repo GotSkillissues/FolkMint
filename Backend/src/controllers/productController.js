@@ -1,9 +1,10 @@
 // Product Controller - Handle product-related operations
-
+const { pool } = require('../config/database');
 const getProducts = async (req, res) => {
   try {
     // TODO: Implement get all products logic
-    res.status(200).json({ message: 'Get all products' });
+    const result = await pool.query('SELECT * FROM product'); // Placeholder query
+    res.status(200).json(result.rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
