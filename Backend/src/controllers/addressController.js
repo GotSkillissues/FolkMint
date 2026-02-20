@@ -42,7 +42,7 @@ const getAddressById = async (req, res) => {
 const createAddress = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { street, city, state, postal_code, country, is_default = false } = req.body;
+    const { street, city, postal_code, country, is_default = false } = req.body;
 
     if (!street || !city || !country) {
       return res.status(400).json({ error: 'Street, city, and country are required' });
@@ -64,10 +64,10 @@ const createAddress = async (req, res) => {
     const makeDefault = is_default || parseInt(existingCount.rows[0].count) === 0;
 
     const result = await pool.query(
-      `INSERT INTO address (user_id, street, city, state, postal_code, country, is_default)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO address (user_id, street, city, postal_code, country, is_default)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [userId, street, city, state, postal_code, country, makeDefault]
+      [userId, street, city, postal_code, country, makeDefault]
     );
 
     res.status(201).json({ message: 'Address created', address: result.rows[0] });
@@ -81,7 +81,7 @@ const updateAddress = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { id } = req.params;
-    const { street, city, state, postal_code, country, is_default } = req.body;
+    const { street, city, postal_code, country, is_default } = req.body;
 
     // Verify ownership
     const existing = await pool.query(
@@ -105,11 +105,6 @@ const updateAddress = async (req, res) => {
     if (city !== undefined) {
       updates.push(`city = $${idx}`);
       params.push(city);
-      idx++;
-    }
-    if (state !== undefined) {
-      updates.push(`state = $${idx}`);
-      params.push(state);
       idx++;
     }
     if (postal_code !== undefined) {

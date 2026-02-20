@@ -1,6 +1,9 @@
 BEGIN;
 
 -- ---------- DROP ----------
+DROP TABLE IF EXISTS notification CASCADE;
+DROP TABLE IF EXISTS wishlist CASCADE;
+DROP TABLE IF EXISTS coupon CASCADE;
 DROP TABLE IF EXISTS preference_category CASCADE;
 DROP TABLE IF EXISTS review CASCADE;
 DROP TABLE IF EXISTS order_item CASCADE;
@@ -47,39 +50,36 @@ CREATE TABLE address (
     city VARCHAR(50) NOT NULL,
     postal_code VARCHAR(20),
     country VARCHAR(50) NOT NULL,
+    is_default BOOLEAN NOT NULL DEFAULT false,
     user_id INT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 -- ---------- PAYMENT METHOD ----------
 CREATE TABLE payment_method (
-    method_id SERIAL PRIMARY KEY,
-    card_last4 CHAR(4),
+    payment_method_id SERIAL PRIMARY KEY,
     type VARCHAR(20) NOT NULL,
+    provider VARCHAR(50),
+    account_number VARCHAR(50),
+    card_last4 CHAR(4),
     expiry_date DATE,
+    is_default BOOLEAN NOT NULL DEFAULT false,
     user_id INT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT chk_payment_type CHECK (
-        type IN ('card','bkash','nagad','rocket','cash_on_delivery')
+        type IN ('card', 'bkash', 'nagad', 'rocket', 'cash_on_delivery')
     )
-);
-
--- ---------- PAYMENT ----------
-CREATE TABLE payment (
-    payment_id SERIAL PRIMARY KEY,
-    amount DECIMAL(10,2) NOT NULL,
-    payment_date TIMESTAMP NOT NULL DEFAULT NOW(),
-    method_id INT NOT NULL,
-    CONSTRAINT chk_payment_amount_nonneg CHECK (amount >= 0),
-    FOREIGN KEY (method_id) REFERENCES payment_method(method_id)
 );
 
 -- ---------- CATEGORY ----------
 CREATE TABLE category (
     category_id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
+    description TEXT,
     parent_category INT,
     CONSTRAINT uq_category_name_parent UNIQUE (name, parent_category),
     FOREIGN KEY (parent_category) REFERENCES category(category_id) ON DELETE SET NULL
@@ -100,20 +100,28 @@ CREATE TABLE product (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     base_price DECIMAL(10,2) NOT NULL DEFAULT 0,
+    stock_quantity INT NOT NULL DEFAULT 0,
     category_id INT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT chk_product_price CHECK (base_price >= 0),
+    CONSTRAINT chk_product_stock CHECK (stock_quantity >= 0),
     FOREIGN KEY (category_id) REFERENCES category(category_id)
 );
 
 -- ---------- PRODUCT VARIANT ----------
 CREATE TABLE product_variant (
     variant_id SERIAL PRIMARY KEY,
+    variant_name VARCHAR(100),
+    sku VARCHAR(50) UNIQUE,
     size VARCHAR(20),
     color VARCHAR(20),
-    stock_quantity INT NOT NULL DEFAULT 0,
     price DECIMAL(10,2) NOT NULL,
+    price_modifier DECIMAL(10,2) NOT NULL DEFAULT 0,
+    stock_quantity INT NOT NULL DEFAULT 0,
     product_id INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT chk_stock CHECK (stock_quantity >= 0),
     CONSTRAINT chk_variant_price CHECK (price >= 0),
     CONSTRAINT uq_variant UNIQUE (product_id, size, color),
@@ -124,6 +132,7 @@ CREATE TABLE product_variant (
 CREATE TABLE product_image (
     image_id SERIAL PRIMARY KEY,
     image_url TEXT NOT NULL,
+    is_primary BOOLEAN NOT NULL DEFAULT false,
     variant_id INT NOT NULL,
     FOREIGN KEY (variant_id) REFERENCES product_variant(variant_id) ON DELETE CASCADE
 );
@@ -141,64 +150,126 @@ CREATE TABLE cart_item (
     cart_item_id SERIAL PRIMARY KEY,
     quantity INT NOT NULL CHECK (quantity > 0),
     cart_id INT NOT NULL,
-    variant_id INT NOT NULL,
+    product_id INT NOT NULL,
+    variant_id INT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     FOREIGN KEY (cart_id) REFERENCES cart(cart_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product(product_id),
     FOREIGN KEY (variant_id) REFERENCES product_variant(variant_id),
-    CONSTRAINT uq_cart_variant UNIQUE (cart_id, variant_id)
+    CONSTRAINT uq_cart_product_variant UNIQUE (cart_id, product_id, variant_id)
 );
 
 -- ---------- ORDERS ----------
 CREATE TABLE orders (
     order_id SERIAL PRIMARY KEY,
-    order_date TIMESTAMP NOT NULL DEFAULT NOW(),
-    total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
     user_id INT NOT NULL,
     address_id INT NOT NULL,
-    payment_id INT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT chk_order_status CHECK (
-        status IN ('pending','paid','shipped','delivered','cancelled')
+        status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled')
     ),
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (address_id) REFERENCES address(address_id),
-    FOREIGN KEY (payment_id) REFERENCES payment(payment_id),
-    CONSTRAINT uq_orders_payment UNIQUE (payment_id)
+    FOREIGN KEY (address_id) REFERENCES address(address_id)
+);
+
+-- ---------- PAYMENT ----------
+CREATE TABLE payment (
+    payment_id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL UNIQUE,
+    payment_method_id INT,
+    amount DECIMAL(10,2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_payment_amount_nonneg CHECK (amount >= 0),
+    CONSTRAINT chk_payment_status CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (payment_method_id) REFERENCES payment_method(payment_method_id)
 );
 
 -- ---------- ORDER ITEM ----------
 CREATE TABLE order_item (
     order_item_id SERIAL PRIMARY KEY,
-    quantity INT NOT NULL CHECK (quantity > 0),
-    price_at_purchase DECIMAL(10,2) NOT NULL CHECK (price_at_purchase >= 0),
     order_id INT NOT NULL,
-    variant_id INT NOT NULL,
+    product_id INT NOT NULL,
+    variant_id INT,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    unit_price DECIMAL(10,2) NOT NULL CHECK (unit_price >= 0),
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product(product_id),
     FOREIGN KEY (variant_id) REFERENCES product_variant(variant_id),
-    CONSTRAINT uq_order_variant UNIQUE (order_id, variant_id)
+    CONSTRAINT uq_order_product_variant UNIQUE (order_id, product_id, variant_id)
 );
 
--- ---------- REVIEW (ENFORCED AFTER PURCHASE) ----------
+-- ---------- REVIEW ----------
 CREATE TABLE review (
     review_id SERIAL PRIMARY KEY,
     rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
+    verified_purchase BOOLEAN NOT NULL DEFAULT false,
     user_id INT NOT NULL,
     product_id INT NOT NULL,
-    order_item_id INT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-
     CONSTRAINT uq_review_user_product UNIQUE (user_id, product_id),
-    CONSTRAINT uq_review_order_item UNIQUE (order_item_id),
-
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (product_id) REFERENCES product(product_id),
-    FOREIGN KEY (order_item_id) REFERENCES order_item(order_item_id) ON DELETE CASCADE
+    FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE
 );
+
+-- ---------- COUPON ----------
+CREATE TABLE coupon (
+    coupon_id SERIAL PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    value DECIMAL(10,2) NOT NULL,
+    min_order_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+    max_discount_amount DECIMAL(10,2),
+    usage_limit INT,
+    used_count INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    expires_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_coupon_type CHECK (type IN ('percentage', 'fixed')),
+    CONSTRAINT chk_coupon_value CHECK (value > 0),
+    CONSTRAINT chk_coupon_min_order CHECK (min_order_amount >= 0),
+    CONSTRAINT chk_coupon_used_count CHECK (used_count >= 0)
+);
+
+-- ---------- WISHLIST ----------
+CREATE TABLE wishlist (
+    wishlist_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_wishlist_user_product UNIQUE (user_id, product_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE
+);
+
+-- ---------- NOTIFICATION ----------
+CREATE TABLE notification (
+    notification_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT false,
+    related_id INT,
+    related_type VARCHAR(50),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_notification_type CHECK (
+        type IN ('order_placed','order_confirmed','order_shipped','order_delivered','order_cancelled','review_approved','system')
+    ),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- ---------- INDEXES ----------
+
 -- Users
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
@@ -208,18 +279,31 @@ CREATE INDEX idx_category_parent ON category(parent_category);
 CREATE INDEX idx_product_category ON product(category_id);
 CREATE INDEX idx_variant_product ON product_variant(product_id);
 CREATE INDEX idx_image_variant ON product_image(variant_id);
+CREATE INDEX idx_image_primary ON product_image(variant_id) WHERE is_primary = true;
 
 -- Cart/Orders
 CREATE INDEX idx_cart_user ON cart(user_id);
 CREATE INDEX idx_cartitem_cart ON cart_item(cart_id);
+CREATE INDEX idx_cartitem_product ON cart_item(product_id);
 CREATE INDEX idx_orders_user ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orderitem_order ON order_item(order_id);
+CREATE INDEX idx_orderitem_product ON order_item(product_id);
+CREATE INDEX idx_payment_order ON payment(order_id);
 
 -- Reviews & Preferences
 CREATE INDEX idx_review_product ON review(product_id);
+CREATE INDEX idx_review_user ON review(user_id);
 CREATE INDEX idx_prefcat_category ON preference_category(category_id);
 
 -- Category
 CREATE UNIQUE INDEX uq_category_name_root ON category(name) WHERE parent_category IS NULL;
+
+-- Wishlist, Coupon, Notification
+CREATE INDEX idx_wishlist_user ON wishlist(user_id);
+CREATE INDEX idx_wishlist_product ON wishlist(product_id);
+CREATE INDEX idx_coupon_code ON coupon(code);
+CREATE INDEX idx_notification_user ON notification(user_id);
+CREATE INDEX idx_notification_user_unread ON notification(user_id) WHERE is_read = false;
 
 COMMIT;

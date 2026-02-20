@@ -8,6 +8,7 @@ const {
   getProfile
 } = require('../controllers/authController');
 const { authenticate } = require('../middleware/authMiddleware');
+const { sensitiveLimiter } = require('../middleware/rateLimitMiddleware');
 
 // Register new user
 router.post('/register', register);
@@ -18,8 +19,8 @@ router.post('/login', login);
 // Logout user
 router.post('/logout', authenticate, logout);
 
-// Refresh token
-router.post('/refresh-token', refreshToken);
+// Refresh token — rate limited to prevent token farming
+router.post('/refresh-token', sensitiveLimiter, refreshToken);
 
 // Get current user profile
 router.get('/profile', authenticate, getProfile);

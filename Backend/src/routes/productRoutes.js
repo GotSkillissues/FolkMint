@@ -18,6 +18,7 @@ const {
   addVariantImage,
   deleteImage
 } = require('../controllers/productController');
+const { authenticate, isAdmin } = require('../middleware/authMiddleware');
 
 // ==================== SPECIAL ROUTES (must come before /:id) ====================
 // Search products
@@ -40,32 +41,31 @@ router.get('/', getProducts);
 router.get('/:id', getProductById);
 
 // Create new product (admin)
-router.post('/', createProduct);
+router.post('/', authenticate, isAdmin, createProduct);
 
 // Update product (admin)
-router.put('/:id', updateProduct);
+router.put('/:id', authenticate, isAdmin, updateProduct);
 
 // Delete product (admin)
-router.delete('/:id', deleteProduct);
+router.delete('/:id', authenticate, isAdmin, deleteProduct);
 
 // ==================== VARIANT ROUTES ====================
 // Get variants for a product
 router.get('/:productId/variants', getProductVariants);
 
-// Create variant for a product
-router.post('/:productId/variants', createVariant);
+// Create variant for a product (admin)
+router.post('/:productId/variants', authenticate, isAdmin, createVariant);
 
-// ==================== VARIANT BY ID (separate router) ====================
-// These are handled via /api/variants routes, but we can also access via products
-router.put('/variants/:id', updateVariant);
-router.patch('/variants/:id/stock', updateVariantStock);
-router.delete('/variants/:id', deleteVariant);
+// ==================== VARIANT BY ID ====================
+router.put('/variants/:id', authenticate, isAdmin, updateVariant);
+router.patch('/variants/:id/stock', authenticate, isAdmin, updateVariantStock);
+router.delete('/variants/:id', authenticate, isAdmin, deleteVariant);
 
 // ==================== IMAGE ROUTES ====================
-// Add image to variant
-router.post('/variants/:variantId/images', addVariantImage);
+// Add image to variant (admin)
+router.post('/variants/:variantId/images', authenticate, isAdmin, addVariantImage);
 
-// Delete image
-router.delete('/images/:id', deleteImage);
+// Delete image (admin)
+router.delete('/images/:id', authenticate, isAdmin, deleteImage);
 
 module.exports = router;

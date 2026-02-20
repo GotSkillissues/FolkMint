@@ -53,7 +53,7 @@ const createPaymentMethod = async (req, res) => {
       return res.status(400).json({ error: 'Type and provider are required' });
     }
 
-    const validTypes = ['credit_card', 'debit_card', 'paypal', 'bank_transfer', 'cash_on_delivery'];
+    const validTypes = ['card', 'bkash', 'nagad', 'rocket', 'cash_on_delivery'];
     if (!validTypes.includes(type)) {
       return res.status(400).json({ error: 'Invalid payment type' });
     }
@@ -108,7 +108,7 @@ const updatePaymentMethod = async (req, res) => {
     let idx = 1;
 
     if (type !== undefined) {
-      const validTypes = ['credit_card', 'debit_card', 'paypal', 'bank_transfer', 'cash_on_delivery'];
+      const validTypes = ['card', 'bkash', 'nagad', 'rocket', 'cash_on_delivery'];
       if (!validTypes.includes(type)) {
         return res.status(400).json({ error: 'Invalid payment type' });
       }

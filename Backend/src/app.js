@@ -1,6 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const routes = require('./routes');
+
+const { securityHeaders } = require('./middleware/securityMiddleware');
+const { requestLogger } = require('./middleware/requestLoggerMiddleware');
+const { apiLimiter, authLimiter, uploadLimiter } = require('./middleware/rateLimitMiddleware');
+const { errorHandler, notFoundHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
 
@@ -12,28 +18,31 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
-// Middleware
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// --- Global Middleware ---
+app.use(securityHeaders);                               // HTTP security headers
+app.use(cors(corsOptions));                             // CORS
+app.use(express.json());                                // Parse JSON bodies
+app.use(express.urlencoded({ extended: true }));        // Parse URL-encoded bodies
+app.use(requestLogger);                                 // Log every request
 
-// Routes
+// --- Static Files ---
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// --- Rate Limiters (applied per route group) ---
+app.use('/api/auth', authLimiter);                      // Strict: 10 req / 15 min
+app.use('/api/upload', uploadLimiter);                  // 20 uploads / hour
+app.use('/api', apiLimiter);                            // General: 100 req / 15 min
+
+// --- Routes ---
 app.use('/api', routes);
 
-// Health check
+// --- Health Check ---
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'FolkMint API is running' });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
+// --- 404 & Error Handlers (must be last) ---
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 module.exports = app;

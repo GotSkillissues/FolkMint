@@ -7,10 +7,10 @@ const getCategories = async (req, res) => {
     const { tree = 'false' } = req.query;
 
     const result = await pool.query(
-      `SELECT c.*, p.name as parent_name 
-       FROM category c 
-       LEFT JOIN category p ON c.parent_id = p.category_id
-       ORDER BY c.parent_id NULLS FIRST, c.name`
+      `SELECT c.*, p.name as parent_name
+       FROM category c
+       LEFT JOIN category p ON c.parent_category = p.category_id
+       ORDER BY c.parent_category NULLS FIRST, c.name`
     );
 
     if (tree === 'true') {
@@ -24,8 +24,8 @@ const getCategories = async (req, res) => {
       });
 
       categories.forEach(cat => {
-        if (cat.parent_id) {
-          categoryMap[cat.parent_id]?.children.push(categoryMap[cat.category_id]);
+        if (cat.parent_category) {
+          categoryMap[cat.parent_category]?.children.push(categoryMap[cat.category_id]);
         } else {
           roots.push(categoryMap[cat.category_id]);
         }
@@ -47,11 +47,11 @@ const getCategoryById = async (req, res) => {
 
     const result = await pool.query(
       `SELECT c.*, p.name as parent_name,
-              COALESCE(json_agg(json_build_object('category_id', ch.category_id, 'name', ch.name)) 
+              COALESCE(json_agg(json_build_object('category_id', ch.category_id, 'name', ch.name))
               FILTER (WHERE ch.category_id IS NOT NULL), '[]') as children
        FROM category c
-       LEFT JOIN category p ON c.parent_id = p.category_id
-       LEFT JOIN category ch ON ch.parent_id = c.category_id
+       LEFT JOIN category p ON c.parent_category = p.category_id
+       LEFT JOIN category ch ON ch.parent_category = c.category_id
        WHERE c.category_id = $1
        GROUP BY c.category_id, p.name`,
       [id]
@@ -88,7 +88,7 @@ const createCategory = async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO category (name, description, parent_id)
+      `INSERT INTO category (name, description, parent_category)
        VALUES ($1, $2, $3)
        RETURNING *`,
       [name, description, parent_id]
@@ -125,7 +125,7 @@ const updateCategory = async (req, res) => {
       if (parent_id === parseInt(id)) {
         return res.status(400).json({ error: 'Category cannot be its own parent' });
       }
-      updates.push(`parent_id = $${idx}`);
+      updates.push(`parent_category = $${idx}`);
       params.push(parent_id);
       idx++;
     }
@@ -159,7 +159,7 @@ const deleteCategory = async (req, res) => {
 
     // Check for child categories
     const children = await pool.query(
-      'SELECT category_id FROM category WHERE parent_id = $1',
+      'SELECT category_id FROM category WHERE parent_category = $1',
       [id]
     );
 
@@ -218,7 +218,7 @@ const getCategoryProducts = async (req, res) => {
     // Include child categories if requested
     if (include_children === 'true') {
       const children = await pool.query(
-        'SELECT category_id FROM category WHERE parent_id = $1',
+        'SELECT category_id FROM category WHERE parent_category = $1',
         [id]
       );
       categoryIds = categoryIds.concat(children.rows.map(c => c.category_id));

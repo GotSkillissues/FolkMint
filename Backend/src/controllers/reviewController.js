@@ -302,7 +302,9 @@ const getUserReviews = async (req, res) => {
 
     const result = await pool.query(
       `SELECT r.*, p.name as product_name,
-              (SELECT url FROM product_image WHERE product_id = p.product_id AND is_primary = true LIMIT 1) as product_image
+              (SELECT pi.image_url FROM product_image pi
+               JOIN product_variant pv ON pi.variant_id = pv.variant_id
+               WHERE pv.product_id = p.product_id AND pi.is_primary = true LIMIT 1) as product_image
        FROM review r
        JOIN product p ON r.product_id = p.product_id
        WHERE r.user_id = $1

@@ -1,5 +1,6 @@
 // Order Controller - Handle order-related operations
 const { pool } = require('../config/database');
+const { createNotificationInternal } = require('./notificationController');
 
 // Get all orders (Admin: all, User: own)
 const getOrders = async (req, res) => {
@@ -11,11 +12,11 @@ const getOrders = async (req, res) => {
 
     let query = `
       SELECT o.*, u.username, u.email,
-             a.street, a.city, a.state, a.country,
+             a.street, a.city, a.country,
              (SELECT COUNT(*) FROM order_item WHERE order_id = o.order_id) as item_count
       FROM orders o
       JOIN users u ON o.user_id = u.user_id
-      LEFT JOIN address a ON o.shipping_address_id = a.address_id
+      LEFT JOIN address a ON o.address_id = a.address_id
       WHERE 1=1
     `;
     const params = [];
@@ -65,10 +66,10 @@ const getOrderById = async (req, res) => {
 
     const orderResult = await pool.query(
       `SELECT o.*, u.username, u.email, u.first_name, u.last_name,
-              a.street, a.city, a.state, a.postal_code, a.country
+              a.street, a.city, a.postal_code, a.country
        FROM orders o
        JOIN users u ON o.user_id = u.user_id
-       LEFT JOIN address a ON o.shipping_address_id = a.address_id
+       LEFT JOIN address a ON o.address_id = a.address_id
        WHERE o.order_id = $1`,
       [id]
     );
@@ -88,7 +89,9 @@ const getOrderById = async (req, res) => {
     const itemsResult = await pool.query(
       `SELECT oi.*, p.name as product_name, p.base_price,
               pv.variant_name, pv.sku,
-              (SELECT url FROM product_image WHERE product_id = p.product_id AND is_primary = true LIMIT 1) as image
+              (SELECT pi.image_url FROM product_image pi
+               JOIN product_variant pv2 ON pi.variant_id = pv2.variant_id
+               WHERE pv2.product_id = p.product_id AND pi.is_primary = true LIMIT 1) as image
        FROM order_item oi
        JOIN product p ON oi.product_id = p.product_id
        LEFT JOIN product_variant pv ON oi.variant_id = pv.variant_id
@@ -124,7 +127,7 @@ const createOrder = async (req, res) => {
     await client.query('BEGIN');
 
     const userId = req.user.userId;
-    const { shipping_address_id, payment_method_id } = req.body;
+    const { shipping_address_id, payment_method_id, coupon_code } = req.body;
 
     if (!shipping_address_id) {
       return res.status(400).json({ error: 'Shipping address is required' });
@@ -179,9 +182,58 @@ const createOrder = async (req, res) => {
       });
     }
 
+    // --- Coupon validation and discount ---
+    let discountAmount = 0;
+    let appliedCoupon = null;
+
+    if (coupon_code) {
+      const couponResult = await client.query(
+        'SELECT * FROM coupon WHERE code = $1',
+        [coupon_code.toUpperCase()]
+      );
+      if (couponResult.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Invalid coupon code' });
+      }
+      const coupon = couponResult.rows[0];
+      if (!coupon.is_active) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Coupon is no longer active' });
+      }
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Coupon has expired' });
+      }
+      if (coupon.usage_limit !== null && coupon.used_count >= coupon.usage_limit) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Coupon usage limit reached' });
+      }
+      if (totalAmount < parseFloat(coupon.min_order_amount)) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          error: `Minimum order amount of ${coupon.min_order_amount} required for this coupon`
+        });
+      }
+      if (coupon.type === 'percentage') {
+        discountAmount = (totalAmount * parseFloat(coupon.value)) / 100;
+        if (coupon.max_discount_amount) {
+          discountAmount = Math.min(discountAmount, parseFloat(coupon.max_discount_amount));
+        }
+      } else {
+        discountAmount = Math.min(parseFloat(coupon.value), totalAmount);
+      }
+      discountAmount = parseFloat(discountAmount.toFixed(2));
+      totalAmount = parseFloat((totalAmount - discountAmount).toFixed(2));
+      appliedCoupon = coupon;
+      await client.query(
+        'UPDATE coupon SET used_count = used_count + 1 WHERE coupon_id = $1',
+        [coupon.coupon_id]
+      );
+    }
+
     // Create order
     const orderResult = await client.query(
-      `INSERT INTO orders (user_id, status, total_amount, shipping_address_id)
+      `INSERT INTO orders (user_id, status, total_amount, address_id)
        VALUES ($1, 'pending', $2, $3)
        RETURNING *`,
       [userId, totalAmount, shipping_address_id]
@@ -226,10 +278,18 @@ const createOrder = async (req, res) => {
 
     await client.query('COMMIT');
 
-    res.status(201).json({ 
-      message: 'Order created', 
+    // Fire notification (non-blocking)
+    createNotificationInternal(
+      userId, 'order_placed', 'Order Placed',
+      `Your order #${orderId} has been placed. Total: ${totalAmount}.`,
+      orderId, 'order'
+    ).catch(() => {});
+
+    res.status(201).json({
+      message: 'Order created',
       order: orderResult.rows[0],
-      items_count: items.length
+      items_count: items.length,
+      ...(appliedCoupon && { coupon_applied: appliedCoupon.code, discount_amount: discountAmount })
     });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -280,6 +340,19 @@ const updateOrder = async (req, res) => {
           );
         }
       }
+    }
+
+    // Fire notification based on new status (non-blocking)
+    const notifMap = {
+      shipped:   ['order_shipped',   'Order Shipped',   `Your order #${id} has been shipped!`],
+      delivered: ['order_delivered', 'Order Delivered', `Your order #${id} has been delivered.`],
+      cancelled: ['order_cancelled', 'Order Cancelled', `Your order #${id} was cancelled by our team.`],
+      confirmed: ['order_confirmed', 'Order Confirmed', `Your order #${id} is confirmed and being prepared.`]
+    };
+    if (notifMap[status]) {
+      const [type, title, message] = notifMap[status];
+      createNotificationInternal(result.rows[0].user_id, type, title, message, parseInt(id), 'order')
+        .catch(() => {});
     }
 
     res.status(200).json({ message: 'Order updated', order: result.rows[0] });
@@ -351,6 +424,13 @@ const cancelOrder = async (req, res) => {
     );
 
     await client.query('COMMIT');
+
+    // Fire notification (non-blocking)
+    createNotificationInternal(
+      order.user_id, 'order_cancelled', 'Order Cancelled',
+      `Your order #${id} has been cancelled. Any payment will be refunded.`,
+      parseInt(id), 'order'
+    ).catch(() => {});
 
     res.status(200).json({ message: 'Order cancelled' });
   } catch (error) {

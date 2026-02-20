@@ -23,17 +23,19 @@ const getCart = async (req, res) => {
 
     // Get cart items with product details
     const itemsResult = await pool.query(
-      `SELECT ci.cart_item_id, ci.quantity, ci.added_at,
+      `SELECT ci.cart_item_id, ci.quantity, ci.created_at,
               p.product_id, p.name, p.base_price, p.stock_quantity,
-              p.description, p.artisan_name,
+              p.description,
               pv.variant_id, pv.variant_name, pv.price_modifier, pv.sku,
               pv.stock_quantity as variant_stock,
-              (SELECT url FROM product_image WHERE product_id = p.product_id AND is_primary = true LIMIT 1) as image
+              (SELECT pi.image_url FROM product_image pi
+               JOIN product_variant pv2 ON pi.variant_id = pv2.variant_id
+               WHERE pv2.product_id = p.product_id AND pi.is_primary = true LIMIT 1) as image
        FROM cart_item ci
        JOIN product p ON ci.product_id = p.product_id
        LEFT JOIN product_variant pv ON ci.variant_id = pv.variant_id
        WHERE ci.cart_id = $1
-       ORDER BY ci.added_at DESC`,
+       ORDER BY ci.created_at DESC`,
       [cartId]
     );
 
