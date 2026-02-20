@@ -1,5 +1,7 @@
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// In development Vite proxies /api → http://localhost:5000/api (see vite.config.js).
+// Override with VITE_API_BASE_URL env var for production / custom setups.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export const API_ENDPOINTS = {
   // ==================== AUTH ====================
@@ -62,6 +64,7 @@ export const API_ENDPOINTS = {
     NEW_ARRIVALS: '/products/new-arrivals',
     POPULAR: '/products/popular',
     TOP_RATED: '/products/top-rated',
+    FOR_YOU: '/products/for-you',
   },
 
   // ==================== PRODUCT VARIANTS ====================

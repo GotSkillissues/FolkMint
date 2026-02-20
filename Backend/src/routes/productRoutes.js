@@ -9,6 +9,7 @@ const {
   getNewArrivals,
   getPopularProducts,
   getTopRatedProducts,
+  getRecommendedProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -37,6 +38,9 @@ router.get('/popular', getPopularProducts);
 
 // Get top-rated products (avg rating >= min_rating) - public
 router.get('/top-rated', getTopRatedProducts);
+
+// Get personalised "For You" products - requires login
+router.get('/for-you', authenticate, getRecommendedProducts);
 
 // Get products by category
 router.get('/category/:categoryId', getProductsByCategory);

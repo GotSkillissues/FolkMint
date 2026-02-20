@@ -983,6 +983,75 @@ const getTopRatedProducts = async (req, res) => {
   }
 };
 
+// ==================== GET RECOMMENDED PRODUCTS (Authenticated) ====================
+// Products from the user's preferred categories, ranked by rating.
+// Falls back to popular products when the user has no saved preferences.
+const getRecommendedProducts = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { limit = 10 } = req.query;
+
+    // 1. Fetch products that belong to the user's preferred categories
+    const prefResult = await pool.query(
+      `SELECT
+         p.product_id, p.name, p.base_price, p.description,
+         c.name AS category_name,
+         ROUND(COALESCE(AVG(r.rating), 0)::numeric, 1) AS avg_rating,
+         COUNT(DISTINCT r.review_id) AS review_count,
+         (SELECT pi.image_url FROM product_image pi
+          JOIN product_variant pv2 ON pi.variant_id = pv2.variant_id
+          WHERE pv2.product_id = p.product_id AND pi.is_primary = true
+          LIMIT 1) AS image_url
+       FROM product p
+       JOIN category c ON p.category_id = c.category_id
+       LEFT JOIN review r ON p.product_id = r.product_id
+       WHERE p.category_id IN (
+         SELECT pc.category_id
+         FROM preference_category pc
+         JOIN user_preferences up ON pc.preference_id = up.preference_id
+         WHERE up.user_id = $1
+       )
+       GROUP BY p.product_id, p.name, p.base_price, p.description, c.name
+       ORDER BY avg_rating DESC, review_count DESC, p.created_at DESC
+       LIMIT $2`,
+      [userId, parseInt(limit)]
+    );
+
+    if (prefResult.rows.length > 0) {
+      return res.status(200).json({ products: prefResult.rows, source: 'preferences' });
+    }
+
+    // 2. No preferences stored — fall back to popular products
+    const fallback = await pool.query(
+      `SELECT
+         p.product_id, p.name, p.base_price, p.description,
+         c.name AS category_name,
+         COUNT(DISTINCT o.order_id) AS order_count,
+         ROUND(COALESCE(AVG(r.rating), 0)::numeric, 1) AS avg_rating,
+         COUNT(DISTINCT r.review_id) AS review_count,
+         (SELECT pi.image_url FROM product_image pi
+          JOIN product_variant pv2 ON pi.variant_id = pv2.variant_id
+          WHERE pv2.product_id = p.product_id AND pi.is_primary = true
+          LIMIT 1) AS image_url
+       FROM product p
+       JOIN category c ON p.category_id = c.category_id
+       LEFT JOIN product_variant pv ON p.product_id = pv.product_id
+       LEFT JOIN order_item oi ON pv.variant_id = oi.variant_id
+       LEFT JOIN orders o ON oi.order_id = o.order_id AND o.status != 'cancelled'
+       LEFT JOIN review r ON p.product_id = r.product_id
+       GROUP BY p.product_id, p.name, p.base_price, p.description, c.name
+       ORDER BY order_count DESC, avg_rating DESC, p.created_at DESC
+       LIMIT $1`,
+      [parseInt(limit)]
+    );
+
+    res.status(200).json({ products: fallback.rows, source: 'popular' });
+  } catch (error) {
+    console.error('Error fetching recommended products:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   // Product CRUD
   getProducts,
@@ -993,6 +1062,7 @@ module.exports = {
   getNewArrivals,
   getPopularProducts,
   getTopRatedProducts,
+  getRecommendedProducts,
   createProduct,
   updateProduct,
   deleteProduct,

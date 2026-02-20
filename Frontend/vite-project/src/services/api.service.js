@@ -29,13 +29,18 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
-      // Handle specific error codes
-      switch (error.response.status) {
+      const { status, config } = error.response;
+      const isAuthEndpoint = config?.url?.startsWith('/auth/');
+
+      switch (status) {
         case 401:
-          // Unauthorized - clear token and redirect to login
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
+          // Only force-logout if a token exists (expired session) and it's not a
+          // login/register call — those legitimately return 401 for bad credentials.
+          if (!isAuthEndpoint && localStorage.getItem('token')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+          }
           break;
         case 403:
           console.error('Forbidden: You do not have permission');
@@ -47,7 +52,7 @@ apiClient.interceptors.response.use(
           console.error('Server error');
           break;
         default:
-          console.error('An error occurred:', error.response.data.message);
+          break;
       }
     } else if (error.request) {
       console.error('Network error: No response received');

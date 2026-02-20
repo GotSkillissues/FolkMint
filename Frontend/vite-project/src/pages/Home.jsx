@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { productService } from '../services';
+import { useAuth } from '../context';
 import './Home.css';
 
 /* ── helpers ── */
@@ -57,8 +58,8 @@ function useCarousel(trackRef) {
 }
 
 /* ── Arrow buttons ── */
-const ArrBtn = ({ id, disabled, onClick, dir }) => (
-  <button className="arr-btn" id={id} disabled={disabled} onClick={onClick}
+const ArrBtn = ({ disabled, onClick, dir }) => (
+  <button className="arr-btn" disabled={disabled} onClick={onClick}
     aria-label={dir === 'prev' ? 'Previous' : 'Next'}>
     {dir === 'prev'
       ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -134,28 +135,48 @@ const EmptyMsg = ({ msg }) => (
 ═══════════════════════════════════════════ */
 const Home = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+
+  /* product state */
+  const [forYou,     setForYou]     = useState([]);
   const [popular,    setPopular]    = useState([]);
   const [topRated,   setTopRated]   = useState([]);
+  const [forYouLoad, setForYouLoad] = useState(true);
   const [popLoad,    setPopLoad]    = useState(true);
   const [ratedLoad,  setRatedLoad]  = useState(true);
 
-  const popularRef  = useRef(null);
-  const ratedRef    = useRef(null);
-  const mensRef     = useRef(null);
-  const womensRef   = useRef(null);
-  const decorRef    = useRef(null);
-  const jewRef      = useRef(null);
+  /* carousel refs */
+  const forYouRef  = useRef(null);
+  const popularRef = useRef(null);
+  const ratedRef   = useRef(null);
+  const mensRef    = useRef(null);
+  const womensRef  = useRef(null);
+  const decorRef   = useRef(null);
+  const jewRef     = useRef(null);
 
-  const pop   = useCarousel(popularRef);
-  const rated = useCarousel(ratedRef);
+  /* carousel hooks */
+  const fy     = useCarousel(forYouRef);
+  const pop    = useCarousel(popularRef);
+  const rated  = useCarousel(ratedRef);
   const mens   = useCarousel(mensRef);
   const womens = useCarousel(womensRef);
   const decor  = useCarousel(decorRef);
   const jew    = useCarousel(jewRef);
 
-  /* load products */
+  /* ── For You (auth-only) ── */
   useEffect(() => {
-    // Popular
+    if (!isAuthenticated) {
+      setForYouLoad(false);
+      return;
+    }
+    productService.getRecommendedProducts(12)
+      .then(d => setForYou(d.products || []))
+      .catch(() => setForYou([]))
+      .finally(() => { setForYouLoad(false); setTimeout(() => fy.update(), 50); });
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── Public sections ── */
+  useEffect(() => {
     productService.getPopularProducts(10, 30)
       .then(d => setPopular(d.products || []))
       .catch(() =>
@@ -165,7 +186,6 @@ const Home = () => {
       )
       .finally(() => { setPopLoad(false); setTimeout(() => pop.update(), 50); });
 
-    // Top rated
     productService.getTopRatedProducts(10, 4.2, 1)
       .then(d => setTopRated(d.products || []))
       .catch(() =>
@@ -176,7 +196,7 @@ const Home = () => {
       .finally(() => { setRatedLoad(false); setTimeout(() => rated.update(), 50); });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const toProducts = (q) => navigate(q);
+  const firstName = user?.first_name || user?.username || 'there';
 
   return (
     <div className="home-page">
@@ -233,6 +253,37 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* ── FOR YOU (authenticated users only) ── */}
+      {isAuthenticated && (forYouLoad || forYou.length > 0) && (
+        <section className="prod-section for-you-section">
+          <div className="sec-inner">
+            <div className="sec-header">
+              <div className="sec-header-text">
+                <p className="sec-eyebrow for-you-eyebrow">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                  Picked for You
+                </p>
+                <h2 className="sec-title">
+                  {firstName !== 'there' ? `${firstName}'s picks` : 'Your Personal Picks'}
+                </h2>
+              </div>
+              <div className="arr-group">
+                <ArrBtn dir="prev" disabled={fy.prevDis} onClick={fy.prev} />
+                <ArrBtn dir="next" disabled={fy.nextDis} onClick={fy.next} />
+              </div>
+            </div>
+            <div className="prod-carousel-track" ref={forYouRef}>
+              {forYouLoad
+                ? Array.from({ length: 5 }).map((_, i) => <Skel key={i} />)
+                : forYou.map(p => <ProdCard key={p.product_id} p={p} showRating />)
+              }
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── POPULAR PRODUCTS ── */}
       <section className="prod-section">

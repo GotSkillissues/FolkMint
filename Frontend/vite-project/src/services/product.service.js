@@ -100,6 +100,18 @@ const productService = {
     }
   },
 
+  // Get personalised "For You" products (authenticated — sends JWT automatically)
+  getRecommendedProducts: async (limit = 10) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.FOR_YOU, {
+        params: { limit },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   // ==================== ADMIN OPERATIONS ====================
 
   // Create product (admin only)
