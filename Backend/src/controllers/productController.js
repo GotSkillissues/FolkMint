@@ -911,6 +911,78 @@ const deleteImage = async (req, res) => {
   }
 };
 
+// ==================== GET POPULAR PRODUCTS (Public) ====================
+// Most ordered products in the last 30 days
+const getPopularProducts = async (req, res) => {
+  try {
+    const { limit = 8, days = 30 } = req.query;
+
+    const result = await pool.query(
+      `SELECT
+         p.product_id, p.name, p.base_price, p.description,
+         c.name as category_name,
+         COUNT(DISTINCT o.order_id) as order_count,
+         COALESCE(SUM(oi.quantity), 0) as units_sold,
+         ROUND(COALESCE(AVG(r.rating), 0)::numeric, 1) as avg_rating,
+         COUNT(DISTINCT r.review_id) as review_count,
+         (SELECT pi.image_url FROM product_image pi
+          JOIN product_variant pv2 ON pi.variant_id = pv2.variant_id
+          WHERE pv2.product_id = p.product_id AND pi.is_primary = true
+          LIMIT 1) as image_url
+       FROM product p
+       JOIN category c ON p.category_id = c.category_id
+       LEFT JOIN product_variant pv ON p.product_id = pv.product_id
+       LEFT JOIN order_item oi ON pv.variant_id = oi.variant_id
+       LEFT JOIN orders o ON oi.order_id = o.order_id
+         AND o.status != 'cancelled'
+         AND o.created_at >= NOW() - ($2 || ' days')::INTERVAL
+       LEFT JOIN review r ON p.product_id = r.product_id
+       GROUP BY p.product_id, p.name, p.base_price, p.description, c.name
+       ORDER BY order_count DESC, units_sold DESC, p.created_at DESC
+       LIMIT $1`,
+      [parseInt(limit), parseInt(days)]
+    );
+
+    res.status(200).json({ products: result.rows });
+  } catch (error) {
+    console.error('Error fetching popular products:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ==================== GET TOP RATED PRODUCTS (Public) ====================
+// Products with avg rating >= threshold and minimum review count
+const getTopRatedProducts = async (req, res) => {
+  try {
+    const { limit = 8, min_rating = 4.2, min_reviews = 1 } = req.query;
+
+    const result = await pool.query(
+      `SELECT
+         p.product_id, p.name, p.base_price, p.description,
+         c.name as category_name,
+         ROUND(AVG(r.rating)::numeric, 1) as avg_rating,
+         COUNT(r.review_id) as review_count,
+         (SELECT pi.image_url FROM product_image pi
+          JOIN product_variant pv2 ON pi.variant_id = pv2.variant_id
+          WHERE pv2.product_id = p.product_id AND pi.is_primary = true
+          LIMIT 1) as image_url
+       FROM product p
+       JOIN category c ON p.category_id = c.category_id
+       JOIN review r ON p.product_id = r.product_id
+       GROUP BY p.product_id, p.name, p.base_price, p.description, c.name
+       HAVING AVG(r.rating) >= $1 AND COUNT(r.review_id) >= $2
+       ORDER BY avg_rating DESC, review_count DESC
+       LIMIT $3`,
+      [parseFloat(min_rating), parseInt(min_reviews), parseInt(limit)]
+    );
+
+    res.status(200).json({ products: result.rows });
+  } catch (error) {
+    console.error('Error fetching top-rated products:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   // Product CRUD
   getProducts,
@@ -919,6 +991,8 @@ module.exports = {
   searchProducts,
   getFeaturedProducts,
   getNewArrivals,
+  getPopularProducts,
+  getTopRatedProducts,
   createProduct,
   updateProduct,
   deleteProduct,

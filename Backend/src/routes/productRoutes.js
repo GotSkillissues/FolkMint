@@ -7,6 +7,8 @@ const {
   searchProducts,
   getFeaturedProducts,
   getNewArrivals,
+  getPopularProducts,
+  getTopRatedProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -29,6 +31,12 @@ router.get('/featured', getFeaturedProducts);
 
 // Get new arrivals
 router.get('/new-arrivals', getNewArrivals);
+
+// Get popular products (most ordered in last 30 days) - public
+router.get('/popular', getPopularProducts);
+
+// Get top-rated products (avg rating >= min_rating) - public
+router.get('/top-rated', getTopRatedProducts);
 
 // Get products by category
 router.get('/category/:categoryId', getProductsByCategory);

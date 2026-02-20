@@ -60,6 +60,8 @@ export const API_ENDPOINTS = {
     SEARCH: '/products/search',
     FEATURED: '/products/featured',
     NEW_ARRIVALS: '/products/new-arrivals',
+    POPULAR: '/products/popular',
+    TOP_RATED: '/products/top-rated',
   },
 
   // ==================== PRODUCT VARIANTS ====================

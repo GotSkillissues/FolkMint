@@ -76,6 +76,30 @@ const productService = {
     }
   },
 
+  // Get popular products (most ordered)
+  getPopularProducts: async (limit = 10, days = 30) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.POPULAR, {
+        params: { limit, days },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get top-rated products
+  getTopRatedProducts: async (limit = 10, minRating = 4.2, minReviews = 1) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.TOP_RATED, {
+        params: { limit, min_rating: minRating, min_reviews: minReviews },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   // ==================== ADMIN OPERATIONS ====================
 
   // Create product (admin only)
