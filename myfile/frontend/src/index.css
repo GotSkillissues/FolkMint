@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Rich Earth Palette */
+  --color-earth-50: #fcfaf8;
+  --color-earth-100: #f5f1ed;
+  --color-earth-200: #e8dfd5;
+  --color-earth-300: #d6c4b5;
+  --color-earth-400: #bf9f88;
+  --color-earth-500: #a67c5f;
+  --color-earth-600: #8c634a;
+  --color-earth-700: #75513d;
+  --color-earth-800: #5c4132;
+  --color-earth-900: #2d241e;
+  /* Deep Charcoal Earth */
+
+  /* Vibrant Bamboo & Accents */
+  --color-bamboo-50: #f7f9f3;
+  --color-bamboo-100: #eef4e8;
+  --color-bamboo-200: #dbe9d3;
+  --color-bamboo-500: #8ba870;
+  --color-bamboo-600: #6b8a51;
+  --color-bamboo-700: #526b3e;
+
+  /* Typography */
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-earth-50 text-earth-900 font-sans selection:bg-bamboo-200 transition-colors duration-500;
+    background-image:
+      radial-gradient(at 0% 0%, hsla(25, 20%, 95%, 1) 0, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(20, 10%, 90%, 1) 0, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238c634a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif tracking-tight leading-tight;
+  }
+}
+
+@layer components {
+  .premium-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl shadow-earth-900/5 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-earth-900/10;
+  }
+
+  .dope-button {
+    @apply relative overflow-hidden bg-earth-900 text-white px-8 py-3 rounded-full font-bold transition-all duration-300 hover:bg-earth-800 hover:scale-105 active:scale-95 shadow-lg;
+  }
+
+  .cultural-text {
+    @apply font-serif italic text-earth-600;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
