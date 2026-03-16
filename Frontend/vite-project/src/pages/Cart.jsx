@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context';
 import './Cart.css';
 
+const getCartItemId = (item) => item?.cartItemId || item?.variant_id || item?.product_id || item?._id || item?.id;
+
 const Cart = () => {
   const navigate = useNavigate();
   const { cartItems, cartTotal, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -29,7 +31,7 @@ const Cart = () => {
       <div className="cart-container">
         <div className="cart-items">
           {cartItems.map((item) => (
-            <div key={item._id} className="cart-item">
+            <div key={getCartItemId(item)} className="cart-item">
               <img 
                 src={item.image || '/placeholder-product.jpg'} 
                 alt={item.name}
@@ -43,14 +45,14 @@ const Cart = () => {
 
               <div className="cart-item-quantity">
                 <button 
-                  onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                  onClick={() => updateQuantity(getCartItemId(item), item.quantity - 1)}
                   className="qty-btn"
                 >
                   -
                 </button>
                 <span className="quantity-display">{item.quantity}</span>
                 <button 
-                  onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                  onClick={() => updateQuantity(getCartItemId(item), item.quantity + 1)}
                   className="qty-btn"
                 >
                   +
@@ -62,7 +64,7 @@ const Cart = () => {
               </div>
 
               <button 
-                onClick={() => removeFromCart(item._id)}
+                onClick={() => removeFromCart(getCartItemId(item))}
                 className="remove-btn"
               >
                 ×

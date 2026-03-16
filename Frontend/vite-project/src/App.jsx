@@ -1,7 +1,27 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, CartProvider } from './context';
-import { Layout, ProtectedRoute } from './components';
-import { Home, Login, Register, ProductDetail, Cart } from './pages';
+import { Layout, ProtectedRoute, RequireAdmin } from './components';
+import {
+  Home,
+  Login,
+  Register,
+  ProductDetail,
+  Cart,
+  Products,
+  Checkout,
+  Account,
+  Orders,
+  Wishlist,
+  About,
+  Terms,
+  Privacy,
+  Shipping,
+  Help,
+  AdminDashboard,
+  AdminUsers,
+  AdminOrders,
+  AdminProducts,
+} from './pages';
 import './App.css';
 
 function App() {
@@ -13,8 +33,14 @@ function App() {
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
+              <Route path="/products" element={<Products />} />
               <Route path="/products/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/shipping" element={<Shipping />} />
+              <Route path="/help" element={<Help />} />
               
               {/* Auth Routes - Only for non-authenticated users */}
               <Route 
@@ -35,7 +61,78 @@ function App() {
               />
               
               {/* Protected Routes - Require authentication */}
-              {/* Add more protected routes as needed */}
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <Checkout />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute>
+                    <Account />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <Orders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/wishlist"
+                element={
+                  <ProtectedRoute>
+                    <Wishlist />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <RequireAdmin>
+                      <AdminDashboard />
+                    </RequireAdmin>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute>
+                    <RequireAdmin>
+                      <AdminUsers />
+                    </RequireAdmin>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <ProtectedRoute>
+                    <RequireAdmin>
+                      <AdminOrders />
+                    </RequireAdmin>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <ProtectedRoute>
+                    <RequireAdmin>
+                      <AdminProducts />
+                    </RequireAdmin>
+                  </ProtectedRoute>
+                }
+              />
               
             </Routes>
           </Layout>

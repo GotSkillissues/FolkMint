@@ -9,3 +9,4 @@ export { default as ProductCard } from './Product/ProductCard';
 // Common Components
 export { default as Loading } from './Common/Loading';
 export { default as ProtectedRoute } from './Common/ProtectedRoute';
+export { default as RequireAdmin } from './Common/RequireAdmin';

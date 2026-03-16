@@ -15,7 +15,8 @@ export const useAddresses = () => {
     setError(null);
     try {
       const response = await addressService.getUserAddresses();
-      const addressList = response.data || response || [];
+      const rawList = response.addresses || response.data || response || [];
+      const addressList = Array.isArray(rawList) ? rawList.filter((item) => item?.address_id) : [];
       setAddresses(addressList);
       
       // Auto-select first address if none selected
@@ -37,7 +38,10 @@ export const useAddresses = () => {
   const addAddress = async (addressData) => {
     try {
       const response = await addressService.createAddress(addressData);
-      const newAddress = response.data || response;
+      const newAddress = response.address || response.data?.address || response.data || response;
+      if (!newAddress?.address_id) {
+        return { success: false, error: 'Invalid address response from server' };
+      }
       setAddresses(prev => [...prev, newAddress]);
       return { success: true, address: newAddress };
     } catch (err) {
@@ -49,7 +53,10 @@ export const useAddresses = () => {
   const updateAddress = async (addressId, addressData) => {
     try {
       const response = await addressService.updateAddress(addressId, addressData);
-      const updatedAddress = response.data || response;
+      const updatedAddress = response.address || response.data?.address || response.data || response;
+      if (!updatedAddress?.address_id) {
+        return { success: false, error: 'Invalid address response from server' };
+      }
       setAddresses(prev => 
         prev.map(addr => 
           addr.address_id === addressId ? updatedAddress : addr
@@ -68,10 +75,13 @@ export const useAddresses = () => {
   const deleteAddress = async (addressId) => {
     try {
       await addressService.deleteAddress(addressId);
-      setAddresses(prev => prev.filter(addr => addr.address_id !== addressId));
-      if (selectedAddress?.address_id === addressId) {
-        setSelectedAddress(addresses.find(a => a.address_id !== addressId) || null);
-      }
+      setAddresses(prev => {
+        const filtered = prev.filter(addr => addr.address_id !== addressId);
+        if (selectedAddress?.address_id === addressId) {
+          setSelectedAddress(filtered[0] || null);
+        }
+        return filtered;
+      });
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };

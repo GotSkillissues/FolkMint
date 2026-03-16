@@ -6,7 +6,8 @@
 }
 
 .footer-inner {
-  max-width: 1360px;
+  max-width: none;
+  width: 100%;
   margin: 0 auto;
   padding: 72px 40px 64px;
   display: grid;
@@ -61,7 +62,7 @@
 
 /* Payment row */
 .ft-payments {
-  max-width: 1360px; margin: 0 auto;
+  max-width: none; width: 100%; margin: 0 auto;
   padding: 24px 40px;
   border-top: 1px solid #1a1a1a;
   display: flex; align-items: center; justify-content: center;
@@ -75,7 +76,7 @@
 
 /* Footer bottom */
 .ft-bottom {
-  max-width: 1360px; margin: 0 auto;
+  max-width: none; width: 100%; margin: 0 auto;
   border-top: 1px solid #1a1a1a;
   padding: 20px 40px;
   display: flex; align-items: center; justify-content: space-between;

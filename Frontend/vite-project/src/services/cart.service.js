@@ -24,9 +24,10 @@ const cartService = {
   },
 
   // Add item to cart
-  addToCart: async (variantId, quantity = 1) => {
+  addToCart: async (productId, variantId = null, quantity = 1) => {
     try {
       const response = await apiClient.post(API_ENDPOINTS.CART.ADD_ITEM, {
+        product_id: productId,
         variant_id: variantId,
         quantity,
       });
@@ -71,7 +72,7 @@ const cartService = {
   // Sync local cart to server (after login)
   syncCart: async (localCartItems) => {
     try {
-      // localCartItems: [{ variant_id, quantity }, ...]
+      // localCartItems: [{ product_id, variant_id?, quantity }, ...]
       const response = await apiClient.post(API_ENDPOINTS.CART.SYNC, {
         items: localCartItems,
       });

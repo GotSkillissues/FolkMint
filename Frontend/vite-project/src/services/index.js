@@ -34,6 +34,9 @@ export { default as paymentService } from './payment.service';
 // Reviews
 export { default as reviewService } from './review.service';
 
+// Wishlist
+export { default as wishlistService } from './wishlist.service';
+
 // Admin
 export { default as adminService } from './admin.service';
 

@@ -9,7 +9,7 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
-    REFRESH: '/auth/refresh',
+    REFRESH: '/auth/refresh-token',
     ME: '/auth/me',
   },
   
@@ -28,14 +28,14 @@ export const API_ENDPOINTS = {
   ADDRESSES: {
     BASE: '/addresses',
     BY_ID: (id) => `/addresses/${id}`,
-    USER_ADDRESSES: '/addresses/my-addresses',
+    USER_ADDRESSES: '/addresses',
   },
 
   // ==================== PAYMENT METHODS ====================
   PAYMENT_METHODS: {
     BASE: '/payment-methods',
     BY_ID: (id) => `/payment-methods/${id}`,
-    USER_METHODS: '/payment-methods/my-methods',
+    USER_METHODS: '/payment-methods',
   },
 
   // ==================== PAYMENTS ====================
@@ -88,10 +88,9 @@ export const API_ENDPOINTS = {
   CART: {
     BASE: '/cart',
     GET: '/cart',
-    ITEMS: '/cart/items',
-    ADD_ITEM: '/cart/items',
-    UPDATE_ITEM: (cartItemId) => `/cart/items/${cartItemId}`,
-    REMOVE_ITEM: (cartItemId) => `/cart/items/${cartItemId}`,
+    ADD_ITEM: '/cart',
+    UPDATE_ITEM: (cartItemId) => `/cart/${cartItemId}`,
+    REMOVE_ITEM: (cartItemId) => `/cart/${cartItemId}`,
     CLEAR: '/cart/clear',
     SYNC: '/cart/sync',
   },
@@ -100,10 +99,18 @@ export const API_ENDPOINTS = {
   ORDERS: {
     BASE: '/orders',
     BY_ID: (id) => `/orders/${id}`,
-    USER_ORDERS: '/orders/my-orders',
-    ITEMS: (orderId) => `/orders/${orderId}/items`,
+    USER_ORDERS: '/orders',
+    ITEMS: (orderId) => `/orders/${orderId}`,
     UPDATE_STATUS: (id) => `/orders/${id}/status`,
     CANCEL: (id) => `/orders/${id}/cancel`,
+  },
+
+  // ==================== WISHLIST ====================
+  WISHLIST: {
+    BASE: '/wishlist',
+    BY_ID: (id) => `/wishlist/${id}`,
+    CLEAR: '/wishlist/clear',
+    CHECK: (productId) => `/wishlist/check/${productId}`,
   },
 
   // ==================== REVIEWS ====================

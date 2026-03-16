@@ -26,15 +26,17 @@ export const useOrders = (initialParams = {}) => {
         limit: pagination.limit,
       });
       
-      if (response.data) {
-        setOrders(response.data);
+      if (response.orders) {
+        setOrders(response.orders);
         if (response.pagination) {
           setPagination(prev => ({
             ...prev,
             total: response.pagination.total,
-            totalPages: response.pagination.totalPages,
+            totalPages: response.pagination.totalPages || response.pagination.pages || 0,
           }));
         }
+      } else if (response.data) {
+        setOrders(response.data);
       } else if (Array.isArray(response)) {
         setOrders(response);
       }

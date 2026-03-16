@@ -7,6 +7,12 @@ const rateLimitMessage = (type) => ({
   error: `Too many ${type} attempts. Please try again later.`
 });
 
+const isPublicCatalogRead = (req) => {
+  const isRead = req.method === 'GET';
+  const isCatalogPath = req.path.startsWith('/products') || req.path.startsWith('/categories');
+  return isRead && isCatalogPath;
+};
+
 // Auth endpoints (login, register) - strict: 10 requests per 15 min
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -23,7 +29,8 @@ const apiLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: rateLimitMessage('API')
+  message: rateLimitMessage('API'),
+  skip: isPublicCatalogRead,
 });
 
 // Upload endpoint - 20 uploads per hour

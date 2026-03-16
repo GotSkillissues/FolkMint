@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, useCart } from '../../context';
+import FloatingCategoriesPanel from './FloatingCategoriesPanel';
 import './Header.css';
 
 const Header = () => {
@@ -41,34 +42,36 @@ const Header = () => {
     return ini || user.username?.[0]?.toUpperCase() || 'U';
   };
 
-  const handleLogout = () => { logout(); };
-
   return (
     <header className={`site-header${scrolled ? ' scrolled' : ''}`} id="site-header">
       <div className="hdr">
 
-        {/* Logo */}
-        <Link to="/" className="logo" aria-label="FolkMint Home">
-          <svg className="logo-svg" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M20 2 L38 20 L20 38 L2 20 Z" fill="none" stroke="#C4922A" strokeWidth="1.4"/>
-            <path d="M20 9 L31 20 L20 31 L9 20 Z" fill="#C4922A" opacity=".18"/>
-            <line x1="20" y1="2"  x2="20" y2="38" stroke="#C4922A" strokeWidth=".6" opacity=".3"/>
-            <line x1="2"  y1="20" x2="38" y2="20" stroke="#C4922A" strokeWidth=".6" opacity=".3"/>
-            <line x1="7"  y1="7"  x2="33" y2="33" stroke="#C4922A" strokeWidth=".5" opacity=".22"/>
-            <line x1="7"  y1="33" x2="33" y2="7"  stroke="#C4922A" strokeWidth=".5" opacity=".22"/>
-            <circle cx="20" cy="20" r="5.5" fill="#C4922A"/>
-            <circle cx="20" cy="20" r="2.4" fill="#111"/>
-            <circle cx="20" cy="8"  r="1.8" fill="#C4922A"/>
-            <circle cx="32" cy="20" r="1.8" fill="#C4922A"/>
-            <circle cx="20" cy="32" r="1.8" fill="#C4922A"/>
-            <circle cx="8"  cy="20" r="1.8" fill="#C4922A"/>
-            <circle cx="11" cy="11" r="1.3" fill="#C4922A" opacity=".55"/>
-            <circle cx="29" cy="11" r="1.3" fill="#C4922A" opacity=".55"/>
-            <circle cx="29" cy="29" r="1.3" fill="#C4922A" opacity=".55"/>
-            <circle cx="11" cy="29" r="1.3" fill="#C4922A" opacity=".55"/>
-          </svg>
-          <span className="logo-name">Folk<b>Mint</b></span>
-        </Link>
+        <div className="hdr-left">
+          <FloatingCategoriesPanel />
+
+          {/* Logo */}
+          <Link to="/" className="logo" aria-label="FolkMint Home">
+            <svg className="logo-svg" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M20 2 L38 20 L20 38 L2 20 Z" fill="none" stroke="#C4922A" strokeWidth="1.4"/>
+              <path d="M20 9 L31 20 L20 31 L9 20 Z" fill="#C4922A" opacity=".18"/>
+              <line x1="20" y1="2"  x2="20" y2="38" stroke="#C4922A" strokeWidth=".6" opacity=".3"/>
+              <line x1="2"  y1="20" x2="38" y2="20" stroke="#C4922A" strokeWidth=".6" opacity=".3"/>
+              <line x1="7"  y1="7"  x2="33" y2="33" stroke="#C4922A" strokeWidth=".5" opacity=".22"/>
+              <line x1="7"  y1="33" x2="33" y2="7"  stroke="#C4922A" strokeWidth=".5" opacity=".22"/>
+              <circle cx="20" cy="20" r="5.5" fill="#C4922A"/>
+              <circle cx="20" cy="20" r="2.4" fill="#111"/>
+              <circle cx="20" cy="8"  r="1.8" fill="#C4922A"/>
+              <circle cx="32" cy="20" r="1.8" fill="#C4922A"/>
+              <circle cx="20" cy="32" r="1.8" fill="#C4922A"/>
+              <circle cx="8"  cy="20" r="1.8" fill="#C4922A"/>
+              <circle cx="11" cy="11" r="1.3" fill="#C4922A" opacity=".55"/>
+              <circle cx="29" cy="11" r="1.3" fill="#C4922A" opacity=".55"/>
+              <circle cx="29" cy="29" r="1.3" fill="#C4922A" opacity=".55"/>
+              <circle cx="11" cy="29" r="1.3" fill="#C4922A" opacity=".55"/>
+            </svg>
+            <span className="logo-name">Folk<b>Mint</b></span>
+          </Link>
+        </div>
 
         {/* Actions */}
         <div className="hdr-actions">
@@ -100,24 +103,12 @@ const Header = () => {
             </div>
           )}
 
-          {/* Auth — user dropdown */}
+          {/* Auth — user button */}
           {isAuthenticated && (
-            <div className="user-wrap">
-              <button className="user-btn" aria-label="Account menu">
+            <Link to="/account" className="user-account-btn" aria-label="My account">
                 <div className="user-avatar">{getInitials()}</div>
-                <span className="user-name">{user?.first_name ?? user?.username ?? 'Account'}</span>
-                <svg className="user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </button>
-              <div className="user-dropdown">
-                <Link to="/account">My Account</Link>
-                <Link to="/orders">My Orders</Link>
-                <Link to="/wishlist">Wishlist</Link>
-                <div className="dd-sep"/>
-                <button onClick={handleLogout} className="dd-danger">Logout</button>
-              </div>
-            </div>
+                <span className="user-name">My Account</span>
+            </Link>
           )}
 
           {/* Cart */}

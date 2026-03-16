@@ -1,6 +1,11 @@
 import apiClient from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
 
+const getStoredUser = () => {
+  const raw = localStorage.getItem('user');
+  return raw ? JSON.parse(raw) : null;
+};
+
 /**
  * User Service
  * Handles user profile and preferences
@@ -12,7 +17,7 @@ const userService = {
   // Get user profile
   getProfile: async () => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.PROFILE);
+      const response = await apiClient.get(API_ENDPOINTS.AUTH.ME);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -22,8 +27,12 @@ const userService = {
   // Update user profile
   updateProfile: async (userData) => {
     try {
-      // userData: { first_name?, last_name?, username?, email? }
-      const response = await apiClient.put(API_ENDPOINTS.USERS.UPDATE_PROFILE, userData);
+      const currentUser = getStoredUser();
+      if (!currentUser?.user_id) {
+        throw new Error('User not found in local session');
+      }
+
+      const response = await apiClient.put(API_ENDPOINTS.USERS.BY_ID(currentUser.user_id), userData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

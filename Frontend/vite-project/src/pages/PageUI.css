@@ -1,0 +1,390 @@
+.page-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 2rem 1rem 3rem;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  line-height: 1.1;
+  color: var(--dark);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--muted);
+  margin: .4rem 0 0;
+}
+
+.ui-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+}
+
+.ui-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.ui-grid.two {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.ui-grid.three {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.ui-toolbar {
+  display: grid;
+  gap: .75rem;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  margin-bottom: 1rem;
+}
+
+.ui-input,
+.ui-select,
+.ui-textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--dark);
+  padding: .72rem .85rem;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.ui-input:focus,
+.ui-select:focus,
+.ui-textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(196, 146, 42, .15);
+}
+
+.ui-btn,
+.ui-btn-ghost,
+.ui-chip {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: .62rem .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s transform, .2s background, .2s border-color, .2s color;
+}
+
+.ui-btn {
+  background: var(--black);
+  color: #fff;
+}
+
+.ui-btn:hover:not(:disabled) {
+  background: var(--gold);
+  transform: translateY(-1px);
+}
+
+.ui-btn:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+.ui-btn-ghost {
+  background: #fff;
+  border-color: var(--border);
+  color: var(--dark);
+}
+
+.ui-btn-ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.ui-chip {
+  background: #fff;
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.ui-chip.active {
+  background: var(--gold);
+  color: #fff;
+  border-color: var(--gold);
+}
+
+.msg-error,
+.msg-success,
+.msg-note {
+  border-radius: 8px;
+  padding: .72rem .9rem;
+  margin: .75rem 0;
+  border: 1px solid;
+}
+
+.msg-error {
+  border-color: #f5c2c7;
+  background: #fff2f3;
+  color: #9f1239;
+}
+
+.msg-success {
+  border-color: #bbe5c8;
+  background: #edf9f1;
+  color: #156238;
+}
+
+.msg-note {
+  border-color: var(--border);
+  background: var(--bg-alt);
+  color: var(--muted);
+}
+
+.product-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.product-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  transition: transform .22s, box-shadow .22s, border-color .22s;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold-muted);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .1);
+}
+
+.product-card img {
+  width: 100%;
+  height: 188px;
+  object-fit: cover;
+}
+
+.product-card-body {
+  padding: .85rem;
+}
+
+.product-name {
+  font-weight: 700;
+  color: var(--dark);
+  margin: 0;
+}
+
+.product-price {
+  margin: .45rem 0 0;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.section {
+  padding: 1rem;
+}
+
+.section-title {
+  margin: 0 0 .8rem;
+  color: var(--dark);
+  font-size: 1.1rem;
+}
+
+.radio-list {
+  display: grid;
+  gap: .6rem;
+}
+
+.radio-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .55rem;
+  align-items: start;
+  padding: .72rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color .2s, background .2s;
+}
+
+.radio-item.active {
+  border-color: var(--gold);
+  background: #fffaf1;
+}
+
+.stack {
+  display: grid;
+  gap: .6rem;
+}
+
+.list-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  padding: .85rem;
+  display: grid;
+  gap: .4rem;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.stats-grid {
+  display: grid;
+  gap: .75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.stat-box {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 10px;
+  padding: .9rem;
+}
+
+.stat-box p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.stat-box strong {
+  font-size: 1.7rem;
+  color: var(--dark);
+}
+
+.legal-page {
+  max-width: none;
+}
+
+.account-page {
+  padding-top: 2.4rem;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.account-dashboard-grid {
+  grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+}
+
+.account-summary {
+  padding: 1rem;
+  position: sticky;
+  top: 86px;
+}
+
+.account-summary-head {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin-bottom: 1rem;
+}
+
+.account-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--gold), #a66f16);
+  margin-bottom: .8rem;
+}
+
+.account-summary h2 {
+  margin: 0 0 .1rem;
+  color: var(--dark);
+}
+
+.account-username {
+  margin: .2rem 0 1rem;
+  color: var(--muted);
+  font-size: .95rem;
+}
+
+.account-meta {
+  display: grid;
+  gap: .65rem;
+}
+
+.account-side-nav {
+  display: grid;
+  gap: .55rem;
+}
+
+.account-side-nav .ui-chip {
+  text-align: left;
+  width: 100%;
+}
+
+.account-logout-chip {
+  color: #a11d2e;
+}
+
+.account-content-panel {
+  min-height: 520px;
+}
+
+.account-meta .list-row p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.account-form {
+  display: grid;
+  gap: .9rem;
+}
+
+.field-label {
+  display: grid;
+  gap: .4rem;
+  color: var(--dark);
+  font-weight: 600;
+  font-size: .95rem;
+}
+
+.field-label span {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: .83rem;
+  letter-spacing: .01em;
+}
+
+.account-actions {
+  margin-top: .2rem;
+}
+
+@media (max-width: 768px) {
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-summary {
+    position: static;
+  }
+
+  .ui-toolbar {
+    grid-template-columns: 1fr;
+  }
+}

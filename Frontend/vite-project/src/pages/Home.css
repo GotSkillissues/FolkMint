@@ -15,7 +15,8 @@
 }
 
 .hero-inner {
-  max-width: 1360px;
+  max-width: none;
+  width: 100%;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 440px;
@@ -117,7 +118,8 @@
 }
 
 .sec-inner {
-  max-width: 1360px;
+  max-width: none;
+  width: 100%;
   margin: 0 auto;
   padding: 0 40px;
 }
@@ -408,7 +410,8 @@
 }
 
 .cat-block-inner {
-  max-width: 1360px;
+  max-width: none;
+  width: 100%;
   margin: 0 auto;
   padding: 0 40px;
 }

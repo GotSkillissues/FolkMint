@@ -16,7 +16,8 @@ export const usePaymentMethods = () => {
     setError(null);
     try {
       const response = await paymentService.getUserPaymentMethods();
-      const methods = response.data || response || [];
+      const rawMethods = response.payment_methods || response.data || response || [];
+      const methods = Array.isArray(rawMethods) ? rawMethods.filter((item) => item?.payment_method_id) : [];
       setPaymentMethods(methods);
       
       // Auto-select first method if none selected
@@ -38,7 +39,10 @@ export const usePaymentMethods = () => {
   const addPaymentMethod = async (methodData) => {
     try {
       const response = await paymentService.addPaymentMethod(methodData);
-      const newMethod = response.data || response;
+      const newMethod = response.payment_method || response.data?.payment_method || response.data || response;
+      if (!newMethod?.payment_method_id) {
+        return { success: false, error: 'Invalid payment method response from server' };
+      }
       setPaymentMethods(prev => [...prev, newMethod]);
       return { success: true, method: newMethod };
     } catch (err) {
@@ -50,11 +54,14 @@ export const usePaymentMethods = () => {
   const updatePaymentMethod = async (methodId, methodData) => {
     try {
       const response = await paymentService.updatePaymentMethod(methodId, methodData);
-      const updatedMethod = response.data || response;
+      const updatedMethod = response.payment_method || response.data?.payment_method || response.data || response;
+      if (!updatedMethod?.payment_method_id) {
+        return { success: false, error: 'Invalid payment method response from server' };
+      }
       setPaymentMethods(prev => 
-        prev.map(m => m.method_id === methodId ? updatedMethod : m)
+        prev.map(m => m.payment_method_id === methodId ? updatedMethod : m)
       );
-      if (selectedMethod?.method_id === methodId) {
+      if (selectedMethod?.payment_method_id === methodId) {
         setSelectedMethod(updatedMethod);
       }
       return { success: true, method: updatedMethod };
@@ -67,10 +74,13 @@ export const usePaymentMethods = () => {
   const deletePaymentMethod = async (methodId) => {
     try {
       await paymentService.deletePaymentMethod(methodId);
-      setPaymentMethods(prev => prev.filter(m => m.method_id !== methodId));
-      if (selectedMethod?.method_id === methodId) {
-        setSelectedMethod(paymentMethods.find(m => m.method_id !== methodId) || null);
-      }
+      setPaymentMethods(prev => {
+        const filtered = prev.filter(m => m.payment_method_id !== methodId);
+        if (selectedMethod?.payment_method_id === methodId) {
+          setSelectedMethod(filtered[0] || null);
+        }
+        return filtered;
+      });
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
@@ -79,7 +89,7 @@ export const usePaymentMethods = () => {
 
   // Select payment method
   const selectMethod = (methodId) => {
-    const method = paymentMethods.find(m => m.method_id === methodId);
+    const method = paymentMethods.find(m => m.payment_method_id === methodId);
     setSelectedMethod(method || null);
   };
 

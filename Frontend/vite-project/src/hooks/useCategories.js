@@ -14,7 +14,13 @@ export const useCategories = () => {
     setError(null);
     try {
       const response = await categoryService.getAllCategories();
-      setCategories(response.data || response || []);
+      const payload = response?.data ?? response;
+      const normalized = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.categories)
+          ? payload.categories
+          : [];
+      setCategories(normalized);
     } catch (err) {
       setError(err.message || 'Failed to fetch categories');
     } finally {
@@ -71,11 +77,22 @@ export const useCategoryTree = () => {
       // Try to get tree from API first
       try {
         const response = await categoryService.getCategoryTree();
-        setTree(response.data || response || []);
+        const payload = response?.data ?? response;
+        const normalized = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.categories)
+            ? payload.categories
+            : [];
+        setTree(normalized);
       } catch {
         // If tree endpoint doesn't exist, build from flat list
         const response = await categoryService.getAllCategories();
-        const categories = response.data || response || [];
+        const payload = response?.data ?? response;
+        const categories = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.categories)
+            ? payload.categories
+            : [];
         const builtTree = categoryService.buildCategoryTree(categories);
         setTree(builtTree);
       }
