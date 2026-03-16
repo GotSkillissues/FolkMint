@@ -306,3 +306,5 @@ SELECT 'Products: ' || COUNT(*) as count FROM product;
 SELECT 'Product Variants: ' || COUNT(*) as count FROM product_variant;
 SELECT 'Orders: ' || COUNT(*) as count FROM orders;
 SELECT 'Reviews: ' || COUNT(*) as count FROM review;
+
+
