@@ -51,6 +51,7 @@ CREATE TABLE address (
     postal_code VARCHAR(20),
     country VARCHAR(50) NOT NULL,
     is_default BOOLEAN NOT NULL DEFAULT false,
+    is_deleted BOOLEAN NOT NULL DEFAULT false,
     user_id INT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),

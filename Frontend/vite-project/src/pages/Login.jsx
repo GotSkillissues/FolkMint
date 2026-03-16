@@ -44,8 +44,12 @@ const Login = () => {
 
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/');
+      const response = await login(email, password);
+      if (response?.user?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       const raw = err?.error || err?.message || '';
       const msg = (raw === 'Network Error' || err?.code === 'ERR_NETWORK')

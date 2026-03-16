@@ -8,13 +8,13 @@ const {
   getProfile
 } = require('../controllers/authController');
 const { authenticate } = require('../middleware/authMiddleware');
-const { sensitiveLimiter } = require('../middleware/rateLimitMiddleware');
+const { authLimiter, sensitiveLimiter } = require('../middleware/rateLimitMiddleware');
 
 // Register new user
-router.post('/register', register);
+router.post('/register', authLimiter, register);
 
 // Login user
-router.post('/login', login);
+router.post('/login', authLimiter, login);
 
 // Logout user
 router.post('/logout', authenticate, logout);

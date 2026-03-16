@@ -274,6 +274,59 @@
   padding-top: 2.4rem;
 }
 
+.account-toast {
+  position: fixed;
+  top: 96px;
+  right: 1rem;
+  z-index: 1200;
+  width: min(340px, calc(100vw - 2rem));
+  border: 1px solid #bbe5c8;
+  background: #edf9f1;
+  color: #156238;
+  border-radius: 10px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, .16);
+  padding: .85rem;
+  display: grid;
+  gap: .65rem;
+  animation: accountToastFade 3s ease-in-out forwards;
+}
+
+.account-toast__text {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.account-toast .ui-btn-ghost {
+  justify-self: end;
+  min-width: 72px;
+}
+
+@keyframes accountToastFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  84% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-toast {
+    animation: none;
+  }
+}
+
 .account-grid {
   display: grid;
   grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
@@ -375,6 +428,171 @@
   margin-top: .2rem;
 }
 
+.admin-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: .75rem;
+}
+
+.admin-kpi {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  padding: .85rem;
+  display: grid;
+  gap: .3rem;
+}
+
+.admin-kpi p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+.admin-kpi strong {
+  color: var(--dark);
+  font-size: 1.35rem;
+}
+
+.admin-toolbar {
+  display: grid;
+  gap: .65rem;
+  grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(140px, auto));
+}
+
+.admin-toolbar.compact {
+  grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(130px, auto));
+}
+
+.admin-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  margin-bottom: .8rem;
+}
+
+.admin-card-head h3 {
+  margin: 0;
+  color: var(--dark);
+}
+
+.admin-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: auto;
+  background: #fff;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: .7rem .65rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.admin-table thead th {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: .83rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  background: var(--bg-alt);
+}
+
+.admin-table tbody tr:hover {
+  background: #fffcf6;
+}
+
+.admin-inline-form {
+  display: grid;
+  gap: .6rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: .2rem .6rem;
+  font-size: .78rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.admin-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  margin-top: .75rem;
+}
+
+.split-two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.admin-muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.danger-text {
+  color: #a11d2e;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.account-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 60;
+}
+
+.account-modal-card {
+  width: min(780px, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, .2);
+  padding: 1rem;
+}
+
+.account-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .8rem;
+}
+
 @media (max-width: 768px) {
   .account-grid {
     grid-template-columns: 1fr;
@@ -385,6 +603,11 @@
   }
 
   .ui-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-toolbar,
+  .admin-toolbar.compact {
     grid-template-columns: 1fr;
   }
 }

@@ -117,6 +117,16 @@ const userService = {
     }
   },
 
+  // Create user (admin only)
+  createUser: async (userData) => {
+    try {
+      const response = await apiClient.post(API_ENDPOINTS.USERS.BASE, userData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   // Delete user (admin only)
   deleteUser: async (userId) => {
     try {

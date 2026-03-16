@@ -83,8 +83,8 @@ const orderService = {
   // Update order status (admin only)
   updateOrderStatus: async (orderId, status) => {
     try {
-      // status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled'
-      const response = await apiClient.put(API_ENDPOINTS.ORDERS.UPDATE_STATUS(orderId), { status });
+      // status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+      const response = await apiClient.put(API_ENDPOINTS.ORDERS.BY_ID(orderId), { status });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -113,7 +113,7 @@ const orderService = {
 
   // Check if order can be cancelled
   canCancelOrder: (order) => {
-    return ['pending', 'paid'].includes(order.status);
+    return ['pending', 'confirmed'].includes(order.status);
   },
 
   // Check if order can be reviewed
@@ -125,7 +125,8 @@ const orderService = {
   getStatusColor: (status) => {
     const colors = {
       pending: '#f59e0b',    // Amber
-      paid: '#3b82f6',       // Blue
+      confirmed: '#3b82f6',  // Blue
+      processing: '#0ea5e9', // Sky
       shipped: '#8b5cf6',    // Purple
       delivered: '#10b981',  // Green
       cancelled: '#ef4444',  // Red
@@ -137,7 +138,8 @@ const orderService = {
   getStatusLabel: (status) => {
     const labels = {
       pending: 'Pending',
-      paid: 'Paid',
+      confirmed: 'Confirmed',
+      processing: 'Processing',
       shipped: 'Shipped',
       delivered: 'Delivered',
       cancelled: 'Cancelled',

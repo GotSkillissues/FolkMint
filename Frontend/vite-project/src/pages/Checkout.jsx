@@ -31,7 +31,16 @@ const Checkout = () => {
   const [shipToAnotherLocation, setShipToAnotherLocation] = useState(false);
   const [checkoutPaymentOption, setCheckoutPaymentOption] = useState('cash_on_delivery');
   const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
-  const [newAddress, setNewAddress] = useState({ street: '', city: '', postal_code: '', country: 'Bangladesh' });
+  const [newAddress, setNewAddress] = useState({
+    first_name: '',
+    last_name: '',
+    street: '',
+    apartment: '',
+    city: '',
+    district: '',
+    postal_code: '',
+    country: 'Bangladesh',
+  });
 
   const validAddresses = addresses.filter((address) => address?.address_id);
 
@@ -140,7 +149,16 @@ const Checkout = () => {
     if (result.success && result.address?.address_id) {
       selectAddress(result.address.address_id);
       setShipToAnotherLocation(false);
-      setNewAddress({ street: '', city: '', postal_code: '', country: 'Bangladesh' });
+      setNewAddress({
+        first_name: '',
+        last_name: '',
+        street: '',
+        apartment: '',
+        city: '',
+        district: '',
+        postal_code: '',
+        country: 'Bangladesh',
+      });
       setMessage('Address added.');
       setError('');
     } else {
@@ -170,7 +188,17 @@ const Checkout = () => {
                 <div className="list-row">
                   <strong>Shipping To</strong>
                   <p style={{ margin: 0 }}>
-                    {selectedAddress?.street || validAddresses[0]?.street}, {selectedAddress?.city || validAddresses[0]?.city}, {selectedAddress?.country || validAddresses[0]?.country}
+                    {[selectedAddress?.first_name, selectedAddress?.last_name].filter(Boolean).join(' ') || 'Recipient'}
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    {selectedAddress?.street || validAddresses[0]?.street}
+                    {(selectedAddress?.apartment || validAddresses[0]?.apartment) ? `, ${selectedAddress?.apartment || validAddresses[0]?.apartment}` : ''}
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    {(selectedAddress?.city || validAddresses[0]?.city) || ''}
+                    {(selectedAddress?.district || validAddresses[0]?.district) ? `, ${selectedAddress?.district || validAddresses[0]?.district}` : ''}
+                    {(selectedAddress?.postal_code || validAddresses[0]?.postal_code) ? ` ${selectedAddress?.postal_code || validAddresses[0]?.postal_code}` : ''}
+                    {`, ${selectedAddress?.country || validAddresses[0]?.country || ''}`}
                   </p>
                 </div>
 
@@ -210,10 +238,48 @@ const Checkout = () => {
 
             {requiresAddressForm && (
               <form className="stack" onSubmit={handleAddAddress} style={{ marginTop: '1rem' }}>
-                <input className="ui-input" placeholder="Street" value={newAddress.street} onChange={(e) => setNewAddress((prev) => ({ ...prev, street: e.target.value }))} required />
-                <input className="ui-input" placeholder="City" value={newAddress.city} onChange={(e) => setNewAddress((prev) => ({ ...prev, city: e.target.value }))} required />
-                <input className="ui-input" placeholder="Postal Code" value={newAddress.postal_code} onChange={(e) => setNewAddress((prev) => ({ ...prev, postal_code: e.target.value }))} />
-                <input className="ui-input" placeholder="Country" value={newAddress.country} onChange={(e) => setNewAddress((prev) => ({ ...prev, country: e.target.value }))} required />
+                <div className="ui-grid two">
+                  <label className="field-label">
+                    <span>First Name <span style={{ color: '#c62828' }}>*</span></span>
+                    <input className="ui-input" placeholder="First Name" value={newAddress.first_name} onChange={(e) => setNewAddress((prev) => ({ ...prev, first_name: e.target.value }))} required />
+                  </label>
+                  <label className="field-label">
+                    <span>Last Name <span style={{ color: '#c62828' }}>*</span></span>
+                    <input className="ui-input" placeholder="Last Name" value={newAddress.last_name} onChange={(e) => setNewAddress((prev) => ({ ...prev, last_name: e.target.value }))} required />
+                  </label>
+                </div>
+
+                <label className="field-label">
+                  <span>Street Address <span style={{ color: '#c62828' }}>*</span></span>
+                  <input className="ui-input" placeholder="Street Address" value={newAddress.street} onChange={(e) => setNewAddress((prev) => ({ ...prev, street: e.target.value }))} required />
+                </label>
+
+                <label className="field-label">
+                  <span>Apartment, suite, unit, etc. (optional)</span>
+                  <input className="ui-input" placeholder="Apartment, suite, unit, etc. (optional)" value={newAddress.apartment} onChange={(e) => setNewAddress((prev) => ({ ...prev, apartment: e.target.value }))} />
+                </label>
+
+                <div className="ui-grid two">
+                  <label className="field-label">
+                    <span>Town / City <span style={{ color: '#c62828' }}>*</span></span>
+                    <input className="ui-input" placeholder="Town / City" value={newAddress.city} onChange={(e) => setNewAddress((prev) => ({ ...prev, city: e.target.value }))} required />
+                  </label>
+                  <label className="field-label">
+                    <span>District <span style={{ color: '#c62828' }}>*</span></span>
+                    <input className="ui-input" placeholder="District" value={newAddress.district} onChange={(e) => setNewAddress((prev) => ({ ...prev, district: e.target.value }))} required />
+                  </label>
+                </div>
+
+                <div className="ui-grid two">
+                  <label className="field-label">
+                    <span>Postcode / ZIP (optional)</span>
+                    <input className="ui-input" placeholder="Postcode / ZIP" value={newAddress.postal_code} onChange={(e) => setNewAddress((prev) => ({ ...prev, postal_code: e.target.value }))} />
+                  </label>
+                  <label className="field-label">
+                    <span>Country / Region <span style={{ color: '#c62828' }}>*</span></span>
+                    <input className="ui-input" placeholder="Country / Region" value={newAddress.country} readOnly required />
+                  </label>
+                </div>
                 <div className="row-actions">
                   <button className="ui-btn-ghost" type="submit">Add Address</button>
                 </div>

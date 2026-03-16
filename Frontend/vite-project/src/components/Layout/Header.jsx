@@ -105,10 +105,15 @@ const Header = () => {
 
           {/* Auth — user button */}
           {isAuthenticated && (
-            <Link to="/account" className="user-account-btn" aria-label="My account">
-                <div className="user-avatar">{getInitials()}</div>
-                <span className="user-name">My Account</span>
-            </Link>
+            <>
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="btn-login" aria-label="Admin dashboard">Admin</Link>
+              )}
+                <Link to="/account" state={{ defaultSection: 'details' }} className="user-account-btn" aria-label="My account">
+                  <div className="user-avatar">{getInitials()}</div>
+                  <span className="user-name">My Account</span>
+              </Link>
+            </>
           )}
 
           {/* Cart */}

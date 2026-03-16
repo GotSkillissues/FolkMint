@@ -5,7 +5,7 @@ const routes = require('./routes');
 
 const { securityHeaders } = require('./middleware/securityMiddleware');
 const { requestLogger } = require('./middleware/requestLoggerMiddleware');
-const { apiLimiter, authLimiter, uploadLimiter } = require('./middleware/rateLimitMiddleware');
+const { apiLimiter, uploadLimiter } = require('./middleware/rateLimitMiddleware');
 const { errorHandler, notFoundHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
@@ -47,7 +47,6 @@ app.use(requestLogger);                                 // Log every request
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // --- Rate Limiters (applied per route group) ---
-app.use('/api/auth', authLimiter);                      // Strict: 10 req / 15 min
 app.use('/api/upload', uploadLimiter);                  // 20 uploads / hour
 app.use('/api', apiLimiter);                            // General: 100 req / 15 min
 

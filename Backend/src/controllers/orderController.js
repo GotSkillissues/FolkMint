@@ -10,6 +10,10 @@ const getOrders = async (req, res) => {
     const userId = req.user.userId;
     const isAdmin = req.user.role === 'admin';
 
+    const whereClauses = ['1=1'];
+    const countParams = [];
+    let countIdx = 1;
+
     let query = `
       SELECT o.*, u.username, u.email,
              a.street, a.city, a.country,
@@ -25,18 +29,24 @@ const getOrders = async (req, res) => {
     if (!isAdmin) {
       query += ` AND o.user_id = $${idx}`;
       params.push(userId);
+      whereClauses.push(`o.user_id = $${countIdx}`);
+      countParams.push(userId);
+      countIdx++;
       idx++;
     }
 
     if (status) {
       query += ` AND o.status = $${idx}`;
       params.push(status);
+      whereClauses.push(`o.status = $${countIdx}`);
+      countParams.push(status);
+      countIdx++;
       idx++;
     }
 
-    const countQuery = query.replace(/SELECT .* FROM/, 'SELECT COUNT(*) FROM');
-    const countResult = await pool.query(countQuery, params);
-    const total = parseInt(countResult.rows[0].count);
+    const countQuery = `SELECT COUNT(*) FROM orders o WHERE ${whereClauses.join(' AND ')}`;
+    const countResult = await pool.query(countQuery, countParams);
+    const total = parseInt(countResult.rows?.[0]?.count || '0', 10);
 
     query += ` ORDER BY o.created_at DESC LIMIT $${idx} OFFSET $${idx + 1}`;
     params.push(limit, offset);

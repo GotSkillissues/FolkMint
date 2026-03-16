@@ -30,6 +30,10 @@ const Products = () => {
   }, [query]);
 
   useEffect(() => {
+    setSortBy('featured');
+  }, [query, category]);
+
+  useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       setError('');

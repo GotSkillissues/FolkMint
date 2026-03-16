@@ -18,13 +18,32 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check if user is already logged in
-    const initAuth = () => {
+    const initAuth = async () => {
       const token = authService.getToken();
       const currentUser = authService.getCurrentUser();
       
-      if (token && currentUser) {
-        setUser(currentUser);
-        setIsAuthenticated(true);
+      if (token) {
+        try {
+          const response = await authService.getProfile();
+          const profileUser = response?.user;
+
+          if (profileUser) {
+            setUser(profileUser);
+            setIsAuthenticated(true);
+            localStorage.setItem('user', JSON.stringify(profileUser));
+          } else if (currentUser) {
+            setUser(currentUser);
+            setIsAuthenticated(true);
+          }
+        } catch {
+          if (currentUser) {
+            setUser(currentUser);
+            setIsAuthenticated(true);
+          } else {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
+        }
       }
       setLoading(false);
     };
