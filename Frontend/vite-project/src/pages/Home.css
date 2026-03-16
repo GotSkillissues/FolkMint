@@ -9,7 +9,7 @@
 
 /* ── HERO ── */
 .hero {
-  background: var(--bg-alt);
+  background: radial-gradient(circle at center 20%, #fdfdfc 0%, var(--bg-alt) 100%);
   border-bottom: 1px solid var(--border);
   padding: 100px 40px 80px;
 }
@@ -29,22 +29,33 @@
   font-weight: 700;
   letter-spacing: .22em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--muted);
   margin-bottom: 20px;
 }
 
 .hero-text h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(44px, 6vw, 72px);
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(48px, 6vw, 76px);
   font-weight: 600;
-  line-height: 1.1;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
   color: var(--dark);
   margin-bottom: 24px;
 }
 
+@keyframes goldShine {
+  0% { background-position: -100% center; }
+  100% { background-position: 200% center; }
+}
+
 .hero-text h1 em {
-  font-style: italic;
+  font-style: normal;
+  background: linear-gradient(to right, var(--gold) 40%, #ffeaa7 50%, var(--gold) 60%);
+  background-size: 200% auto;
   color: var(--gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShine 3s linear infinite;
 }
 
 .hero-sub {
@@ -66,34 +77,46 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--black);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: .06em;
-  padding: 13px 28px;
+  background: linear-gradient(135deg, #D4AF37, #b89324);
+  color: #050814 !important;
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  padding: .85rem 1.6rem;
+  border: 1px solid #D4AF37;
   border-radius: var(--r);
   text-decoration: none;
-  transition: background .25s var(--ease);
+  box-shadow: 0 8px 24px -6px rgba(212, 175, 55, 0.4);
+  transition: all .4s cubic-bezier(0.25, 1, 0.5, 1);
 }
-.cta-primary:hover { background: var(--gold); }
+.cta-primary:hover {
+  background: linear-gradient(135deg, var(--dark), var(--black));
+  border-color: var(--black);
+  color: #D4AF37 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -6px rgba(10, 17, 40, 0.5);
+}
 
 .cta-outline {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.8);
   color: var(--dark);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: .06em;
-  padding: 12px 24px;
+  font-size: .95rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  padding: .85rem 1.6rem;
   border: 1px solid var(--border);
   border-radius: var(--r);
   text-decoration: none;
-  transition: border-color .25s, color .25s;
+  transition: all .35s var(--ease);
 }
-.cta-outline:hover { border-color: var(--gold); color: var(--gold); }
+.cta-outline:hover {
+  background: var(--bg);
+  border-color: var(--gold);
+  color: var(--gold);
+}
 
 .hero-art {
   color: var(--gold);
@@ -114,7 +137,7 @@
   background: var(--bg);
 }
 .prod-section-alt {
-  background: var(--bg-alt);
+  background: radial-gradient(circle at center 20%, #fdfdfc 0%, var(--bg-alt) 100%);
 }
 
 .sec-inner {
@@ -258,7 +281,7 @@
   position: relative;
   aspect-ratio: 4/5;
   overflow: hidden;
-  background: var(--bg-alt);
+  background: radial-gradient(circle at center 20%, #fdfdfc 0%, var(--bg-alt) 100%);
 }
 .card-img img {
   width: 100%;
@@ -406,7 +429,7 @@
   border-bottom: 1px solid var(--border);
 }
 .cat-block-alt {
-  background: var(--bg-alt);
+  background: radial-gradient(circle at center 20%, #fdfdfc 0%, var(--bg-alt) 100%);
 }
 
 .cat-block-inner {

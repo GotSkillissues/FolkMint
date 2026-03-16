@@ -10,7 +10,7 @@ const getCategories = async (req, res) => {
       `SELECT c.*, p.name as parent_name
        FROM category c
        LEFT JOIN category p ON c.parent_category = p.category_id
-       ORDER BY c.parent_category NULLS FIRST, c.name`
+       ORDER BY c.parent_category NULLS FIRST, c.category_id`
     );
 
     if (tree === 'true') {
@@ -213,15 +213,23 @@ const getCategoryProducts = async (req, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    let categoryIds = [id];
+    let categoryIds = [parseInt(id, 10)];
 
-    // Include child categories if requested
+    // Include all descendant categories recursively if requested
     if (include_children === 'true') {
-      const children = await pool.query(
-        'SELECT category_id FROM category WHERE parent_category = $1',
+      const descendants = await pool.query(
+        `WITH RECURSIVE category_tree AS (
+          SELECT category_id FROM category WHERE category_id = $1
+          UNION ALL
+          SELECT c.category_id
+          FROM category c
+          JOIN category_tree ct ON c.parent_category = ct.category_id
+        )
+        SELECT category_id FROM category_tree`,
         [id]
       );
-      categoryIds = categoryIds.concat(children.rows.map(c => c.category_id));
+
+      categoryIds = descendants.rows.map((row) => row.category_id);
     }
 
     const placeholders = categoryIds.map((_, i) => `$${i + 1}`).join(', ');

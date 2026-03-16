@@ -2,37 +2,43 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --gold:       #C4922A;
-  --gold-lt:    #deb96b;
-  --gold-muted: #e8d5a3;
-  --black:      #111111;
-  --dark:       #1a1a1a;
-  --text:       #2a2a2a;
-  --muted:      #6b6b6b;
-  --bg:         #fdfcfa;
-  --bg-alt:     #f5f1eb;
-  --bg-card:    #ffffff;
-  --border:     #e6ddd3;
-  --sh-lg:      0 16px 48px rgba(0,0,0,.13);
-  --r:          2px;
-  --ease:       cubic-bezier(.4,0,.2,1);
+  --gold:       #D4AF37;      /* Rich Gold accent */
+  --gold-lt:    #ebd581;      /* Lighter gold */
+  --gold-muted: #fbf7e6;      /* Subtle cream/gold back */
+  --black:      #050814;      /* Deep Midnight Navy */
+  --dark:       #0A1128;      /* Royal Navy Dark */
+  --text:       #1c2536;      /* Deep slate/charcoal */
+  --muted:      #64748b;      /* Elegant slate gray */
+  --bg:         #FCFBF9;      /* Off-white Pearl */
+  --bg-alt:     #f4f0e6;      /* Soft beige/cream */
+  --bg-card:    #ffffff;      /* Pure white card */
+  --border:     #e5ddcf;      /* Soft warm border */
+  --border-hover: #D4AF37;    /* Gold border on hover */
+  --sh-sm:      0 4px 14px 0 rgba(10, 17, 40, 0.04);       
+  --sh-md:      0 8px 25px -4px rgba(10, 17, 40, 0.08); /* Apple-like soft */
+  --sh-lg:      0 16px 40px -8px rgba(10, 17, 40, 0.12);
+  --r:          0.6rem;       /* Softer radius for premium look */
+  --ease:       cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-html { scroll-behavior: smooth; }
+html { 
+  scroll-behavior: smooth; 
+}
 
 body {
-  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-family: 'Outfit', 'Playfair Display', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.6;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   margin: 0;
   min-height: 100vh;
 }
 
 a { text-decoration: none; color: inherit; }
 img { display: block; max-width: 100%; }
-button { font-family: inherit; cursor: pointer; }
+button { font-family: 'Playfair Display', serif; cursor: pointer; }
 
 #root {
   display: flex;

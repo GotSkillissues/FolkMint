@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, useCart } from '../../context';
 import FloatingCategoriesPanel from './FloatingCategoriesPanel';
 import './Header.css';
@@ -8,6 +8,7 @@ const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { cartCount } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [scrolled, setScrolled]     = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -42,6 +43,49 @@ const Header = () => {
     return ini || user.username?.[0]?.toUpperCase() || 'U';
   };
 
+  const query = new URLSearchParams(location.search);
+  const activeParentId = query.get('parent_id');
+
+  const navItems = [
+    { key: 'home', label: 'Home', to: '/', active: location.pathname === '/' },
+    {
+      key: 'men',
+      label: 'Men',
+      to: '/products?parent_id=1&include_descendants=true',
+      active: location.pathname === '/products' && activeParentId === '1',
+    },
+    {
+      key: 'women',
+      label: 'Women',
+      to: '/products?parent_id=2&include_descendants=true',
+      active: location.pathname === '/products' && activeParentId === '2',
+    },
+    {
+      key: 'decor',
+      label: 'Home Décor',
+      to: '/products?parent_id=4&include_descendants=true',
+      active: location.pathname === '/products' && activeParentId === '4',
+    },
+    {
+      key: 'handicrafts',
+      label: 'Handicrafts',
+      to: '/products?parent_id=3&include_descendants=true',
+      active: location.pathname === '/products' && activeParentId === '3',
+    },
+    {
+      key: 'bags',
+      label: 'Bags & Accessories',
+      to: '/products?parent_id=5&include_descendants=true',
+      active: location.pathname === '/products' && activeParentId === '5',
+    },
+    {
+      key: 'gift-cards',
+      label: 'Gift Cards',
+      to: '/products?parent_id=6&include_descendants=true',
+      active: location.pathname === '/products' && activeParentId === '6',
+    },
+  ];
+
   return (
     <header className={`site-header${scrolled ? ' scrolled' : ''}`} id="site-header">
       <div className="hdr">
@@ -72,6 +116,19 @@ const Header = () => {
             <span className="logo-name">Folk<b>Mint</b></span>
           </Link>
         </div>
+
+        <nav className="hdr-nav" aria-label="Main navigation">
+          {navItems.map((item) => (
+            <Link
+              key={item.key}
+              to={item.to}
+              className={`hdr-nav-link${item.active ? ' active' : ''}`}
+              aria-current={item.active ? 'page' : undefined}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
 
         {/* Actions */}
         <div className="hdr-actions">

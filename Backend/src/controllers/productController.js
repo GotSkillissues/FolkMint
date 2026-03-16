@@ -73,9 +73,9 @@ const buildFilters = (params) => {
   const values = [];
   let paramIndex = 1;
 
-  if (params.category_id) {
-    conditions.push(`p.category_id = $${paramIndex}`);
-    values.push(params.category_id);
+  if (Array.isArray(params.category_ids) && params.category_ids.length > 0) {
+    conditions.push(`p.category_id = ANY($${paramIndex})`);
+    values.push(params.category_ids);
     paramIndex++;
   }
 
@@ -103,11 +103,62 @@ const buildFilters = (params) => {
 // ==================== GET ALL PRODUCTS ====================
 const getProducts = async (req, res) => {
   try {
-    const { page = 1, limit = 12, category_id, search, sort, minPrice, maxPrice } = req.query;
+    const {
+      page = 1,
+      limit = 12,
+      category_id,
+      parent_id,
+      include_descendants = 'false',
+      search,
+      sort,
+      minPrice,
+      maxPrice,
+    } = req.query;
     const offset = (page - 1) * limit;
 
+    let categoryIds = [];
+
+    if (parent_id) {
+      const parentCategoryResult = await pool.query(
+        `WITH RECURSIVE category_tree AS (
+          SELECT category_id FROM category WHERE category_id = $1
+          UNION ALL
+          SELECT c.category_id
+          FROM category c
+          JOIN category_tree ct ON c.parent_category = ct.category_id
+        )
+        SELECT category_id FROM category_tree`,
+        [parent_id]
+      );
+
+      categoryIds = parentCategoryResult.rows.map((row) => row.category_id);
+    } else if (category_id) {
+      const normalizedCategoryIds = String(category_id)
+        .split(',')
+        .map((value) => parseInt(value.trim(), 10))
+        .filter((value) => Number.isInteger(value));
+
+      if (include_descendants === 'true' && normalizedCategoryIds.length === 1) {
+        const categoryTreeResult = await pool.query(
+          `WITH RECURSIVE category_tree AS (
+            SELECT category_id FROM category WHERE category_id = $1
+            UNION ALL
+            SELECT c.category_id
+            FROM category c
+            JOIN category_tree ct ON c.parent_category = ct.category_id
+          )
+          SELECT category_id FROM category_tree`,
+          [normalizedCategoryIds[0]]
+        );
+
+        categoryIds = categoryTreeResult.rows.map((row) => row.category_id);
+      } else {
+        categoryIds = normalizedCategoryIds;
+      }
+    }
+
     // Build dynamic query
-    const { conditions, values, paramIndex } = buildFilters({ category_id, search, minPrice, maxPrice });
+    const { conditions, values, paramIndex } = buildFilters({ category_ids: categoryIds, search, minPrice, maxPrice });
     
     let whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 

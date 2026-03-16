@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { productService } from '../services';
+import { categoryService, productService } from '../services';
+import { useCategoryTree } from '../hooks/useCategories';
 import { Loading } from '../components';
 import './PageUI.css';
 
@@ -21,9 +22,13 @@ const Products = () => {
   const [error, setError] = useState('');
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState('featured');
+  const { tree: categoryTree } = useCategoryTree();
 
   const query = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
+  const categoryId = searchParams.get('category_id') || '';
+  const parentId = searchParams.get('parent_id') || '';
+  const activeCategoryId = parentId || categoryId || '';
 
   useEffect(() => {
     setSearchText(query);
@@ -31,7 +36,60 @@ const Products = () => {
 
   useEffect(() => {
     setSortBy('featured');
-  }, [query, category]);
+  }, [query, category, categoryId, parentId]);
+
+  const findCategoryNodeMeta = (nodes, targetId, parent = null) => {
+    if (!Array.isArray(nodes) || !targetId) return null;
+
+    for (const node of nodes) {
+      if (String(node?.category_id) === String(targetId)) {
+        return { node, parent };
+      }
+
+      const childNodes = Array.isArray(node?.children)
+        ? node.children
+        : Array.isArray(node?.subcategories)
+          ? node.subcategories
+          : [];
+
+      const found = findCategoryNodeMeta(childNodes, targetId, node);
+      if (found) return found;
+    }
+
+    return null;
+  };
+
+  const getChildren = (node) => {
+    if (!node) return [];
+    if (Array.isArray(node.children)) return node.children;
+    if (Array.isArray(node.subcategories)) return node.subcategories;
+    return [];
+  };
+
+  const activeMeta = findCategoryNodeMeta(categoryTree, activeCategoryId);
+  const activeNode = activeMeta?.node || null;
+  const activeParent = activeMeta?.parent || null;
+
+  const activeChildren = getChildren(activeNode);
+
+  let subcategoryNavItems = [];
+
+  if (activeNode && activeChildren.length > 0) {
+    subcategoryNavItems = activeChildren;
+  } else if (activeNode && activeParent) {
+    subcategoryNavItems = getChildren(activeParent);
+  } else if (activeNode && !activeParent) {
+    subcategoryNavItems = Array.isArray(categoryTree) ? categoryTree : [];
+  }
+
+  const buildSubcategoryUrl = (subcategoryId) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('parent_id', String(subcategoryId));
+    params.set('include_descendants', 'true');
+    params.delete('category_id');
+    params.delete('category');
+    return `/products?${params.toString()}`;
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -39,9 +97,40 @@ const Products = () => {
       setError('');
 
       try {
+        let resolvedCategoryId = categoryId || undefined;
+
+        if (!resolvedCategoryId && category) {
+          if (/^\d+$/.test(category)) {
+            resolvedCategoryId = category;
+          } else {
+            const categoriesResponse = await categoryService.getAllCategories();
+            const payload = categoriesResponse?.data ?? categoriesResponse;
+            const categoryList = Array.isArray(payload)
+              ? payload
+              : Array.isArray(payload?.categories)
+                ? payload.categories
+                : [];
+
+            const normalize = (value) => String(value || '')
+              .toLowerCase()
+              .trim()
+              .replace(/[-_]+/g, ' ')
+              .replace(/\s+/g, ' ');
+
+            const target = normalize(category);
+            const matched = categoryList.find((item) => normalize(item?.name) === target);
+
+            if (matched?.category_id) {
+              resolvedCategoryId = String(matched.category_id);
+            }
+          }
+        }
+
         const response = await productService.getAllProducts({
-          q: query || undefined,
-          category: category || undefined,
+          search: query || undefined,
+          category_id: resolvedCategoryId,
+          parent_id: parentId || undefined,
+          include_descendants: parentId ? 'true' : undefined,
         });
 
         const items = response?.data || response?.products || response || [];
@@ -55,7 +144,7 @@ const Products = () => {
     };
 
     fetchProducts();
-  }, [query, category]);
+  }, [query, category, categoryId, parentId]);
 
   const onSearchSubmit = (event) => {
     event.preventDefault();
@@ -111,7 +200,27 @@ const Products = () => {
         </div>
       </form>
 
-      {(query || category) && (
+      {subcategoryNavItems.length > 0 && (
+        <div className="subcat-nav-wrap" role="navigation" aria-label="Subcategories">
+          <div className="subcat-nav">
+            {subcategoryNavItems.map((subcategory) => {
+              const childHasMore = getChildren(subcategory).length > 0;
+              return (
+                <Link
+                  key={subcategory.category_id}
+                  to={buildSubcategoryUrl(subcategory.category_id)}
+                  className={`subcat-link${String(activeCategoryId) === String(subcategory.category_id) ? ' active' : ''}`}
+                >
+                  {subcategory.name}
+                  {childHasMore ? ' ▾' : ''}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {(query || category || categoryId || parentId) && (
         <p className="msg-note">
           Showing results{query ? ` for "${query}"` : ''}{category ? ` in ${category}` : ''}
         </p>

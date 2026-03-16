@@ -47,66 +47,83 @@ INSERT INTO payment_method (type, provider, card_last4, expiry_date, is_default,
 
 -- ========== CATEGORY ==========
 INSERT INTO category (name, description, parent_category) VALUES
--- Root categories
-('Clothing',     'Traditional and handcrafted clothing',       NULL),
-('Accessories',  'Handmade bags, scarves, and accessories',    NULL),
-('Home Decor',   'Artisan home decoration items',              NULL),
-('Handicrafts',  'Traditional handcrafted items',              NULL),
-('Jewelry',      'Handcrafted traditional jewelry',            NULL),
--- Subcategories for Clothing
-('Men',          'Men''s traditional clothing',                1),
-('Women',        'Women''s traditional clothing',              1),
-('Kids',         'Children''s traditional clothing',           1),
--- Subcategories for Accessories
-('Bags',         'Handmade bags and pouches',                  2),
-('Scarves',      'Handwoven and printed scarves',              2),
--- Subcategories for Home Decor
-('Wall Art',     'Traditional wall art and hangings',          3),
-('Cushions',     'Hand-printed cushion covers',                3),
-('Rugs',         'Handwoven rugs and floor mats',              3),
--- Subcategories for Handicrafts
-('Pottery',      'Handmade terracotta and clay pottery',       4),
-('Woodwork',     'Hand-carved wooden items',                   4),
-('Textiles',     'Traditional woven and embroidered textiles', 4),
--- Subcategories for Jewelry
-('Necklaces',    'Handcrafted necklaces and pendants',         5),
-('Earrings',     'Handmade earrings and droplets',             5),
-('Bracelets',    'Traditional bangles and bracelets',          5);
+-- Root categories (catalog)
+('Men',                          'Men''s fashion and apparel',                          NULL),
+('Women',                        'Women''s fashion and apparel',                        NULL),
+('Handicrafts',                  'Traditional handmade craft collections',              NULL),
+('Home Decor / Showpieces',      'Decorative handmade home items and showpieces',       NULL),
+('Bags & Accessories',           'Handcrafted bags and accessories',                    NULL),
+('Gift Cards',                   'Gift cards for all occasions',                        NULL),
+-- Men
+('Panjabi',                      'Traditional Panjabi collection',                      1),
+('Kurta',                        'Men''s kurta collection',                             1),
+('Fotua',                        'Men''s Fotua styles',                                 1),
+('Pajama',                       'Comfort and traditional pajama styles',               1),
+-- Women
+('Saree',                        'Women''s saree collection',                           2),
+('Salwar Kameez',                'Traditional salwar kameez designs',                   2),
+('Kurti',                        'Women''s kurti collection',                           2),
+('Shawl',                        'Handcrafted shawls and wraps',                        2),
+-- Women > Saree
+('Jamdani Saree',                'Authentic Jamdani saree collection',                  12),
+('Cotton Saree',                 'Comfortable cotton sarees',                           12),
+('Silk Saree',                   'Premium silk sarees',                                 12),
+('Muslin Saree',                 'Fine muslin saree collection',                        12),
+-- Handicrafts
+('Nakshi Kantha',                'Traditional Nakshi Kantha crafts',                    3),
+('Jute Products',                'Eco-friendly jute crafted products',                  3),
+('Bamboo Crafts',                'Handmade bamboo craft items',                         3),
+('Cane Crafts',                  'Traditional cane craft products',                     3),
+('Handmade Baskets',             'Handwoven handmade baskets',                          3),
+('Mats',                         'Traditional woven mats',                               3),
+('Embroidered Crafts',           'Embroidery-based craft products',                     3),
+-- Home Decor / Showpieces
+('Jute Showpieces',              'Decorative jute showpieces',                          4),
+('Wall Hanging',                 'Wall hanging decorative crafts',                       4),
+('Decorative Plates',            'Handmade decorative plates',                           4),
+('Vases',                        'Decorative and artisan vases',                        4),
+('Clay Crafts',                  'Traditional clay crafted items',                       4),
+('Wooden Crafts',                'Handmade wooden decorative items',                     4),
+('Terracotta',                   'Terracotta decor and craft collection',                4),
+('Lanterns / Decorative Lights', 'Handcrafted lanterns and decorative lights',          4),
+-- Bags & Accessories
+('Jute Bag',                     'Handmade jute bags',                                   5),
+('Tote Bag',                     'Stylish tote bags',                                    5),
+('Handbag',                      'Traditional and modern handcrafted handbags',           5);
 
 -- ========== PREFERENCE_CATEGORY ==========
 INSERT INTO preference_category (preference_id, category_id) VALUES
-(1, 1), (1, 2),  -- John likes Clothing and Accessories
-(2, 3), (2, 4),  -- Jane likes Home Decor and Handicrafts
-(3, 5), (3, 2),  -- Mike likes Jewelry and Accessories
-(4, 1), (4, 3),  -- Sarah likes Clothing and Home Decor
-(5, 4), (5, 5);  -- Raj likes Handicrafts and Jewelry
+(1, 1), (1, 5),  -- John likes Men and Bags & Accessories
+(2, 4), (2, 3),  -- Jane likes Home Decor / Showpieces and Handicrafts
+(3, 2), (3, 5),  -- Mike likes Women and Bags & Accessories
+(4, 1), (4, 4),  -- Sarah likes Men and Home Decor / Showpieces
+(5, 3), (5, 6);  -- Raj likes Handicrafts and Gift Cards
 
 -- ========== PRODUCT ==========
 INSERT INTO product (name, description, base_price, stock_quantity, category_id) VALUES
--- Men's Clothing
-('Traditional Punjabi',         'Handwoven cotton Punjabi with intricate embroidery',        1500.00, 45, 6),
-('Khadi Kurta',                 'Premium khadi cotton kurta, perfect for any occasion',      1200.00, 48, 6),
--- Women's Clothing
-('Jamdani Saree',               'Authentic handloom Jamdani saree from Dhaka',               8500.00, 12, 7),
-('Block Print Kurti',           'Hand block printed kurti with traditional motifs',           950.00,  53, 7),
-('Batik Dress',                 'Beautiful batik print dress, unique design',                1800.00, 32, 7),
--- Accessories - Bags
-('Jute Tote Bag',               'Eco-friendly handmade jute bag with leather handles',        450.00,  45, 9),
-('Embroidered Clutch',          'Hand-embroidered silk clutch with mirror work',              680.00,  37, 9),
--- Accessories - Scarves
-('Silk Scarf',                  'Pure silk scarf with traditional patterns',                  550.00,  33, 10),
--- Home Decor
-('Nakshi Kantha Wall Hanging',  'Traditional Nakshi Kantha art piece',                       2200.00, 13, 11),
-('Block Print Cushion Cover',   'Set of 2 hand block printed cushion covers',                 580.00,  55, 12),
-('Handwoven Rug',               'Cotton handwoven rug with geometric patterns',              3500.00, 10, 13),
+-- Men
+('Traditional Punjabi',         'Handwoven cotton Punjabi with intricate embroidery',        1500.00, 45, 7),
+('Khadi Kurta',                 'Premium khadi cotton kurta, perfect for any occasion',      1200.00, 48, 8),
+-- Women
+('Jamdani Saree',               'Authentic handloom Jamdani saree from Dhaka',               8500.00, 12, 17),
+('Block Print Kurti',           'Hand block printed kurti with traditional motifs',           950.00,  53, 14),
+('Batik Dress',                 'Beautiful batik print dress, unique design',                1800.00, 32, 13),
+-- Bags & Accessories
+('Jute Tote Bag',               'Eco-friendly handmade jute bag with leather handles',        450.00,  45, 37),
+('Embroidered Clutch',          'Hand-embroidered silk clutch with mirror work',              680.00,  37, 38),
+('Silk Scarf',                  'Pure silk scarf with traditional patterns',                  550.00,  33, 16),
+-- Home Decor / Showpieces
+('Nakshi Kantha Wall Hanging',  'Traditional Nakshi Kantha art piece',                       2200.00, 13, 29),
+('Block Print Cushion Cover',   'Set of 2 hand block printed cushion covers',                 580.00,  55, 4),
+('Handwoven Rug',               'Cotton handwoven rug with geometric patterns',              3500.00, 10, 4),
 -- Handicrafts
-('Terracotta Pot Set',          'Set of 3 handmade terracotta pots',                         720.00,  20, 14),
-('Wooden Jewelry Box',          'Hand-carved wooden box with brass inlay',                  1350.00,  12, 15),
-('Hand-embroidered Table Runner','Beautiful table runner with folk motifs',                   890.00,  15, 16),
--- Jewelry
-('Terracotta Necklace',         'Handcrafted terracotta bead necklace',                       450.00,  25, 17),
-('Silver Filigree Earrings',    'Traditional silver filigree work earrings',                 1200.00, 18, 18),
-('Brass Bangle Set',            'Set of 4 traditional brass bangles',                         380.00,  42, 19);
+('Terracotta Pot Set',          'Set of 3 handmade terracotta pots',                         720.00,  20, 34),
+('Wooden Jewelry Box',          'Hand-carved wooden box with brass inlay',                  1350.00,  12, 33),
+('Hand-embroidered Table Runner','Beautiful table runner with folk motifs',                   890.00,  15, 27),
+-- Additional accessories under current catalog
+('Terracotta Necklace',         'Handcrafted terracotta bead necklace',                       450.00,  25, 5),
+('Silver Filigree Earrings',    'Traditional silver filigree work earrings',                 1200.00, 18, 5),
+('Brass Bangle Set',            'Set of 4 traditional brass bangles',                         380.00,  42, 5);
 
 -- ========== PRODUCT VARIANT ==========
 INSERT INTO product_variant (size, color, stock_quantity, price, price_modifier, product_id) VALUES
