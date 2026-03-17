@@ -66,6 +66,12 @@ Two roles exist: `customer` and `admin`.
 - **Connection pooling** via `pg.Pool` — connections are reused across requests.
 - **Transactions** are used for operations that touch multiple tables (creating orders, cancelling orders, moving wishlist items to cart).
 
+### Required Environment Variables (Images)
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_FOLDER` *(optional)*
+
 ---
 
 ## Request Lifecycle
@@ -78,13 +84,12 @@ Every request passes through this stack in order:
 3. express.json()    → Parses JSON request body
 4. urlencoded()      → Parses form-encoded body
 5. requestLogger     → Logs: METHOD /path STATUS Xms — IP  (colour-coded)
-6. /uploads static   → Serves uploaded images directly from disk
+6. uploadLimiter     → /api/upload only — 20 requests / hour
 7. authLimiter       → /api/auth only — 10 requests / 15 min (failed only)
-8. uploadLimiter     → /api/upload only — 20 requests / hour
-9. apiLimiter        → /api/* — 100 requests / 15 min
-10. routes           → Dispatched to matching controller
-11. notFoundHandler  → Catches any unmatched route → 404
-12. errorHandler     → Catches any thrown error → structured JSON error response
+8. apiLimiter        → /api/* — 100 requests / 15 min
+9. routes            → Dispatched to matching controller
+10. notFoundHandler  → Catches any unmatched route → 404
+11. errorHandler     → Catches any thrown error → structured JSON error response
 ```
 
 ---
@@ -112,7 +117,7 @@ All middleware lives in `src/middleware/`.
 ### `securityMiddleware.js`
 | Export | Description |
 |---|---|
-| `securityHeaders` | Helmet configuration. Sets Content-Security-Policy, X-XSS-Protection, Referrer-Policy, and CORP headers. `crossOriginResourcePolicy` is set to `cross-origin` so the frontend can load images from `/uploads`. |
+| `securityHeaders` | Helmet configuration. Sets Content-Security-Policy, X-XSS-Protection, Referrer-Policy, and CORP headers. `crossOriginResourcePolicy` is set to `cross-origin` so the frontend can load external media such as Cloudinary assets. |
 
 ### `requestLoggerMiddleware.js`
 | Export | Description |
@@ -291,10 +296,10 @@ All controllers live in `src/controllers/`. Every function follows the same patt
 ### `uploadController.js` *(Admin only)*
 | Function | Description |
 |---|---|
-| `upload` | Multer instance (disk storage, 5MB limit, images only: JPEG/PNG/WebP/GIF) |
-| `uploadImage` | Single image upload → returns `{ filename, url, size, mimetype }` |
-| `uploadImages` | Up to 10 images → returns array of image objects |
-| `deleteImage` | Delete image file from disk by filename. Path traversal protected via `path.basename()`. |
+| `upload` | Multer instance (memory storage, 5MB limit, images only: JPEG/PNG/WebP/GIF) |
+| `uploadImage` | Single image upload to Cloudinary → returns `{ public_id, filename, url, size, mimetype }` |
+| `uploadImages` | Up to 10 images to Cloudinary → returns array of image objects |
+| `deleteImage` | Delete Cloudinary image by `public_id` (path param or body). |
 | `handleUploadError` | Multer error handler (catches LIMIT_FILE_SIZE, LIMIT_FILE_COUNT, etc.) |
 
 ---
@@ -370,7 +375,7 @@ All routes are mounted under `/api` in `routes/index.js`.
 | Wishlist (add, remove, move to cart) | Complete |
 | Admin analytics dashboard | Complete |
 | In-app notifications (auto-triggered on order events) | Complete |
-| Image upload (local disk, multer) | Complete |
+| Image upload (Cloudinary + multer memory storage) | Complete |
 | Rate limiting | Complete |
 | Security headers (helmet) | Complete |
 | Request logging | Complete |

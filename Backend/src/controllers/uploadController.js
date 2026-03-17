@@ -1,27 +1,9 @@
-// Upload Controller - Handle image file uploads to local disk
-const path = require('path');
-const fs = require('fs');
+// Upload Controller - Handle image file uploads to Cloudinary
 const multer = require('multer');
-const { v4: uuidv4 } = require('uuid');
+const { cloudinary, ensureCloudinaryConfigured } = require('../config/cloudinary');
 
-const UPLOADS_DIR = path.join(__dirname, '../../uploads');
-
-// Ensure uploads directory exists
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
-
-// Multer disk storage config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const uniqueName = `${uuidv4()}${ext}`;
-    cb(null, uniqueName);
-  }
-});
+// Multer memory storage config (file stays in memory before Cloudinary upload)
+const storage = multer.memoryStorage();
 
 // File type filter - images only
 const fileFilter = (req, file, cb) => {
@@ -43,68 +25,109 @@ const upload = multer({
   }
 });
 
-// Build the public URL for a stored file
-const buildFileUrl = (req, filename) => {
-  return `${req.protocol}://${req.get('host')}/uploads/${filename}`;
+const uploadBufferToCloudinary = (fileBuffer, mimetype) => {
+  ensureCloudinaryConfigured();
+
+  const folder = process.env.CLOUDINARY_FOLDER;
+
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: folder || undefined,
+        resource_type: 'image',
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+
+    uploadStream.end(fileBuffer);
+  });
 };
 
 // Upload a single image
 // POST /api/upload/image
-const uploadImage = (req, res) => {
+const uploadImage = async (req, res, next) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
-  res.status(201).json({
-    message: 'Image uploaded successfully',
-    image: {
-      filename: req.file.filename,
-      url: buildFileUrl(req, req.file.filename),
-      size: req.file.size,
-      mimetype: req.file.mimetype
-    }
-  });
+  try {
+    const uploaded = await uploadBufferToCloudinary(req.file.buffer, req.file.mimetype);
+
+    res.status(201).json({
+      message: 'Image uploaded successfully',
+      image: {
+        public_id: uploaded.public_id,
+        filename: uploaded.public_id,
+        url: uploaded.secure_url,
+        size: uploaded.bytes,
+        mimetype: req.file.mimetype,
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Upload multiple images (up to 10)
 // POST /api/upload/images
-const uploadImages = (req, res) => {
+const uploadImages = async (req, res, next) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ error: 'No files uploaded' });
   }
 
-  const images = req.files.map(file => ({
-    filename: file.filename,
-    url: buildFileUrl(req, file.filename),
-    size: file.size,
-    mimetype: file.mimetype
-  }));
+  try {
+    const images = await Promise.all(
+      req.files.map(async (file) => {
+        const uploaded = await uploadBufferToCloudinary(file.buffer, file.mimetype);
+        return {
+          public_id: uploaded.public_id,
+          filename: uploaded.public_id,
+          url: uploaded.secure_url,
+          size: uploaded.bytes,
+          mimetype: file.mimetype,
+        };
+      })
+    );
 
-  res.status(201).json({
-    message: `${images.length} image(s) uploaded successfully`,
-    images
-  });
+    res.status(201).json({
+      message: `${images.length} image(s) uploaded successfully`,
+      images,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// Delete an image by filename
-// DELETE /api/upload/image/:filename
-const deleteImage = (req, res) => {
-  const { filename } = req.params;
+// Delete an image by Cloudinary public_id
+// DELETE /api/upload/image/:publicId or DELETE /api/upload/image with body { public_id }
+const deleteImage = async (req, res, next) => {
+  const publicId = req.params.publicId || req.body?.public_id;
 
-  // Prevent directory traversal attacks
-  const safeFilename = path.basename(filename);
-  const filePath = path.join(UPLOADS_DIR, safeFilename);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: 'File not found' });
+  if (!publicId) {
+    return res.status(400).json({ error: 'public_id is required' });
   }
 
-  fs.unlink(filePath, (err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to delete file: ' + err.message });
+  try {
+    ensureCloudinaryConfigured();
+
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: 'image',
+    });
+
+    if (result.result === 'not found') {
+      return res.status(404).json({ error: 'Image not found in Cloudinary' });
     }
-    res.status(200).json({ message: 'Image deleted successfully' });
-  });
+
+    res.status(200).json({
+      message: 'Image deleted successfully',
+      result,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Multer error handler middleware

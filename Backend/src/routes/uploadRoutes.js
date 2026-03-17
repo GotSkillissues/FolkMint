@@ -15,7 +15,8 @@ router.post('/image', authenticate, isAdmin, upload.single('image'), handleUploa
 // Upload multiple images (admin only)
 router.post('/images', authenticate, isAdmin, upload.array('images', 10), handleUploadError, uploadImages);
 
-// Delete an image by filename (admin only)
-router.delete('/image/:filename', authenticate, isAdmin, deleteImage);
+// Delete an image by Cloudinary public_id (admin only)
+router.delete('/image/:publicId', authenticate, isAdmin, deleteImage);
+router.delete('/image', authenticate, isAdmin, deleteImage);
 
 module.exports = router;

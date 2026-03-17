@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const routes = require('./routes');
 
 const { securityHeaders } = require('./middleware/securityMiddleware');
@@ -42,9 +41,6 @@ app.use(cors(corsOptions));                             // CORS
 app.use(express.json());                                // Parse JSON bodies
 app.use(express.urlencoded({ extended: true }));        // Parse URL-encoded bodies
 app.use(requestLogger);                                 // Log every request
-
-// --- Static Files ---
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // --- Rate Limiters (applied per route group) ---
 app.use('/api/upload', uploadLimiter);                  // 20 uploads / hour
