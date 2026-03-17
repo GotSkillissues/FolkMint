@@ -46,8 +46,9 @@
 }
 
 .cart-item-name {
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
   color: #333;
   margin: 0;
 }

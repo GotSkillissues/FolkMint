@@ -3,21 +3,22 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { categoryService, productService } from '../services';
 import { useCategoryTree } from '../hooks/useCategories';
 import { Loading } from '../components';
+import jamdaniProducts from '../data/jamdani-sarees.json';
+import { getCardImageUrl } from '../utils';
 import './PageUI.css';
 
 const getProductImage = (product) => {
-  if (product?.image_url) return product.image_url;
-  const firstVariant = product?.variants?.[0];
-  const firstImage = firstVariant?.images?.find((img) => img?.is_primary) || firstVariant?.images?.[0];
-  return firstImage?.image_url || '/placeholder-product.jpg';
+  return getCardImageUrl(product, { width: 560, height: 720, crop: 'limit' });
 };
 
 const getProductPrice = (product) => Number(product?.price ?? product?.base_price ?? 0);
+const PAGE_SIZE = 16;
 
 const Products = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0, limit: PAGE_SIZE });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchText, setSearchText] = useState('');
@@ -28,7 +29,9 @@ const Products = () => {
   const category = searchParams.get('category') || '';
   const categoryId = searchParams.get('category_id') || '';
   const parentId = searchParams.get('parent_id') || '';
+  const source = searchParams.get('source') || '';
   const activeCategoryId = parentId || categoryId || '';
+  const currentPage = Math.max(1, Number(searchParams.get('page') || '1'));
 
   useEffect(() => {
     setSearchText(query);
@@ -86,6 +89,7 @@ const Products = () => {
     const params = new URLSearchParams(searchParams);
     params.set('parent_id', String(subcategoryId));
     params.set('include_descendants', 'true');
+    params.set('page', '1');
     params.delete('category_id');
     params.delete('category');
     return `/products?${params.toString()}`;
@@ -97,6 +101,17 @@ const Products = () => {
       setError('');
 
       try {
+        if (source.toLowerCase() === 'jamdani') {
+          const all = Array.isArray(jamdaniProducts) ? jamdaniProducts.slice(0, 40) : [];
+          const total = all.length;
+          const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+          const start = (currentPage - 1) * PAGE_SIZE;
+          const pagedItems = all.slice(start, start + PAGE_SIZE);
+          setProducts(pagedItems);
+          setPagination({ page: currentPage, totalPages, total, limit: PAGE_SIZE });
+          return;
+        }
+
         let resolvedCategoryId = categoryId || undefined;
 
         if (!resolvedCategoryId && category) {
@@ -131,20 +146,41 @@ const Products = () => {
           category_id: resolvedCategoryId,
           parent_id: parentId || undefined,
           include_descendants: parentId ? 'true' : undefined,
+          page: currentPage,
+          limit: PAGE_SIZE,
         });
 
-        const items = response?.data || response?.products || response || [];
+        const payload = response?.data ?? response ?? {};
+        const items = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.products)
+            ? payload.products
+            : [];
+        const serverPagination = payload?.pagination || null;
+
+        if (serverPagination) {
+          setPagination({
+            page: Number(serverPagination.page) || currentPage,
+            totalPages: Number(serverPagination.totalPages) || 1,
+            total: Number(serverPagination.total) || items.length,
+            limit: Number(serverPagination.limit) || PAGE_SIZE,
+          });
+        } else {
+          setPagination({ page: currentPage, totalPages: 1, total: items.length, limit: PAGE_SIZE });
+        }
+
         setProducts(Array.isArray(items) ? items : []);
       } catch (err) {
         setError(err?.message || 'Failed to load products.');
         setProducts([]);
+        setPagination({ page: currentPage, totalPages: 1, total: 0, limit: PAGE_SIZE });
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [query, category, categoryId, parentId]);
+  }, [query, category, categoryId, parentId, source, currentPage]);
 
   const onSearchSubmit = (event) => {
     event.preventDefault();
@@ -156,6 +192,16 @@ const Products = () => {
       params.delete('q');
     }
 
+    params.set('page', '1');
+
+    navigate(`/products?${params.toString()}`);
+  };
+
+  const onPageChange = (targetPage) => {
+    const safePage = Math.max(1, targetPage);
+    if (safePage === currentPage) return;
+    const params = new URLSearchParams(searchParams);
+    params.set('page', String(safePage));
     navigate(`/products?${params.toString()}`);
   };
 
@@ -234,6 +280,7 @@ const Products = () => {
         {sortedProducts.map((product) => {
           const productId = product?.product_id || product?.id;
           const price = getProductPrice(product);
+          const imageUrl = getProductImage(product);
 
           return (
             <Link
@@ -241,15 +288,54 @@ const Products = () => {
               to={`/products/${productId}`}
               className="product-card"
             >
-              <img src={getProductImage(product)} alt={product?.name} />
+              <div className="product-image-wrap">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={product?.name}
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="product-image-empty">Image unavailable</div>
+                )}
+              </div>
               <div className="product-card-body">
                 <h3 className="product-name">{product?.name}</h3>
-                <p className="product-price">${price.toFixed(2)}</p>
+                <p className="product-price">৳{price.toFixed(2)}</p>
               </div>
             </Link>
           );
         })}
       </div>
+
+      {pagination.totalPages > 1 && (
+        <div className="products-pagination" role="navigation" aria-label="Products pagination">
+          {currentPage > 1 && (
+            <button
+              className="ui-btn-ghost"
+              type="button"
+              onClick={() => onPageChange(currentPage - 1)}
+            >
+              Previous
+            </button>
+          )}
+          <p className="admin-muted">
+            Page {currentPage} of {pagination.totalPages}
+          </p>
+          {currentPage < pagination.totalPages && (
+            <button
+              className="ui-btn-ghost"
+              type="button"
+              onClick={() => onPageChange(currentPage + 1)}
+            >
+              Next
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

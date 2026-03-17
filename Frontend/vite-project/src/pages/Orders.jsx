@@ -51,7 +51,7 @@ const Orders = () => {
           <div key={order.order_id} className="list-row">
             <p style={{ margin: 0 }}><strong>Order #{order.order_id}</strong></p>
             <p style={{ margin: '0.25rem 0' }}>Status: <span style={{ color: orderService.getStatusColor(order.status) }}>{orderService.getStatusLabel(order.status)}</span></p>
-            <p style={{ margin: '0.25rem 0' }}>Amount: ${Number(order.total_amount || 0).toFixed(2)}</p>
+            <p style={{ margin: '0.25rem 0' }}>Amount: ৳{Number(order.total_amount || 0).toFixed(2)}</p>
             <p style={{ margin: '0.25rem 0' }}>Date: {orderService.formatOrderDate(order.created_at || order.order_date)}</p>
 
             {orderService.canCancelOrder(order) && (

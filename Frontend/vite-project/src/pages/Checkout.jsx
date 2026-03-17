@@ -374,8 +374,8 @@ const Checkout = () => {
                     <strong>{item?.name || 'Product'}</strong>
                     {item?.description && <p style={{ margin: 0, color: 'var(--muted)' }}>{item.description}</p>}
                     <p style={{ margin: 0 }}>Quantity: {item?.quantity || 0}</p>
-                    <p style={{ margin: 0 }}>Unit Price: ${unitPrice.toFixed(2)}</p>
-                    <p style={{ margin: 0, fontWeight: 700 }}>Subtotal: ${subtotal.toFixed(2)}</p>
+                    <p style={{ margin: 0 }}>Unit Price: ৳{unitPrice.toFixed(2)}</p>
+                    <p style={{ margin: 0, fontWeight: 700 }}>Subtotal: ৳{subtotal.toFixed(2)}</p>
                   </div>
                 );
               })}
@@ -387,7 +387,7 @@ const Checkout = () => {
       <section className="ui-card section" style={{ marginTop: '1rem' }}>
         <h2 className="section-title">Order Summary</h2>
         <p>Items: {cartItems.length}</p>
-        <p>Total: ${cartTotal.toFixed(2)}</p>
+        <p>Total: ৳{cartTotal.toFixed(2)}</p>
         <button className="ui-btn" type="button" disabled={submitting} onClick={handleCreateOrder}>
           {submitting ? 'Placing Order...' : 'Place Order'}
         </button>

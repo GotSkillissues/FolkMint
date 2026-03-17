@@ -502,7 +502,7 @@ const Account = () => {
                   <div key={order.order_id} className="list-row">
                     <strong>Order #{order.order_id}</strong>
                     <p style={{ margin: 0 }}>Status: {orderService.getStatusLabel(order.status)}</p>
-                    <p style={{ margin: 0 }}>Amount: ${Number(order.total_amount || 0).toFixed(2)}</p>
+                    <p style={{ margin: 0 }}>Amount: ৳{Number(order.total_amount || 0).toFixed(2)}</p>
                     <p style={{ margin: 0 }}>Date: {orderService.formatOrderDate(order.created_at || order.order_date)}</p>
                   </div>
                 ))
@@ -692,7 +692,7 @@ const Account = () => {
                   <div key={item.wishlist_id} className="list-row">
                     <strong>{item.name}</strong>
                     <p style={{ margin: 0 }}>{item.category_name}</p>
-                    <p style={{ margin: 0 }}>${Number(item.min_price || item.base_price || 0).toFixed(2)}</p>
+                    <p style={{ margin: 0 }}>৳{Number(item.min_price || item.base_price || 0).toFixed(2)}</p>
                   </div>
                 ))
               ) : (

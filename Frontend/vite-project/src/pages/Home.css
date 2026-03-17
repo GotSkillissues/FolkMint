@@ -348,7 +348,7 @@
 }
 
 .card-name {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: inherit;
   font-size: 18px;
   font-weight: 600;
   color: var(--dark);

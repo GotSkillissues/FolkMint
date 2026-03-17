@@ -70,7 +70,7 @@ const Wishlist = () => {
               <div key={item.wishlist_id} className="list-row">
                 <strong>{item.name}</strong>
                 <p style={{ margin: 0 }}>{item.category_name}</p>
-                <p style={{ margin: 0 }}>${Number(item.min_price || item.base_price || 0).toFixed(2)}</p>
+                <p style={{ margin: 0 }}>৳{Number(item.min_price || item.base_price || 0).toFixed(2)}</p>
                 <div className="row-actions">
                   <Link to={`/products/${item.product_id}`}>View Product</Link>
                   <button className="ui-btn-ghost" type="button" onClick={() => handleRemove(item.wishlist_id)}>Remove</button>
