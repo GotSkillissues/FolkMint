@@ -4,42 +4,7 @@ import { categoryService, productService } from '../services';
 import { useCart } from '../context';
 import { Loading } from '../components';
 import { getCardImageUrl } from '../utils';
-import aarongSareeDetails from '../data/aarong-saree-details.json';
-import aarongShawlDetails from '../data/aarong-shawl-details.json';
-import aarongShalwarKameezDetails from '../data/aarong-shalwar-kameez-details.json';
-import aarongDupattaDetails from '../data/aarong-dupatta-details.json';
-import aarongTerracottaClayDetails from '../data/aarong-terracotta-clay-details.json';
 import './ProductDetail.css';
-
-const normalizeSku = (value) => String(value || '')
-  .trim()
-  .replace(/^SKU\s*#?\s*:?\s*/i, '')
-  .replace(/[^A-Z0-9\-_.]/gi, '')
-  .toUpperCase();
-
-const getDetailSku = (item) => normalizeSku(item?.sku || item?.product_code || '');
-const getDetailName = (item) => String(item?.name || item?.product_name || '').trim();
-const getDetailDescription = (item) => String(item?.description || item?.descriptions || '').trim();
-
-const asDetailArray = (input) => {
-  if (Array.isArray(input)) return input;
-  if (Array.isArray(input?.products)) return input.products;
-  return [];
-};
-
-const AARONG_ALL_DETAILS = [
-  ...asDetailArray(aarongSareeDetails),
-  ...asDetailArray(aarongShawlDetails),
-  ...asDetailArray(aarongShalwarKameezDetails),
-  ...asDetailArray(aarongDupattaDetails),
-  ...asDetailArray(aarongTerracottaClayDetails),
-];
-
-const AARONG_DETAILS_BY_SKU = new Map(
-  AARONG_ALL_DETAILS
-    .map((item) => [getDetailSku(item), item])
-    .filter(([sku]) => sku.length > 0)
-);
 
 const normalizeNameKey = (value) =>
   String(value || '')
@@ -47,35 +12,6 @@ const normalizeNameKey = (value) =>
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-
-const AARONG_DETAILS_BY_NAME = new Map(
-  AARONG_ALL_DETAILS
-    .map((item) => [normalizeNameKey(getDetailName(item)), item])
-    .filter(([name]) => name.length > 0)
-);
-
-const getBaseSku = (sku) => {
-  const normalized = normalizeSku(sku);
-  if (!normalized) return '';
-
-  const [base] = normalized.split('-');
-  return base || normalized;
-};
-
-const resolveMatchedDetails = (item) => {
-  const sku = extractSkuCode(item);
-  const exactBySku = sku ? AARONG_DETAILS_BY_SKU.get(sku) : null;
-  if (exactBySku) return exactBySku;
-
-  const baseSku = getBaseSku(sku);
-  const baseBySku = baseSku ? AARONG_DETAILS_BY_SKU.get(baseSku) : null;
-  if (baseBySku) return baseBySku;
-
-  const normalizedName = normalizeNameKey(item?.name);
-  if (!normalizedName) return null;
-
-  return AARONG_DETAILS_BY_NAME.get(normalizedName) || null;
-};
 
 const collectProductImages = (item) => {
   const seen = new Set();
@@ -361,12 +297,11 @@ const ProductDetail = () => {
   const productStock = getProductStock(product);
   const productImages = collectProductImages(product);
   const activeImage = productImages[selectedImageIndex] || '';
-  const matchedDetails = resolveMatchedDetails(product);
   const detailDescription = stripSourceMarker(
-    getDetailDescription(matchedDetails) || product?.description || 'No description available.'
+    String(product?.description || '').trim() || 'No description available.'
   );
-  const detailSpecifications = matchedDetails?.specifications && typeof matchedDetails.specifications === 'object'
-    ? Object.entries(matchedDetails.specifications).filter(([, value]) => String(value || '').trim().length > 0)
+  const detailSpecifications = product?.specifications && typeof product.specifications === 'object'
+    ? Object.entries(product.specifications).filter(([, value]) => String(value || '').trim().length > 0)
     : [];
 
   const onPrevImage = () => {

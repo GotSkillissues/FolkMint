@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { categoryService, productService } from '../services';
 import { useCategoryTree } from '../hooks/useCategories';
 import { Loading } from '../components';
-import jamdaniProducts from '../data/jamdani-sarees.json';
 import { getCardImageUrl } from '../utils';
 import './PageUI.css';
 
@@ -29,7 +28,6 @@ const Products = () => {
   const category = searchParams.get('category') || '';
   const categoryId = searchParams.get('category_id') || '';
   const parentId = searchParams.get('parent_id') || '';
-  const source = searchParams.get('source') || '';
   const activeCategoryId = parentId || categoryId || '';
   const currentPage = Math.max(1, Number(searchParams.get('page') || '1'));
 
@@ -101,17 +99,6 @@ const Products = () => {
       setError('');
 
       try {
-        if (source.toLowerCase() === 'jamdani') {
-          const all = Array.isArray(jamdaniProducts) ? jamdaniProducts.slice(0, 40) : [];
-          const total = all.length;
-          const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-          const start = (currentPage - 1) * PAGE_SIZE;
-          const pagedItems = all.slice(start, start + PAGE_SIZE);
-          setProducts(pagedItems);
-          setPagination({ page: currentPage, totalPages, total, limit: PAGE_SIZE });
-          return;
-        }
-
         let resolvedCategoryId = categoryId || undefined;
 
         if (!resolvedCategoryId && category) {
@@ -180,7 +167,7 @@ const Products = () => {
     };
 
     fetchProducts();
-  }, [query, category, categoryId, parentId, source, currentPage]);
+  }, [query, category, categoryId, parentId, currentPage]);
 
   const onSearchSubmit = (event) => {
     event.preventDefault();
