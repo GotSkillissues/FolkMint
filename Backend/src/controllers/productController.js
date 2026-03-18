@@ -1,6 +1,78 @@
 // Product Controller - Handle product-related operations
 const { pool } = require('../config/database');
 
+const parseDescriptionDetails = (descriptionText) => {
+  const raw = String(descriptionText || '').trim();
+  if (!raw) return { cleanDescription: '', specifications: {}, sizes: [] };
+
+  const lines = raw.split(/\r?\n/);
+  const specs = {};
+  const sizes = [];
+  const bodyLines = [];
+  let inSpecs = false;
+  let inSizes = false;
+
+  for (const originalLine of lines) {
+    const line = String(originalLine || '').trim();
+    if (!line) {
+      if (!inSpecs && !inSizes) bodyLines.push('');
+      continue;
+    }
+
+    if (/^Specifications\s*:/i.test(line)) {
+      inSpecs = true;
+      inSizes = false;
+      continue;
+    }
+
+    if (/^Sizes\s*:/i.test(line)) {
+      inSizes = true;
+      inSpecs = false;
+      const inlineSizes = line.replace(/^Sizes\s*:/i, '').trim();
+      if (inlineSizes) {
+        inlineSizes
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean)
+          .forEach((value) => sizes.push(value));
+      }
+      continue;
+    }
+
+    if (inSpecs) {
+      const normalized = line.replace(/^[-*]\s*/, '');
+      const match = normalized.match(/^([^:]+):\s*(.+)$/);
+      if (match) {
+        const key = String(match[1] || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '');
+        const value = String(match[2] || '').trim();
+        if (key && value) specs[key] = value;
+        continue;
+      }
+    }
+
+    if (inSizes) {
+      line
+        .replace(/^[-*]\s*/, '')
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .forEach((value) => sizes.push(value));
+      continue;
+    }
+
+    bodyLines.push(line);
+  }
+
+  const cleanDescription = bodyLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  const uniqueSizes = [...new Set(sizes.map((value) => String(value || '').trim()).filter(Boolean))];
+
+  return { cleanDescription, specifications: specs, sizes: uniqueSizes };
+};
+
 // ==================== HELPER FUNCTIONS ====================
 
 /**
@@ -48,12 +120,16 @@ const getProductWithDetails = async (productId) => {
   const prices = variants.map(v => parseFloat(v.price));
   const minPrice = prices.length > 0 ? Math.min(...prices) : parseFloat(product.base_price);
   const maxPrice = prices.length > 0 ? Math.max(...prices) : parseFloat(product.base_price);
+  const parsedDetails = parseDescriptionDetails(product.description);
 
   return {
     ...product,
+    description: parsedDetails.cleanDescription || product.description,
     _id: product.product_id, // For frontend compatibility
     price: minPrice,
     variants,
+    specifications: parsedDetails.specifications,
+    sizes: parsedDetails.sizes,
     totalStock,
     minPrice,
     maxPrice,
@@ -229,13 +305,17 @@ const getProducts = async (req, res) => {
       const totalStock = variants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0);
       const prices = variants.map(v => parseFloat(v.price));
       const minPrice = prices.length > 0 ? Math.min(...prices) : parseFloat(product.base_price);
+      const parsedDetails = parseDescriptionDetails(product.description);
 
       return {
         ...product,
+        description: parsedDetails.cleanDescription || product.description,
         _id: product.product_id,
         price: minPrice,
         stock: totalStock,
         variants,
+        specifications: parsedDetails.specifications,
+        sizes: parsedDetails.sizes,
         category: {
           id: product.category_id,
           name: product.category_name
