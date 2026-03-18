@@ -191,6 +191,7 @@ const getProducts = async (req, res) => {
       maxPrice,
     } = req.query;
     const offset = (page - 1) * limit;
+    const requestedCategoryScope = parent_id !== undefined || category_id !== undefined;
 
     let categoryIds = [];
 
@@ -231,6 +232,21 @@ const getProducts = async (req, res) => {
       } else {
         categoryIds = normalizedCategoryIds;
       }
+    }
+
+    // If caller requested category-scoped products but no categories resolve,
+    // return an empty result instead of falling back to all products.
+    if (requestedCategoryScope && categoryIds.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          pages: 0,
+        },
+      });
     }
 
     // Build dynamic query

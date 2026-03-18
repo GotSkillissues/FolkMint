@@ -19,10 +19,8 @@ async function run() {
       `SELECT COUNT(*)::int AS total
          FROM product p
          JOIN category c ON c.category_id = p.category_id
-         JOIN category d ON d.category_id = c.parent_category
-         JOIN category h ON h.category_id = d.parent_category
+         JOIN category h ON h.category_id = c.parent_category
         WHERE LOWER(c.name) = LOWER('Plates & Platters')
-          AND LOWER(d.name) = LOWER('Dining')
           AND LOWER(h.name) = LOWER('Home Decor')`
     );
 
@@ -32,12 +30,10 @@ async function run() {
               COUNT(*)::int AS total_images
          FROM product p
          JOIN category c ON c.category_id = p.category_id
-         JOIN category d ON d.category_id = c.parent_category
-         JOIN category h ON h.category_id = d.parent_category
+         JOIN category h ON h.category_id = c.parent_category
          JOIN product_variant pv ON pv.product_id = p.product_id
          JOIN product_image pi ON pi.variant_id = pv.variant_id
         WHERE LOWER(c.name) = LOWER('Plates & Platters')
-          AND LOWER(d.name) = LOWER('Dining')
           AND LOWER(h.name) = LOWER('Home Decor')`
     );
 
@@ -46,10 +42,8 @@ async function run() {
          FROM product p
          JOIN product_variant pv ON pv.product_id = p.product_id
          JOIN category c ON c.category_id = p.category_id
-         JOIN category d ON d.category_id = c.parent_category
-         JOIN category h ON h.category_id = d.parent_category
+         JOIN category h ON h.category_id = c.parent_category
         WHERE LOWER(c.name) = LOWER('Plates & Platters')
-          AND LOWER(d.name) = LOWER('Dining')
           AND LOWER(h.name) = LOWER('Home Decor')
           AND pv.sku = '0920000004011'
         LIMIT 1`

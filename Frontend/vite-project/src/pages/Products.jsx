@@ -99,6 +99,15 @@ const Products = () => {
       setError('');
 
       try {
+        if (parentId && Array.isArray(categoryTree) && categoryTree.length > 0) {
+          const parentExists = !!findCategoryNodeMeta(categoryTree, parentId);
+          if (!parentExists) {
+            setProducts([]);
+            setPagination({ page: currentPage, totalPages: 0, total: 0, limit: PAGE_SIZE });
+            return;
+          }
+        }
+
         let resolvedCategoryId = categoryId || undefined;
 
         if (!resolvedCategoryId && category) {
@@ -167,7 +176,7 @@ const Products = () => {
     };
 
     fetchProducts();
-  }, [query, category, categoryId, parentId, currentPage]);
+  }, [query, category, categoryId, parentId, currentPage, categoryTree]);
 
   const onSearchSubmit = (event) => {
     event.preventDefault();

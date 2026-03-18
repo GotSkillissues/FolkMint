@@ -2,7 +2,7 @@
 /**
  * import-wall-hangings-products.js
  * Reads aarong_wall_hangings_listing.json and upserts products+variants
- * into the FolkMint DB under Home Decor > Decor > Wall Hangings.
+ * into the FolkMint DB under Home Decor > Wall Hangings.
  */
 
 const fs = require('fs');
@@ -158,17 +158,11 @@ async function run() {
     await client.query('BEGIN');
 
     const homeDecorId = await ensureHomeDecorRoot(client);
-    const decorId = await ensureCategory(
-      client,
-      'Decor',
-      'Decorative home accessories',
-      homeDecorId
-    );
     const wallHangingsId = await ensureCategory(
       client,
       'Wall Hangings',
       'Handcrafted and artisan wall hangings',
-      decorId
+      homeDecorId
     );
 
     let inserted = 0;
@@ -197,7 +191,7 @@ async function run() {
     );
 
     console.log('Wall Hangings product import completed.');
-    console.log(`Category IDs: Home Decor=${homeDecorId}, Decor=${decorId}, Wall Hangings=${wallHangingsId}`);
+    console.log(`Category IDs: Home Decor=${homeDecorId}, Wall Hangings=${wallHangingsId}`);
     console.log(`Inserted: ${inserted}  Updated: ${updated}  Skipped: ${skipped}`);
     console.log('Sample products:');
     for (const row of verify.rows) {

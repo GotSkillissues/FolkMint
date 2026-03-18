@@ -179,18 +179,11 @@ async function run() {
     await client.query('BEGIN');
 
     const homeDecorCategoryId = await ensureHomeDecorRoot(client);
-    const diningCategoryId = await ensureCategory(
-      client,
-      'Dining',
-      'Dining essentials and tableware for home decor',
-      homeDecorCategoryId
-    );
-
     const platesPlattersCategoryId = await ensureCategory(
       client,
       'Plates & Platters',
       'Decorative and functional plates and platters',
-      diningCategoryId
+      homeDecorCategoryId
     );
 
     let inserted = 0;
