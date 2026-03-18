@@ -10,8 +10,13 @@ const INPUT_PATH = process.argv[2] || path.join(__dirname, 'output', 'aarong_vas
 const LISTING_URL = process.argv[3] || 'https://www.aarong.com/bgd/home-decor/decor/vases';
 const MAX_IMAGES_PER_PRODUCT = 1;
 const IMAGE_MIN_BYTES = 8 * 1024;
-const CLOUDINARY_FOLDER_BASE = 'folkmint/product/bangladesh/home-decor/vases';
-const OUTPUT_MAP_PATH = path.join(__dirname, 'output', 'vases-cloudinary-upload-map.json');
+const CLOUDINARY_FOLDER_BASE =
+  process.argv[4] ||
+  process.env.MIGRATE_CLOUDINARY_FOLDER ||
+  'folkmint/product/bangladesh/home-decor/vases';
+const OUTPUT_MAP_PATH =
+  process.argv[5] ||
+  path.join(__dirname, 'output', process.env.MIGRATE_OUTPUT_MAP_FILENAME || 'vases-cloudinary-upload-map.json');
 const ENABLE_LISTING_SCRAPE = String(process.env.VASES_SCRAPE_LISTING || '').toLowerCase() === 'true';
 const ENABLE_PLAYWRIGHT_FALLBACK = String(process.env.VASES_PLAYWRIGHT_FALLBACK || '').toLowerCase() === 'true';
 const ENABLE_PRODUCT_PAGE_SCRAPE = String(process.env.VASES_PRODUCT_PAGE_SCRAPE || '').toLowerCase() === 'true';
@@ -25,6 +30,19 @@ const pool = new Pool({
 });
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const normalizeSku = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (raw.length <= 50) return raw;
+
+  let hash = 0;
+  for (let i = 0; i < raw.length; i += 1) {
+    hash = (hash * 31 + raw.charCodeAt(i)) >>> 0;
+  }
+  const suffix = hash.toString(36).toUpperCase().slice(-6).padStart(6, '0');
+  return `${raw.slice(0, 43)}-${suffix}`;
+};
 
 const toAbsoluteUrl = (value) => {
   if (!value) return '';
@@ -324,7 +342,7 @@ const loadProducts = async (inputPath) => {
 
   return parsed.map((item) => ({
     name: String(item?.product_name || item?.name || '').trim(),
-    sku: String(item?.product_code || item?.sku || '').trim(),
+    sku: normalizeSku(item?.product_code || item?.sku || ''),
     product_url: String(item?.product_url || '').trim(),
   })).filter((item) => item.name && item.sku);
 };

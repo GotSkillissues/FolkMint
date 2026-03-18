@@ -1,0 +1,242 @@
+[
+  {
+    "product_name": "White Ceramic Dinner Plate",
+    "product_code": "0920000004011",
+    "descriptions": "White ceramic dinner plate with blue prints in a tree motif. Suitable for everyday and decorative dining presentation.",
+    "specifications": {
+      "colour": "White/Blue",
+      "material": "Ceramic",
+      "type": "Dinner Plate",
+      "usage": "For Dining and Serving",
+      "care": "Microwave and Dishwasher Safe",
+      "finish": "Printed Tree Motif"
+    },
+    "sizes": []
+  },
+  {
+    "product_name": "Sand Beige Dinner Plate - 27.5 cm",
+    "product_code": "UNKNOWN-SAND-BEIGE-DINNER-PLATE-27-5",
+    "descriptions": "Sand beige ceramic dinner plate sized at 27.5 cm for dining and table presentation.",
+    "specifications": {
+      "colour": "Sand Beige",
+      "material": "Ceramic",
+      "type": "Dinner Plate",
+      "usage": "For Dining and Serving",
+      "care": "Microwave and Dishwasher Safe",
+      "shape": "Round",
+      "finish": "Solid Colour",
+      "diameter": "27.5",
+      "measurement_unit": "CM"
+    },
+    "sizes": []
+  },
+  {
+    "product_name": "White Ceramic Printed Dessert Plate",
+    "product_code": "UNKNOWN-WHITE-CERAMIC-PRINTED-DESSERT-PLATE",
+    "descriptions": "White ceramic dessert plate with printed design for light serving and dining use.",
+    "specifications": {
+      "colour": "White",
+      "material": "Ceramic",
+      "type": "Dessert Plate",
+      "usage": "For Dessert and Snacks",
+      "care": "Microwave and Dishwasher Safe",
+      "shape": "Round",
+      "finish": "Printed"
+    },
+    "sizes": []
+  },
+  {
+    "product_name": "Sand Beige Floral Design Ceramic Dessert Plate - 22.5 cm",
+    "product_code": "UNKNOWN-SAND-BEIGE-FLORAL-DESSERT-PLATE-22-5",
+    "descriptions": "Sand beige ceramic dessert plate with floral design and 22.5 cm diameter.",
+    "specifications": {
+      "colour": "Sand Beige",
+      "material": "Ceramic",
+      "type": "Dessert Plate",
+      "usage": "For Dessert and Snacks",
+      "care": "Microwave and Dishwasher Safe",
+      "shape": "Round",
+      "finish": "Floral Design",
+      "diameter": "22.5",
+      "measurement_unit": "CM"
+    },
+    "sizes": []
+  },
+  {
+    "product_name": "Beige/White Ceramic Nakshi Pata Design Dinner Plate",
+    "product_code": "UNKNOWN-BEIGE-WHITE-NAKSHI-PATA-DINNER-PLATE",
+    "descriptions": "Beige and white ceramic dinner plate featuring a Nakshi Pata design for elegant table presentation.",
+    "specifications": {
+      "colour": "Beige/White",
+      "material": "Ceramic",
+      "type": "Dinner Plate",
+      "usage": "For Dining and Serving",
+      "care": "Microwave and Dishwasher Safe",
+      "shape": "Round",
+      "finish": "Nakshi Pata Design"
+    },
+    "sizes": []
+  },
+  {
+    "product_name": "Ceramic Platter",
+    "product_code": "0920000003048",
+    "descriptions": "Ceramic platter crafted for serving and decorative tabletop styling.",
+    "specifications": {
+      "colour": "White",
+      "material": "Ceramic",
+      "type": "Platter",
+      "usage": "For Serving",
+      "care": "Hand Wash Recommended",
+      "shape": "Oval",
+      "finish": "Smooth Glaze"
+    },
+    "sizes": []
+  },
+  {
+    "product_name": "Ceramic Platter",
+    "product_code": "UNKNOWN-CERAMIC-PLATTER-1",
+    "descriptions": "Ceramic platter designed for food presentation and home dining decor.",
+    "specifications": {
+      "colour": "White",
+      "material": "Ceramic",
+      "type": "Platter",
+      "usage": "For Serving",
+      "care": "Hand Wash Recommended",
+      "shape": "Oval",
+      "finish": "Smooth Glaze"
+    },
+    "sizes": []
+  },
+  {
+    "product_name": "Olive Lace Design Ceramic Medium Platter - 25 cm",
+    "product_code": "UNKNOWN-OLIVE-LACE-DESIGN-CERAMIC-MEDIUM-PLATTER-25",
+    "descriptions": "Olive ceramic medium platter with lace design print and 25 cm size, suitable for serving and display.",
+    "specifications": {
+      "colour": "Olive",
+      "material": "Ceramic",
+      "type": "Platter",
+      "usage": "For Serving",
+      "care": "Hand Wash Recommended",
+      "shape": "Round",
+      "finish": "Lace Design Print",
+      "diameter": "25",
+      "measurement_unit": "CM"
+    },
+    "sizes": [
+      "Medium"
+    ]
+  },
+  {
+    "product_name": "Bamboo Platter",
+    "product_code": "0930000095174",
+    "descriptions": "Bamboo weaved big platter for non-gravy item serving.",
+    "specifications": {
+      "colour": "Natural Beige",
+      "material": "Bamboo",
+      "type": "Platter",
+      "usage": "For Non-Gravy Item Serving",
+      "care": "Wipe With Dry Cloth",
+      "shape": "Round",
+      "finish": "Weaved"
+    },
+    "sizes": [
+      "Big"
+    ]
+  },
+  {
+    "product_name": "Wooden Platter",
+    "product_code": "0890000097073",
+    "descriptions": "Mahogany wood made small round platter for serving and display.",
+    "specifications": {
+      "colour": "Brown",
+      "material": "Mahogany Wood",
+      "type": "Platter",
+      "usage": "For Serving",
+      "care": "Wipe With Dry Cloth",
+      "shape": "Round",
+      "finish": "Natural Wood Grain"
+    },
+    "sizes": [
+      "Small"
+    ]
+  },
+  {
+    "product_name": "Wooden Small Platter",
+    "product_code": "0890000096812",
+    "descriptions": "Wooden small platter crafted for compact serving and tabletop presentation.",
+    "specifications": {
+      "colour": "Brown",
+      "material": "Wood",
+      "type": "Platter",
+      "usage": "For Serving",
+      "care": "Wipe With Dry Cloth",
+      "shape": "Round",
+      "finish": "Natural Wood Grain"
+    },
+    "sizes": [
+      "Small"
+    ]
+  },
+  {
+    "product_name": "Pyro-graphed Rose Leaf Platter",
+    "product_code": "0000008996567",
+    "descriptions": "Decorative platter featuring a pyro-graphed rose leaf design for serving and display.",
+    "specifications": {
+      "colour": "Brown",
+      "material": "Wood",
+      "type": "Platter",
+      "usage": "For Serving and Decoration",
+      "care": "Wipe With Dry Cloth",
+      "shape": "Leaf",
+      "finish": "Pyro-graphed Rose Leaf Design"
+    },
+    "sizes": []
+  },
+  {
+    "product_name": "Black Wrought Iron Fruit Platter",
+    "product_code": "UNKNOWN-BLACK-WROUGHT-IRON-FRUIT-PLATTER",
+    "descriptions": "Black wrought iron fruit platter for decorative fruit display and tabletop organisation.",
+    "specifications": {
+      "colour": "Black",
+      "material": "Wrought Iron",
+      "type": "Fruit Platter",
+      "usage": "For Fruit Display",
+      "care": "Wipe With Dry Cloth",
+      "shape": "Round",
+      "finish": "Matte"
+    },
+    "sizes": []
+  },
+  {
+    "product_name": "Ceramic Medium Platter",
+    "product_code": "UNKNOWN-CERAMIC-MEDIUM-PLATTER",
+    "descriptions": "Medium ceramic platter suitable for snacks, desserts, and side dish serving.",
+    "specifications": {
+      "colour": "White",
+      "material": "Ceramic",
+      "type": "Platter",
+      "usage": "For Serving",
+      "care": "Hand Wash Recommended",
+      "shape": "Oval",
+      "finish": "Glazed"
+    },
+    "sizes": [
+      "Medium"
+    ]
+  },
+  {
+    "product_name": "Printed Ceramic Dessert Plate",
+    "product_code": "UNKNOWN-PRINTED-CERAMIC-DESSERT-PLATE",
+    "descriptions": "Printed ceramic dessert plate designed for sweets, snacks, and elegant table settings.",
+    "specifications": {
+      "colour": "Multicolour",
+      "material": "Ceramic",
+      "type": "Dessert Plate",
+      "usage": "For Dessert and Snacks",
+      "care": "Microwave and Dishwasher Safe",
+      "shape": "Round",
+      "finish": "Printed"
+    },
+    "sizes": []
+  }
+]
