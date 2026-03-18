@@ -1,0 +1,218 @@
+{
+  "source": "Aarong - Non Textile Crafts: Terracotta & Clay",
+  "category_url": "https://www.aarong.com/gifts-crafts/non-textile-crafts/terracotta-clay",
+  "total_products_in_category": 67,
+  "products_captured": 13,
+  "note": "Data sourced from Aarong.com product listings. Prices in Bangladeshi Taka (Tk). Some products may be out of stock.",
+  "products": [
+    {
+      "id": 1,
+      "product_name": "Clay Quarter Plate - Small",
+      "product_code": "SKU#: 1150000000714",
+      "price_BDT": 50,
+      "availability": "Out of stock",
+      "description": "Clay quarter plate with wave engraved exterior. The glossy finish of the plate accentuates your serving.",
+      "specifications": {
+        "material": "Clay",
+        "finish": "Glossy",
+        "exterior_design": "Wave engraved",
+        "size": "Small",
+        "type": "Dinnerware / Serving plate",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/gifts-crafts/non-textile-crafts/terracotta-clay/clay-quarter-plate-small-1150000000714.html"
+    },
+    {
+      "id": 2,
+      "product_name": "Clay Pot - Small",
+      "product_code": "SKU#: 1150000000690",
+      "price_BDT": 75,
+      "availability": "In stock",
+      "description": "Clay pot with engraved exterior.",
+      "specifications": {
+        "material": "Clay",
+        "finish": "Natural / Unglazed",
+        "exterior_design": "Engraved",
+        "size": "Small",
+        "type": "Storage / Decorative pot",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/clay-pot-small-1150000000690.html"
+    },
+    {
+      "id": 4,
+      "product_name": "Clay Plant Pot",
+      "product_code": "SKU#: 1150000000181",
+      "price_BDT": null,
+      "availability": "Check in store",
+      "description": "Clay terracotta plant pot with plate.",
+      "specifications": {
+        "material": "Clay / Terracotta",
+        "includes": "Plate",
+        "type": "Planter",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/planters-13"
+    },
+    {
+      "id": 5,
+      "product_name": "Clay Plant Pot with Plate",
+      "product_code": "SKU#: 0000009202077",
+      "price_BDT": 185,
+      "availability": "In stock",
+      "description": "Clay plant pot with painted and engraved body. Comes with a plate.",
+      "specifications": {
+        "material": "Clay",
+        "finish": "Painted and engraved",
+        "includes": "Plate",
+        "type": "Planter",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/0000009202077.html"
+    },
+    {
+      "id": 13,
+      "product_name": "Clay Salt Pot with Lid",
+      "product_code": "SKU#: 1150000000698",
+      "price_BDT": 115,
+      "availability": "Check listing",
+      "description": "Handcrafted clay salt pot with a lid. Traditional Bangladeshi kitchenware for storing salt or other condiments.",
+      "specifications": {
+        "material": "Clay / Terracotta",
+        "includes": "Lid",
+        "type": "Kitchenware / Condiment storage",
+        "usage": "Storing salt or condiments",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/clay-salt-pot-with-lid-1150000000698.html"
+    },
+    {
+      "id": 16,
+      "product_name": "Black Clay Casserole Pot - Small",
+      "product_code": null,
+      "price_BDT": null,
+      "availability": "Check listing",
+      "description": "Small black clay casserole pot. Handcrafted in the traditional black clay style, suitable for cooking and serving.",
+      "specifications": {
+        "material": "Clay / Terracotta",
+        "color": "Black",
+        "size": "Small",
+        "type": "Cookware / Casserole",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/black-clay-casserole-pot-small.html"
+    },
+    {
+      "id": 17,
+      "product_name": "Clay Candle Pot",
+      "product_code": "SKU#: 1152020000037",
+      "price_BDT": null,
+      "availability": "Check listing",
+      "description": "Black and white clay candle pot. Handcrafted decorative item for holding candles, adding an earthy, artisanal touch to home décor.",
+      "specifications": {
+        "material": "Clay",
+        "color": "Black and white",
+        "type": "Home décor / Candle holder",
+        "usage": "Candle display",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/clay-candle-pot-1152020000037.html"
+    },
+    {
+      "id": 18,
+      "product_name": "Clay Candle Holder",
+      "product_code": "SKU#: 1152020000228",
+      "price_BDT": null,
+      "availability": "Check listing",
+      "description": "Multicolour hand-painted clay candle holder. A vibrant decorative piece for home interiors.",
+      "specifications": {
+        "material": "Clay",
+        "finish": "Hand-painted",
+        "color": "Multicolour",
+        "type": "Home décor / Candle holder",
+        "usage": "Candle display",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/clay-candle-holder-1152020000228.html"
+    },
+    {
+      "id": 19,
+      "product_name": "Terracotta Wall Hanging",
+      "product_code": "SKU#: 0000008996359",
+      "price_BDT": 676.19,
+      "availability": "Out of stock",
+      "description": "Red clay terracotta wall hanging in a black wooden frame. A decorative wall art piece combining traditional terracotta craft with a modern frame.",
+      "specifications": {
+        "material": "Clay / Terracotta with wooden frame",
+        "color": "Red (terracotta) with black frame",
+        "frame_material": "Wood (black)",
+        "type": "Home décor / Wall hanging",
+        "usage": "Wall decoration",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/terracotta-wall-hanging-1.html"
+    },
+    {
+      "id": 20,
+      "product_name": "Wooden and Clay Terracotta Wall Hanging",
+      "product_code": "SKU#: 0000008996389",
+      "price_BDT": 1051.16,
+      "availability": "Out of stock",
+      "description": "Wooden and clay terracotta wall hanging. A decorative piece combining wood and terracotta clay elements for wall display.",
+      "specifications": {
+        "material": "Wood and clay terracotta",
+        "type": "Home décor / Wall hanging",
+        "usage": "Wall decoration",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/wooden-and-clay-terracotta-wall-hanging.html"
+    },
+    {
+      "id": 22,
+      "product_name": "Terracotta Wall Hanging (Large)",
+      "product_code": null,
+      "price_BDT": 1516.28,
+      "availability": "Check listing",
+      "description": "Large terracotta wall hanging. A bold decorative piece for wall display, crafted using traditional clay techniques.",
+      "specifications": {
+        "material": "Terracotta / Clay",
+        "size": "Large",
+        "type": "Home décor / Wall hanging",
+        "usage": "Wall decoration",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/gifts-crafts/non-textile-crafts/terracotta-clay"
+    },
+    {
+      "id": 27,
+      "product_name": "Wooden and Terracotta Flower Vase",
+      "product_code": "SKU#: 0890000097651",
+      "price_BDT": null,
+      "availability": "Check listing",
+      "description": "Decorative flower vase combining wood and terracotta clay elements. A handcrafted piece blending natural materials for home décor.",
+      "specifications": {
+        "material": "Wood and terracotta clay",
+        "type": "Home décor / Vase",
+        "usage": "Flower display / Decorative",
+        "category": "Non Textile Crafts / Wood & Terracotta"
+      },
+      "url": "https://www.aarong.com/bgd/wooden-terracotta-flower-vase-0890000097651.html"
+    },
+    {
+      "id": 28,
+      "product_name": "Wooden and Clay Terracotta Wall Hanging (Large)",
+      "product_code": "SKU#: 0000008996389",
+      "price_BDT": 1051.16,
+      "availability": "Out of stock",
+      "description": "Large wooden and clay terracotta wall hanging combining wood and terracotta craftsmanship for bold decorative wall display.",
+      "specifications": {
+        "material": "Wood and clay terracotta",
+        "size": "Large",
+        "type": "Home décor / Wall hanging",
+        "usage": "Wall decoration",
+        "category": "Terracotta & Clay"
+      },
+      "url": "https://www.aarong.com/wooden-and-clay-terracotta-wall-hanging.html"
+    }
+  ]
+}

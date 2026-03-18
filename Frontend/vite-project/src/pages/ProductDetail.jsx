@@ -4,7 +4,78 @@ import { categoryService, productService } from '../services';
 import { useCart } from '../context';
 import { Loading } from '../components';
 import { getCardImageUrl } from '../utils';
+import aarongSareeDetails from '../data/aarong-saree-details.json';
+import aarongShawlDetails from '../data/aarong-shawl-details.json';
+import aarongShalwarKameezDetails from '../data/aarong-shalwar-kameez-details.json';
+import aarongDupattaDetails from '../data/aarong-dupatta-details.json';
+import aarongTerracottaClayDetails from '../data/aarong-terracotta-clay-details.json';
 import './ProductDetail.css';
+
+const normalizeSku = (value) => String(value || '')
+  .trim()
+  .replace(/^SKU\s*#?\s*:?\s*/i, '')
+  .replace(/[^A-Z0-9\-_.]/gi, '')
+  .toUpperCase();
+
+const getDetailSku = (item) => normalizeSku(item?.sku || item?.product_code || '');
+const getDetailName = (item) => String(item?.name || item?.product_name || '').trim();
+const getDetailDescription = (item) => String(item?.description || item?.descriptions || '').trim();
+
+const asDetailArray = (input) => {
+  if (Array.isArray(input)) return input;
+  if (Array.isArray(input?.products)) return input.products;
+  return [];
+};
+
+const AARONG_ALL_DETAILS = [
+  ...asDetailArray(aarongSareeDetails),
+  ...asDetailArray(aarongShawlDetails),
+  ...asDetailArray(aarongShalwarKameezDetails),
+  ...asDetailArray(aarongDupattaDetails),
+  ...asDetailArray(aarongTerracottaClayDetails),
+];
+
+const AARONG_DETAILS_BY_SKU = new Map(
+  AARONG_ALL_DETAILS
+    .map((item) => [getDetailSku(item), item])
+    .filter(([sku]) => sku.length > 0)
+);
+
+const normalizeNameKey = (value) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const AARONG_DETAILS_BY_NAME = new Map(
+  AARONG_ALL_DETAILS
+    .map((item) => [normalizeNameKey(getDetailName(item)), item])
+    .filter(([name]) => name.length > 0)
+);
+
+const getBaseSku = (sku) => {
+  const normalized = normalizeSku(sku);
+  if (!normalized) return '';
+
+  const [base] = normalized.split('-');
+  return base || normalized;
+};
+
+const resolveMatchedDetails = (item) => {
+  const sku = extractSkuCode(item);
+  const exactBySku = sku ? AARONG_DETAILS_BY_SKU.get(sku) : null;
+  if (exactBySku) return exactBySku;
+
+  const baseSku = getBaseSku(sku);
+  const baseBySku = baseSku ? AARONG_DETAILS_BY_SKU.get(baseSku) : null;
+  if (baseBySku) return baseBySku;
+
+  const normalizedName = normalizeNameKey(item?.name);
+  if (!normalizedName) return null;
+
+  return AARONG_DETAILS_BY_NAME.get(normalizedName) || null;
+};
 
 const collectProductImages = (item) => {
   const seen = new Set();
@@ -27,9 +98,6 @@ const collectProductImages = (item) => {
     addImage(image?.source_url);
   });
 
-  const sourceImageUrls = Array.isArray(item?.source_image_urls) ? item.source_image_urls : [];
-  sourceImageUrls.forEach((url) => addImage(url));
-
   addImage(item?.thumbnail_url);
   addImage(item?.image_url);
   addImage(item?.image);
@@ -42,6 +110,12 @@ const collectProductImages = (item) => {
 
     [...primary, ...secondary].forEach((img) => addImage(img?.image_url));
   });
+
+  const hasCloudinaryImage = images.some((url) => String(url || '').includes('res.cloudinary.com'));
+  if (!hasCloudinaryImage) {
+    const sourceImageUrls = Array.isArray(item?.source_image_urls) ? item.source_image_urls : [];
+    sourceImageUrls.forEach((url) => addImage(url));
+  }
 
   return images.slice(0, 3);
 };
@@ -66,6 +140,36 @@ const getNormalizedItems = (payload) => {
   return [];
 };
 
+const extractSkuCode = (item) => {
+  const sku = String(item?.sku || '').trim();
+  if (sku) return sku.toUpperCase();
+
+  const firstVariantSku = String(item?.variants?.[0]?.sku || '').trim();
+  if (firstVariantSku) return firstVariantSku.toUpperCase();
+
+  const productUrl = String(item?.product_url || '').trim();
+  const urlMatch = productUrl.match(/-([a-z0-9]{8,})\.html$/i);
+  if (urlMatch?.[1]) return urlMatch[1];
+
+  const description = getDetailDescription(item) || String(item?.description || '').trim();
+  const sourceUrlMatch = description.match(/\[source_url:(.*?)\]/i);
+  if (sourceUrlMatch?.[1]) {
+    const sourceCodeMatch = sourceUrlMatch[1].match(/-([a-z0-9]{8,})\.html$/i);
+    if (sourceCodeMatch?.[1]) return sourceCodeMatch[1];
+  }
+
+  return '';
+};
+
+const stripSourceMarker = (text) => String(text || '').replace(/\s*\[source_url:[^\]]+\]\s*/gi, '').trim();
+
+const formatSpecificationLabel = (label) =>
+  String(label || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+
 const ProductDetail = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
@@ -81,6 +185,7 @@ const ProductDetail = () => {
   const [youMayLikeTrackIndex, setYouMayLikeTrackIndex] = useState(0);
   const [youMayLikeTrackBehavior, setYouMayLikeTrackBehavior] = useState('smooth');
   const [autoRotateSyncKey, setAutoRotateSyncKey] = useState(0);
+  const [isInfoPaneOpen, setIsInfoPaneOpen] = useState(false);
   const similarViewportRef = useRef(null);
   const youMayLikeViewportRef = useRef(null);
   const similarResetTimerRef = useRef(null);
@@ -96,6 +201,28 @@ const ProductDetail = () => {
     if (!product) return;
     setSelectedImageIndex(0);
   }, [product]);
+
+  useEffect(() => {
+    setIsInfoPaneOpen(false);
+  }, [id]);
+
+  useEffect(() => {
+    const onEscClose = (event) => {
+      if (event.key === 'Escape') {
+        setIsInfoPaneOpen(false);
+      }
+    };
+
+    if (isInfoPaneOpen) {
+      document.body.classList.add('drawer-open');
+      window.addEventListener('keydown', onEscClose);
+    }
+
+    return () => {
+      document.body.classList.remove('drawer-open');
+      window.removeEventListener('keydown', onEscClose);
+    };
+  }, [isInfoPaneOpen]);
 
   useEffect(() => {
     const fetchSimilarProducts = async () => {
@@ -234,6 +361,13 @@ const ProductDetail = () => {
   const productStock = getProductStock(product);
   const productImages = collectProductImages(product);
   const activeImage = productImages[selectedImageIndex] || '';
+  const matchedDetails = resolveMatchedDetails(product);
+  const detailDescription = stripSourceMarker(
+    getDetailDescription(matchedDetails) || product?.description || 'No description available.'
+  );
+  const detailSpecifications = matchedDetails?.specifications && typeof matchedDetails.specifications === 'object'
+    ? Object.entries(matchedDetails.specifications).filter(([, value]) => String(value || '').trim().length > 0)
+    : [];
 
   const onPrevImage = () => {
     if (productImages.length <= 1) return;
@@ -497,9 +631,13 @@ const ProductDetail = () => {
           <h1 className="product-title">{product.name}</h1>
           <p className="product-price">৳{productPrice.toFixed(2)}</p>
 
-          <div className="product-description">
-            <p>{product.description || 'No description available.'}</p>
-          </div>
+          <button
+            type="button"
+            className="product-description-btn"
+            onClick={() => setIsInfoPaneOpen(true)}
+          >
+            Product Description
+          </button>
 
           <div className="product-info-item">
             <strong>Category:</strong> {product.category?.name || 'Uncategorized'}
@@ -543,6 +681,50 @@ const ProductDetail = () => {
             {productStock > 0 ? 'ADD TO CART' : 'OUT OF STOCK'}
           </button>
         </div>
+      </div>
+
+      <div
+        className={`product-info-overlay${isInfoPaneOpen ? ' open' : ''}`}
+        onClick={() => setIsInfoPaneOpen(false)}
+        aria-hidden={!isInfoPaneOpen}
+      >
+        <aside
+          className={`product-info-pane${isInfoPaneOpen ? ' open' : ''}`}
+          onClick={(event) => event.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Product Description and Specifications"
+        >
+          <div className="product-info-pane-header">
+            <h3>Product Description</h3>
+            <button
+              type="button"
+              className="product-info-close"
+              onClick={() => setIsInfoPaneOpen(false)}
+              aria-label="Close product details"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="product-info-pane-content">
+            <p className="product-info-description">{detailDescription}</p>
+
+            <h4 className="product-info-spec-title">Specifications</h4>
+            {detailSpecifications.length > 0 ? (
+              <dl className="product-spec-grid">
+                {detailSpecifications.map(([key, value]) => (
+                  <div className="product-spec-row" key={key}>
+                    <dt>{formatSpecificationLabel(key)}</dt>
+                    <dd>{String(value)}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="product-info-spec-empty">No specifications available.</p>
+            )}
+          </div>
+        </aside>
       </div>
 
       {similarProducts.length > 0 && (

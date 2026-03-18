@@ -2,6 +2,10 @@
 
 This skill is now generic for product collections from compatible ecommerce listing pages.
 
+Prompt template saved at:
+
+`Backend/scripts/IMPORT_SKILL_PROMPT_TEMPLATE.md`
+
 Pipeline:
 
 1. Scrape listing URL and product URLs

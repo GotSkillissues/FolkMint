@@ -1,0 +1,638 @@
+{
+  "generated_at": "2026-03-17T18:26:29.661Z",
+  "listing_url": "https://www.aarong.com/bgd/women/saree?cat=Nzc%3D%26product_list_order=low_to_high",
+  "cloudinary_folder_base": "FolkMint/Product/women/saree/cotton-saree",
+  "product_count": 14,
+  "results": [
+    {
+      "id": "cotton-saree-01",
+      "name": "Orange Brush Painted and Embroidered Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,177.27",
+      "price": 2177.27,
+      "product_url": "https://www.aarong.com/bgd/orange-brush-painted-and-embroidered-cotton-saree-0560000077223.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077223.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077223.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077223_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077223_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/orange-brush-painted-and-embroidered-cotton-saree-0560000077223/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771810/FolkMint/Product/women/saree/cotton-saree/orange-brush-painted-and-embroidered-cotton-saree-0560000077223/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077223.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771810/FolkMint/Product/women/saree/cotton-saree/orange-brush-painted-and-embroidered-cotton-saree-0560000077223/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/orange-brush-painted-and-embroidered-cotton-saree-0560000077223/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077223_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771812/FolkMint/Product/women/saree/cotton-saree/orange-brush-painted-and-embroidered-cotton-saree-0560000077223/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/orange-brush-painted-and-embroidered-cotton-saree-0560000077223/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077223_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771814/FolkMint/Product/women/saree/cotton-saree/orange-brush-painted-and-embroidered-cotton-saree-0560000077223/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/orange-brush-painted-and-embroidered-cotton-saree-0560000077223/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771810/FolkMint/Product/women/saree/cotton-saree/orange-brush-painted-and-embroidered-cotton-saree-0560000077223/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 141,
+      "variant_id": 189
+    },
+    {
+      "id": "cotton-saree-02",
+      "name": "Green Printed Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,486.36",
+      "price": 2486.36,
+      "product_url": "https://www.aarong.com/bgd/green-printed-cotton-saree-0560000074237.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074237.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074237.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074237_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074237_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000074237/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771823/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000074237/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074237.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771823/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000074237/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000074237/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074237_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771825/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000074237/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000074237/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074237_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771826/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000074237/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000074237/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771823/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000074237/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 142,
+      "variant_id": 190
+    },
+    {
+      "id": "cotton-saree-03",
+      "name": "Green Sirajganj Cotton Opera Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 3,009.09",
+      "price": 3009.09,
+      "product_url": "https://www.aarong.com/bgd/green-sirajganj-cotton-opera-saree-0560000080569.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080569.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080569.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080569_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080569_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/green-sirajganj-cotton-opera-saree-0560000080569/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771836/FolkMint/Product/women/saree/cotton-saree/green-sirajganj-cotton-opera-saree-0560000080569/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080569.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771836/FolkMint/Product/women/saree/cotton-saree/green-sirajganj-cotton-opera-saree-0560000080569/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/green-sirajganj-cotton-opera-saree-0560000080569/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080569_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771838/FolkMint/Product/women/saree/cotton-saree/green-sirajganj-cotton-opera-saree-0560000080569/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/green-sirajganj-cotton-opera-saree-0560000080569/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080569_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771839/FolkMint/Product/women/saree/cotton-saree/green-sirajganj-cotton-opera-saree-0560000080569/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/green-sirajganj-cotton-opera-saree-0560000080569/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771836/FolkMint/Product/women/saree/cotton-saree/green-sirajganj-cotton-opera-saree-0560000080569/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 143,
+      "variant_id": 191
+    },
+    {
+      "id": "cotton-saree-04",
+      "name": "Light Yellow Printed Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,281.82",
+      "price": 2281.82,
+      "product_url": "https://www.aarong.com/bgd/light-yellow-printed-cotton-saree-0560000076590.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076590.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076590.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076590_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076590_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/light-yellow-printed-cotton-saree-0560000076590/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771847/FolkMint/Product/women/saree/cotton-saree/light-yellow-printed-cotton-saree-0560000076590/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076590.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771847/FolkMint/Product/women/saree/cotton-saree/light-yellow-printed-cotton-saree-0560000076590/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/light-yellow-printed-cotton-saree-0560000076590/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076590_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771849/FolkMint/Product/women/saree/cotton-saree/light-yellow-printed-cotton-saree-0560000076590/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/light-yellow-printed-cotton-saree-0560000076590/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076590_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771850/FolkMint/Product/women/saree/cotton-saree/light-yellow-printed-cotton-saree-0560000076590/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/light-yellow-printed-cotton-saree-0560000076590/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771847/FolkMint/Product/women/saree/cotton-saree/light-yellow-printed-cotton-saree-0560000076590/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 144,
+      "variant_id": 192
+    },
+    {
+      "id": "cotton-saree-05",
+      "name": "White Printed and Embroidered Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,881.82",
+      "price": 2881.82,
+      "product_url": "https://www.aarong.com/bgd/white-printed-and-embroidered-cotton-saree-0560000074264.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074264.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074264.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074264_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074264_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/white-printed-and-embroidered-cotton-saree-0560000074264/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771860/FolkMint/Product/women/saree/cotton-saree/white-printed-and-embroidered-cotton-saree-0560000074264/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074264.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771860/FolkMint/Product/women/saree/cotton-saree/white-printed-and-embroidered-cotton-saree-0560000074264/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/white-printed-and-embroidered-cotton-saree-0560000074264/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074264_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771862/FolkMint/Product/women/saree/cotton-saree/white-printed-and-embroidered-cotton-saree-0560000074264/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/white-printed-and-embroidered-cotton-saree-0560000074264/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000074264_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771864/FolkMint/Product/women/saree/cotton-saree/white-printed-and-embroidered-cotton-saree-0560000074264/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/white-printed-and-embroidered-cotton-saree-0560000074264/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771860/FolkMint/Product/women/saree/cotton-saree/white-printed-and-embroidered-cotton-saree-0560000074264/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 145,
+      "variant_id": 193
+    },
+    {
+      "id": "cotton-saree-06",
+      "name": "Burgundy Printed Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,386.05",
+      "price": 2386.05,
+      "product_url": "https://www.aarong.com/bgd/burgundy-printed-cotton-saree-0560000075405.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000075405.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000075405.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000075405_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000075405_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/burgundy-printed-cotton-saree-0560000075405/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771874/FolkMint/Product/women/saree/cotton-saree/burgundy-printed-cotton-saree-0560000075405/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000075405.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771874/FolkMint/Product/women/saree/cotton-saree/burgundy-printed-cotton-saree-0560000075405/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/burgundy-printed-cotton-saree-0560000075405/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000075405_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771875/FolkMint/Product/women/saree/cotton-saree/burgundy-printed-cotton-saree-0560000075405/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/burgundy-printed-cotton-saree-0560000075405/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000075405_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771876/FolkMint/Product/women/saree/cotton-saree/burgundy-printed-cotton-saree-0560000075405/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/burgundy-printed-cotton-saree-0560000075405/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771874/FolkMint/Product/women/saree/cotton-saree/burgundy-printed-cotton-saree-0560000075405/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 146,
+      "variant_id": 194
+    },
+    {
+      "id": "cotton-saree-07",
+      "name": "Yellow Printed Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,690.91",
+      "price": 2690.91,
+      "product_url": "https://www.aarong.com/bgd/yellow-printed-cotton-saree-0560000080304.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080304.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080304.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080304_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080304_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000080304/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771885/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000080304/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080304.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771885/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000080304/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000080304/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080304_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771887/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000080304/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000080304/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000080304_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771889/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000080304/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000080304/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771885/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000080304/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 147,
+      "variant_id": 195
+    },
+    {
+      "id": "cotton-saree-08",
+      "name": "Peach Brush Painted and Wax Dyed Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,481.82",
+      "price": 2481.82,
+      "product_url": "https://www.aarong.com/bgd/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000079005.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000079005.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000079005_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000079005_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771898/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000079005.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771898/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000079005_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771900/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000079005_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771901/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771898/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-wax-dyed-cotton-saree-0560000079005/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 148,
+      "variant_id": 196
+    },
+    {
+      "id": "cotton-saree-09",
+      "name": "White Dyed and Printed Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,504.55",
+      "price": 2504.55,
+      "product_url": "https://www.aarong.com/bgd/white-dyed-and-printed-cotton-saree-0560000077055.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077055.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077055.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077055_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077055_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/white-dyed-and-printed-cotton-saree-0560000077055/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771915/FolkMint/Product/women/saree/cotton-saree/white-dyed-and-printed-cotton-saree-0560000077055/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077055.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771915/FolkMint/Product/women/saree/cotton-saree/white-dyed-and-printed-cotton-saree-0560000077055/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/white-dyed-and-printed-cotton-saree-0560000077055/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077055_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771916/FolkMint/Product/women/saree/cotton-saree/white-dyed-and-printed-cotton-saree-0560000077055/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/white-dyed-and-printed-cotton-saree-0560000077055/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000077055_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771919/FolkMint/Product/women/saree/cotton-saree/white-dyed-and-printed-cotton-saree-0560000077055/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/white-dyed-and-printed-cotton-saree-0560000077055/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771915/FolkMint/Product/women/saree/cotton-saree/white-dyed-and-printed-cotton-saree-0560000077055/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 149,
+      "variant_id": 197
+    },
+    {
+      "id": "cotton-saree-10",
+      "name": "Yellow Printed Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,436.36",
+      "price": 2436.36,
+      "product_url": "https://www.aarong.com/bgd/yellow-printed-cotton-saree-0560000076625.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076625.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076625.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076625_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076625_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000076625/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771932/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000076625/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076625.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771932/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000076625/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000076625/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076625_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771933/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000076625/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000076625/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076625_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771937/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000076625/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000076625/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771932/FolkMint/Product/women/saree/cotton-saree/yellow-printed-cotton-saree-0560000076625/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 150,
+      "variant_id": 199
+    },
+    {
+      "id": "cotton-saree-11",
+      "name": "Orange Dyed and Printed Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,263.64",
+      "price": 2263.64,
+      "product_url": "https://www.aarong.com/bgd/orange-dyed-and-printed-cotton-saree-0560000076949.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076949.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076949.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076949_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076949_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/orange-dyed-and-printed-cotton-saree-0560000076949/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771946/FolkMint/Product/women/saree/cotton-saree/orange-dyed-and-printed-cotton-saree-0560000076949/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076949.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771946/FolkMint/Product/women/saree/cotton-saree/orange-dyed-and-printed-cotton-saree-0560000076949/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/orange-dyed-and-printed-cotton-saree-0560000076949/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076949_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771949/FolkMint/Product/women/saree/cotton-saree/orange-dyed-and-printed-cotton-saree-0560000076949/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/orange-dyed-and-printed-cotton-saree-0560000076949/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076949_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771951/FolkMint/Product/women/saree/cotton-saree/orange-dyed-and-printed-cotton-saree-0560000076949/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/orange-dyed-and-printed-cotton-saree-0560000076949/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771946/FolkMint/Product/women/saree/cotton-saree/orange-dyed-and-printed-cotton-saree-0560000076949/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 151,
+      "variant_id": 200
+    },
+    {
+      "id": "cotton-saree-12",
+      "name": "Peach Brush Painted and Embroidered Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,668.18",
+      "price": 2668.18,
+      "product_url": "https://www.aarong.com/bgd/peach-brush-painted-and-embroidered-cotton-saree-0560000076755.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076755.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076755.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076755_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076755_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-embroidered-cotton-saree-0560000076755/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771961/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-embroidered-cotton-saree-0560000076755/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076755.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771961/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-embroidered-cotton-saree-0560000076755/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-embroidered-cotton-saree-0560000076755/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076755_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771962/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-embroidered-cotton-saree-0560000076755/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-embroidered-cotton-saree-0560000076755/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076755_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771964/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-embroidered-cotton-saree-0560000076755/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-embroidered-cotton-saree-0560000076755/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771961/FolkMint/Product/women/saree/cotton-saree/peach-brush-painted-and-embroidered-cotton-saree-0560000076755/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 152,
+      "variant_id": 201
+    },
+    {
+      "id": "cotton-saree-13",
+      "name": "White Appliqued and Embroidered Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 2,559.09",
+      "price": 2559.09,
+      "product_url": "https://www.aarong.com/bgd/white-appliqued-and-embroidered-cotton-saree-0560000076876.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076876.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076876.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076876_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076876_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/white-appliqued-and-embroidered-cotton-saree-0560000076876/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771972/FolkMint/Product/women/saree/cotton-saree/white-appliqued-and-embroidered-cotton-saree-0560000076876/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076876.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771972/FolkMint/Product/women/saree/cotton-saree/white-appliqued-and-embroidered-cotton-saree-0560000076876/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/white-appliqued-and-embroidered-cotton-saree-0560000076876/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076876_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771974/FolkMint/Product/women/saree/cotton-saree/white-appliqued-and-embroidered-cotton-saree-0560000076876/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/white-appliqued-and-embroidered-cotton-saree-0560000076876/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000076876_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771977/FolkMint/Product/women/saree/cotton-saree/white-appliqued-and-embroidered-cotton-saree-0560000076876/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/white-appliqued-and-embroidered-cotton-saree-0560000076876/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771972/FolkMint/Product/women/saree/cotton-saree/white-appliqued-and-embroidered-cotton-saree-0560000076876/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 153,
+      "variant_id": 202
+    },
+    {
+      "id": "cotton-saree-14",
+      "name": "Green Printed Cotton Saree",
+      "description": "Aarong - Number one lifestyle retailer in Bangladesh and social enterprise of BRAC",
+      "sku": "",
+      "sizes": [],
+      "price_text": "Tk 1,859.09",
+      "price": 1859.09,
+      "product_url": "https://www.aarong.com/bgd/green-printed-cotton-saree-0560000078517.html",
+      "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000078517.jpg",
+      "source_image_urls": [
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000078517.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000078517_1.jpg",
+        "https://mcprod.aarong.com/media/catalog/product/0/5/0560000078517_2.jpg"
+      ],
+      "cloudinary": {
+        "folder": "FolkMint/Product/women/saree/cotton-saree",
+        "public_id": "FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000078517/thumb",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771987/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000078517/thumb.jpg"
+      },
+      "images": [
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000078517.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771987/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000078517/thumb.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000078517/thumb",
+          "is_primary": true
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000078517_1.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771989/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000078517/02.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000078517/02",
+          "is_primary": false
+        },
+        {
+          "source_url": "https://mcprod.aarong.com/media/catalog/product/0/5/0560000078517_2.jpg",
+          "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771991/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000078517/03.jpg",
+          "public_id": "FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000078517/03",
+          "is_primary": false
+        }
+      ],
+      "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773771987/FolkMint/Product/women/saree/cotton-saree/green-printed-cotton-saree-0560000078517/thumb.jpg",
+      "status": "uploaded",
+      "product_id": 154,
+      "variant_id": 204
+    }
+  ]
+}

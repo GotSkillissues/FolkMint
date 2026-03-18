@@ -1,0 +1,567 @@
+﻿[
+    {
+        "sku":  "0550000148970",
+        "name":  "Apricot Appliqued and Embroidered Muslin Saree",
+        "description":  "Apricot appliqued muslin saree with red, maroon, orange and beige embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Machine Applique",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000160291",
+        "name":  "Orange Appliqued and Embroidered Endi Muslin Saree",
+        "description":  "Orange applique printed muslin saree with shades of orange and red embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Mixed Muslin (Muslin \u0026 Endi)",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0560000077223",
+        "name":  "Orange Brush Painted and Embroidered Cotton Saree",
+        "description":  "Orange brush paint printed cotton saree with maroon embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Block Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0540000025640",
+        "name":  "Peach Printed and Embroidered Silk Saree",
+        "description":  "Peach printed silk saree with shades of red embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Silk",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000147400",
+        "name":  "Coffee Appliqued and Embroidered Muslin Saree",
+        "description":  "Coffee appliqued muslin saree with pink, white and red embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Brown",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Machine Applique",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0560000074237",
+        "name":  "Green Printed Cotton Saree",
+        "description":  "Green cotton saree with orange, blue, green and brown prints. Comes with matching unstitched blouse piece. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Green",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Screen Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0560000080569",
+        "name":  "Green Sirajganj Cotton Opera Saree",
+        "description":  "Green Sirajganj cotton opera saree with green, magenta, plum, purple and brown weaving. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "origin":  "Sirajganj, Bangladesh",
+                               "colour":  "Green",
+                               "fabric":  "Cotton",
+                               "aanchal":  "Contrast Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0560000076590",
+        "name":  "Light Yellow Printed Cotton Saree",
+        "description":  "Light yellow cotton saree with green, orange and white prints. Comes with matching unstitched blouse piece. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Yellow",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Screen Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0560000074264",
+        "name":  "White Printed and Embroidered Cotton Saree",
+        "description":  "White printed cotton saree with red embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "White",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0560000075405",
+        "name":  "Burgundy Printed Cotton Saree",
+        "description":  "Burgundy cotton saree with orange, black, blue and green prints. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Maroon",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Block Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0550000161689",
+        "name":  "Sea Green Printed and Embroidered Muslin Saree",
+        "description":  "Sea green printed muslin saree with shades of pink, magenta, golden and red embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Green",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000026624",
+        "name":  "Purple Tie-Dyed Brush Painted and Embroidered Silk Saree",
+        "description":  "Purple and parrot green tie-dyed silk saree with brush painted detailing. Pink and lilac embroidery from body to aanchal. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Purple",
+                               "fabric":  "Silk",
+                               "value_addition":  "Hand Embroidery",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000163674",
+        "name":  "Orange Check Embroidered Half Silk Saree",
+        "description":  "Orange check half silk saree with ivory and beige embroidery over prints. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Half Silk (Silk \u0026 Cotton)",
+                               "value_addition":  "Machine Embroidery",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0560000080304",
+        "name":  "Yellow Printed Cotton Saree",
+        "description":  "Yellow cotton saree with olive, brown, green, white, brown and maroon prints. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Yellow",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Screen Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0540000025454",
+        "name":  "Green Printed and Nakshi Kantha Embroidered Silk Saree",
+        "description":  "Grey printed silk saree pink, copper, olive, grey and berry Nakshi Kantha embroidery. Unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Green",
+                               "fabric":  "Silk",
+                               "value_addition":  "Nakshi Kantha Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000025469",
+        "name":  "Grey Brush Painted and Wax Dyed Silk Saree",
+        "description":  "Grey brush painted silk saree brown, blue, black, beige, coffee prints and wax dyed. Unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Grey",
+                               "fabric":  "Silk",
+                               "value_addition":  "Batik Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0560000077527",
+        "name":  "Orange Printed Cotton Saree",
+        "description":  "Orange cotton saree with multicolour prints. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Screen Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0540000026493",
+        "name":  "Violet Blue Mirpur Katan Saree",
+        "description":  "Violet blue Mirpur katan saree with weaving details. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Blue",
+                               "fabric":  "Silk",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000025993",
+        "name":  "Teal Printed and Embroidered Silk Saree",
+        "description":  "Teal printed silk saree with black embroidery details. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Blue",
+                               "fabric":  "Silk",
+                               "value_addition":  "Erri Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000167181",
+        "name":  "Orange/Beige Brush Painted and Embroidered Muslin Saree",
+        "description":  "Orange and beige brush painted muslin saree with embroidery and prints. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000026369",
+        "name":  "Purple Tangail Soft Silk Baluchari Saree",
+        "description":  "Purple and cyan Tangail soft silk baluchari saree with weaving details. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Purple",
+                               "fabric":  "Soft Silk",
+                               "aanchal":  "Contrast Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0560000079005",
+        "name":  "Peach Brush Painted and Wax Dyed Cotton Saree",
+        "description":  "Peach wax-dyed cotton saree with orange, maroon, red, peach brush paints and printed. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Block Print",
+                               "aanchal":  "Contrast Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0560000077055",
+        "name":  "White Dyed and Printed Cotton Saree",
+        "description":  "White dyed cotton saree with red, peach, pink, aqua, maroon and pink prints. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "White",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Screen Print",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0560000076625",
+        "name":  "Yellow Printed Cotton Saree",
+        "description":  "Yellow cotton saree with shades of green, brown, white, orange, yellow and mustard prints. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Yellow",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Screen Print",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0550000154306",
+        "name":  "Green Printed and Embroidered Muslin Saree",
+        "description":  "Green printed muslin saree with cyan, mint and black embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Green",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000161979",
+        "name":  "Black/Pink Printed and Embroidered muslin Saree",
+        "description":  "Black/Pink brush painted, printed muslin saree with multicolour embroidery. Comes with matching unstitched blouse piece. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Black",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000161982",
+        "name":  "Burgundy Printed and Embroidered Muslin Saree",
+        "description":  "Burgundy muslin saree with rose and dusty pink embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Maroon",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Nakshi Kantha Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000165589",
+        "name":  "Coral Printed and Embroidered Muslin Saree",
+        "description":  "Coral printed muslin saree with shades of pink embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000152975",
+        "name":  "Plum Brush Painted and Embroidered Muslin Saree",
+        "description":  "Plum brush painted muslin saree with orange, beige, brown, red, mustard and coffee embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Purple",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000160778",
+        "name":  "Peach Printed and Embroidered Muslin Saree",
+        "description":  "Peach printed muslin saree with orange, beige and white embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000025578",
+        "name":  "Multicolour Printed and Embroidered Silk Saree",
+        "description":  "Multicolour printed silk saree with red embroidery. Comes with matching unstitched blouse piece. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Yellow",
+                               "fabric":  "Silk",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Contrast Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000025588",
+        "name":  "Magenta Printed and Nakshi Kantha Embroidered Silk Saree",
+        "description":  "Magenta printed silk saree with Nakshi Kantha embroidery. Comes with matching unstitched blouse piece. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Magenta",
+                               "fabric":  "Silk",
+                               "value_addition":  "Nakshi Kantha Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000025580",
+        "name":  "Watermelon Wax Dyed and Printed Silk Saree",
+        "description":  "Watermelon wax dyed silk saree with golden prints. Comes with matching unstitched blouse piece. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Red",
+                               "fabric":  "Silk",
+                               "value_addition":  "Batik Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0550000161027",
+        "name":  "Slate blue Printed and Embroidered Muslin Saree",
+        "description":  "Slate blue printed muslin saree with teal, aqua, sky blue and mint green embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Blue",
+                               "fabric":  "Muslin",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0560000076949",
+        "name":  "Orange Dyed and Printed Cotton Saree",
+        "description":  "Orange dyed cotton saree with white and orange prints. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Screen Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0560000076755",
+        "name":  "Peach Brush Painted and Embroidered Cotton Saree",
+        "description":  "Peach brush painted cotton saree with white embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Orange",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0560000076876",
+        "name":  "White Appliqued and Embroidered Cotton Saree",
+        "description":  "White applique printed cotton saree with orange, golden and mustard embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "White",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Machine Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0560000078517",
+        "name":  "Green Printed Cotton Saree",
+        "description":  "Green cotton saree with shades of mint and green prints. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Green",
+                               "fabric":  "Cotton",
+                               "value_addition":  "Block Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Hand Wash With Mild Detergent In Cold Water And Starch"
+                           }
+    },
+    {
+        "sku":  "0550000166864",
+        "name":  "Multicolour Striped Endi Silk Saree",
+        "description":  "Multicolour endi silk saree with yellow, orange, navy blue, purple, orange, plum and golden stripe prints. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Maroon",
+                               "fabric":  "Endi Silk",
+                               "aanchal":  "Contrast Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000026541",
+        "name":  "Beige Printed Silk Saree",
+        "description":  "Beige silk saree with coffee, navy blue, pink, coffee, brown and magenta prints. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Brown",
+                               "fabric":  "Silk",
+                               "value_addition":  "Screen Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000026540",
+        "name":  "Light Yellow Printed Silk Saree",
+        "description":  "Light yellow silk saree with orange, blue, brown, mustard, lavender and burgundy prints. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Yellow",
+                               "fabric":  "Silk",
+                               "value_addition":  "Screen Print",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000026539",
+        "name":  "White Printed Silk Saree",
+        "description":  "White silk saree with purple, magenta, pink and green prints. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "White",
+                               "fabric":  "Silk",
+                               "value_addition":  "Screen Print",
+                               "aanchal":  "Contrast Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000025948",
+        "name":  "Red Appliqued and Embroidered Silk Saree",
+        "description":  "Red applique printed silk saree with orange and red embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Red",
+                               "fabric":  "Silk",
+                               "value_addition":  "Hand Applique",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    },
+    {
+        "sku":  "0540000026364",
+        "name":  "Yellow Brush Printed and Embroidered Silk Saree",
+        "description":  "Yellow printed silk saree with white, orange copper and brown embroidery. Comes with matching unstitched blouse piece attached at the end of saree. Blouse shown in the photo is a styling suggestion, it is not a part of the actual product.",
+        "specifications":  {
+                               "colour":  "Yellow",
+                               "fabric":  "Silk",
+                               "value_addition":  "Exclusive Hand Embroidery",
+                               "aanchal":  "Patterned Aanchal",
+                               "blouse":  "With Blouse Piece",
+                               "care":  "Dry Clean"
+                           }
+    }
+]

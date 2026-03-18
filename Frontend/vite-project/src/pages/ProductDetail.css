@@ -117,12 +117,22 @@
   margin: 0;
 }
 
-.product-description {
-  color: #666;
-  line-height: 1.8;
-  padding: 1rem 0;
-  border-top: 1px solid #e0e0e0;
-  border-bottom: 1px solid #e0e0e0;
+.product-description-btn {
+  width: fit-content;
+  border: 1px solid #d4a574;
+  background: #fff;
+  color: #8a643d;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.product-description-btn:hover {
+  background: #d4a574;
+  color: #fff;
 }
 
 .product-info-item {
@@ -200,6 +210,111 @@
 .add-to-cart-btn-large:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+.product-info-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s ease;
+  z-index: 1400;
+}
+
+.product-info-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.product-info-pane {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: min(560px, 92vw);
+  background: #fff;
+  border-left: 1px solid #e5e7eb;
+  transform: translateX(100%);
+  transition: transform 0.28s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-info-pane.open {
+  transform: translateX(0);
+}
+
+.product-info-pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.product-info-pane-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.product-info-close {
+  border: none;
+  background: transparent;
+  color: #374151;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.product-info-pane-content {
+  padding: 1.1rem;
+  overflow-y: auto;
+}
+
+.product-info-description {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.8;
+}
+
+.product-info-spec-title {
+  margin: 1.2rem 0 0.7rem;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.product-spec-grid {
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.product-spec-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 0.8rem;
+}
+
+.product-spec-row dt {
+  margin: 0;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.product-spec-row dd {
+  margin: 0;
+  color: #1f2937;
+}
+
+.product-info-spec-empty {
+  margin: 0;
+  color: #6b7280;
+}
+
+body.drawer-open {
+  overflow: hidden;
 }
 
 .similar-products-section {
@@ -324,5 +439,10 @@
 @media (max-width: 560px) {
   .similar-card {
     flex: 0 0 100%;
+  }
+
+  .product-spec-row {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
   }
 }

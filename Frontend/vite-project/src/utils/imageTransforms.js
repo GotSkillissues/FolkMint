@@ -35,12 +35,13 @@ export const getCardImageUrl = (product, options = {}) => {
     topLevelImages[0]?.secure_url ||
     topLevelImages[0]?.image_url ||
     topLevelImages[0]?.source_url ||
-    product?.source_image_urls?.[0] ||
     product?.variants?.[0]?.images?.find((image) => image?.is_primary)?.image_url ||
     product?.variants?.[0]?.images?.[0]?.image_url ||
     product?.thumbnail_url ||
+    product?.source_thumbnail_url ||
     product?.image_url ||
     product?.image ||
+    product?.source_image_urls?.[0] ||
     '';
 
   return toCloudinaryThumbnail(direct, options);

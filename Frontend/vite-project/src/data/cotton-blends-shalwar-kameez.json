@@ -1,0 +1,897 @@
+[
+  {
+    "id": "cotton-blends-shalwar-kameez-01",
+    "name": "Green Printed and Embroidered Tencel Shalwar Kameez",
+    "description": "Green tencel shalwar kameez with printed motifs and embroidery, designed for contemporary wear.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Tencel",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "Flared",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "V Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23G254201038",
+    "sizes": [],
+    "price_text": "Tk 5,681.82",
+    "price": 5681.82,
+    "product_url": "https://www.aarong.com/bgd/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193331.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193331.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193331_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193331_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783457/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193331.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783457/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193331_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783458/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193331_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783460/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783457/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-tencel-shalwar-kameez-23g254201038/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 270,
+    "variant_id": 684
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-02",
+    "name": "Green Printed and Embroidered Vortex Cotton Shalwar Kameez",
+    "description": "Green vortex cotton shalwar kameez with print and embroidery in a comfortable three-piece format.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Vortex Cotton",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23E264201136",
+    "sizes": [
+      "36",
+      "38",
+      "40",
+      "46"
+    ],
+    "price_text": "Tk 4,404.55",
+    "price": 4404.55,
+    "product_url": "https://www.aarong.com/bgd/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193338.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193338.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193338_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193338_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783475/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193338.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783475/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193338_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783476/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193338_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783478/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783475/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/green-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201136/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 271,
+    "variant_id": 685
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-03",
+    "name": "Blue Kantha Odyssey Theme Shalwar Kameez",
+    "description": "Blue cotton-blend shalwar kameez with kantha odyssey theme styling and artisanal surface detailing.",
+    "specifications": {
+      "colour": "Blue",
+      "fabric": "Handloom Cotton",
+      "value_addition": "Kantha Work",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23E264201216",
+    "sizes": [],
+    "price_text": "Tk 3,863.64",
+    "price": 3863.64,
+    "product_url": "https://www.aarong.com/bgd/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190236.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190236.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190244.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190236_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783490/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190236.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783490/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190244.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783492/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190236_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783493/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783490/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-kantha-odyssey-theme-shalwar-kameez-23e264201216/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 272,
+    "variant_id": 686
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-04",
+    "name": "Cyan Ornamenta Theme Shalwar Kameez",
+    "description": "Cyan viscose-cotton shalwar kameez with ornamenta theme styling and handcrafted embellishment cues.",
+    "specifications": {
+      "colour": "Cyan",
+      "fabric": "Viscott (Viscose & Cotton)",
+      "value_addition": "Artisanal Detailing",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "3-Quarter Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23Z264201020",
+    "sizes": [],
+    "price_text": "Tk 4,127.27",
+    "price": 4127.27,
+    "product_url": "https://www.aarong.com/bgd/cyan-ornamenta-theme-shalwar-kameez-23z264201020.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000194010.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000194010.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000194002.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000194010_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/cyan-ornamenta-theme-shalwar-kameez-23z264201020/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783506/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/cyan-ornamenta-theme-shalwar-kameez-23z264201020/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000194010.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783506/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/cyan-ornamenta-theme-shalwar-kameez-23z264201020/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/cyan-ornamenta-theme-shalwar-kameez-23z264201020/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000194002.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783506/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/cyan-ornamenta-theme-shalwar-kameez-23z264201020/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/cyan-ornamenta-theme-shalwar-kameez-23z264201020/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000194010_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783508/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/cyan-ornamenta-theme-shalwar-kameez-23z264201020/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/cyan-ornamenta-theme-shalwar-kameez-23z264201020/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783506/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/cyan-ornamenta-theme-shalwar-kameez-23z264201020/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 273,
+    "variant_id": 687
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-05",
+    "name": "Pastel Blue Ornamenta Theme Shalwar Kameez",
+    "description": "Pastel blue vortex cotton shalwar kameez with ornamenta-inspired prints and embroidery.",
+    "specifications": {
+      "colour": "Blue",
+      "fabric": "Vortex Cotton",
+      "value_addition": "Artisanal Detailing",
+      "cut_fit": "Flared",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "3-Quarter Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23S254201064",
+    "sizes": [],
+    "price_text": "Tk 4,945.45",
+    "price": 4945.45,
+    "product_url": "https://www.aarong.com/bgd/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187451.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187451.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187451_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187451_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783516/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187451.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783516/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187451_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783518/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187451_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783519/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783516/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/pastel-blue-ornamenta-theme-shalwar-kameez-23s254201064/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 274,
+    "variant_id": 688
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-06",
+    "name": "Multicolour Kantha Odyssey Theme Shalwar Kameez",
+    "description": "Multicolour voile shalwar kameez with kantha odyssey theme details and an artisanal festive feel.",
+    "specifications": {
+      "colour": "Multicolour",
+      "fabric": "Voile",
+      "value_addition": "Kantha Work",
+      "cut_fit": "Kalidar",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Band Collar",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23E264201047",
+    "sizes": [],
+    "price_text": "Tk 8,186.36",
+    "price": 8186.36,
+    "product_url": "https://www.aarong.com/bgd/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190556_1.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190556_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190556_2.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190556_3.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783528/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190556_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783528/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190556_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783530/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190556_3.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783532/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783528/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-kantha-odyssey-theme-shalwar-kameez-23e264201047/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 275,
+    "variant_id": 689
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-07",
+    "name": "Multicolour Printed and Embroidered Vortex Cotton Shalwar Kameez",
+    "description": "Multicolour vortex cotton shalwar kameez featuring printed motifs and embroidery for vibrant daywear.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Vortex Cotton",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23E264201037",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187526.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187526.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187526_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187526_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783542/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187526.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783542/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187526_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783543/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000187526_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783545/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783542/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/multicolour-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201037/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 276,
+    "variant_id": 690
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-08",
+    "name": "Black Printed and Embroidered Vortex Cotton Shalwar Kameez",
+    "description": "Black vortex cotton shalwar kameez with all-over print and embroidered detailing.",
+    "specifications": {
+      "colour": "Black",
+      "fabric": "Vortex Cotton",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23E264201204",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190359.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190359.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190359_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190359_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783554/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190359.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783554/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190359_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783556/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000190359_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783558/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783554/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/black-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201204/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 277,
+    "variant_id": 691
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-09",
+    "name": "Olive Printed and Embroidered Vortex Cotton Shalwar Kameez",
+    "description": "Olive vortex cotton shalwar kameez with print and embroidery in a coordinated set silhouette.",
+    "specifications": {
+      "colour": "Olive",
+      "fabric": "Vortex Cotton",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23N254201005",
+    "sizes": [
+      "34",
+      "36",
+      "38",
+      "40"
+    ],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186878.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186878.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186887.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186878_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783564/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186878.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783564/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186887.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783565/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186878_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783566/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783564/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/olive-printed-and-embroidered-vortex-cotton-shalwar-kameez-23n254201005/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 278,
+    "variant_id": 692
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-10",
+    "name": "Blue Printed and Embroidered Tencel Shalwar Kameez",
+    "description": "Blue tencel shalwar kameez with printed motifs and embroidery for an elevated casual look.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Tencel",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23E264201165",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189936_1.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189936_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189936_2.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189936_1_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783576/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189936_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783576/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189936_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783577/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189936_1_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783578/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783576/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/blue-printed-and-embroidered-tencel-shalwar-kameez-23e264201165/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 279,
+    "variant_id": 693
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-11",
+    "name": "Magenta Printed and Embroidered Tencel Shalwar Kameez",
+    "description": "Magenta tencel shalwar kameez with printed layout and embroidery-led detailing.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Tencel",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23E264201107",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193463.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193463.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193463_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193463_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783592/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193463.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783592/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193463_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783593/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193463_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783595/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783592/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/magenta-printed-and-embroidered-tencel-shalwar-kameez-23e264201107/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 280,
+    "variant_id": 694
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-12",
+    "name": "Coral Pink Printed and Embroidered Tencel Shalwar Kameez",
+    "description": "Coral pink tencel shalwar kameez featuring printed motifs and embroidery for festive daywear.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Tencel",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23E264201100",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189174_1.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189174_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189174_2.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189174_1_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783604/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189174_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783604/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189174_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783606/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000189174_1_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783608/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783604/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/coral-pink-printed-and-embroidered-tencel-shalwar-kameez-23e264201100/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 281,
+    "variant_id": 695
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-14",
+    "name": "Light Mauve Printed and Embroidered Viscose-Cotton Shalwar Kameez",
+    "description": "Light mauve viscose-cotton shalwar kameez with printed motifs and embroidered accents.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Viscose-Cotton",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23E234201084",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000167414.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000167414.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000167406.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000167406_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783631/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000167414.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783631/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000167406.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783632/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000167406_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783633/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783631/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-and-embroidered-viscose-cotton-shalwar-kameez-23e234201084/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 283,
+    "variant_id": 697
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-15",
+    "name": "Light Mauve Printed Vortex-Cotton Shalwar Kameez Set",
+    "description": "Light mauve vortex-cotton shalwar kameez set with printed styling and easy everyday wearability.",
+    "specifications": {
+      "colour": "Light Mauve",
+      "fabric": "Vortex Cotton",
+      "value_addition": "Print",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23S254205001",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186608.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186608.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186608_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186608_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783642/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186608.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783642/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186608_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783644/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000186608_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783647/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783642/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/light-mauve-printed-vortex-cotton-shalwar-kameez-set-23s254205001/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 284,
+    "variant_id": 698
+  },
+  {
+    "id": "cotton-blends-shalwar-kameez-16",
+    "name": "Blue Printed and Embroidered Vortex Cotton Shalwar Kameez",
+    "description": "Blue vortex cotton shalwar kameez with printed motifs and embroidery across a classic silhouette.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Vortex Cotton",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Hand Wash With Mild Detergent In Cold Water"
+    },
+    "sku": "23N244201018",
+    "sizes": [],
+    "price_text": "Tk 4,986.36",
+    "price": 4986.36,
+    "product_url": "https://www.aarong.com/bgd/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193585.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193585.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193577.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193577_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783653/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193585.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783653/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193577.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783655/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/1/4/1420000193577_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783656/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783653/folkmint/product/bangladesh/women/shalwar-kameez/cotton-blends/powder-blue-printed-and-embroidered-vortex-cotton-shalwar-kameez-23e264201241/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 285,
+    "variant_id": 699
+  }
+]

@@ -1,0 +1,474 @@
+[
+  {
+    "id": "muslin-shalwar-kameez-01",
+    "name": "Khaki Kantha Odyssey Theme Shalwar Kameez",
+    "description": "Khaki endi muslin kameez with red and black prints, detailed with embroidery and styled as a coordinated shalwar kameez set.",
+    "specifications": {
+      "colour": "Khaki",
+      "fabric": "Muslin",
+      "value_addition": "Print, Embroidery, Kantha Work",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "V Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Dry Clean"
+    },
+    "sku": "23E264302003",
+    "sizes": [],
+    "price_text": "Tk 11,436.36",
+    "price": 11436.36,
+    "product_url": "https://www.aarong.com/bgd/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121509.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121509.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121501.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121509_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/muslin",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782901/folkmint/product/bangladesh/women/shalwar-kameez/muslin/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121509.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782901/folkmint/product/bangladesh/women/shalwar-kameez/muslin/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121501.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782902/folkmint/product/bangladesh/women/shalwar-kameez/muslin/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121509_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782903/folkmint/product/bangladesh/women/shalwar-kameez/muslin/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782901/folkmint/product/bangladesh/women/shalwar-kameez/muslin/khaki-kantha-odyssey-theme-shalwar-kameez-23e264302003/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 247,
+    "variant_id": 661
+  },
+  {
+    "id": "muslin-shalwar-kameez-02",
+    "name": "Grey Printed and Embroidered Muslin Shalwar Kameez",
+    "description": "Grey muslin shalwar kameez with printed surface design and embroidery accents for a refined festive look.",
+    "specifications": {
+      "colour": "Grey",
+      "fabric": "Muslin",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Dry Clean"
+    },
+    "sku": "23E264302010",
+    "sizes": [],
+    "price_text": "Tk 11,186.36",
+    "price": 11186.36,
+    "product_url": "https://www.aarong.com/bgd/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122131.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122131.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122131_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122131_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/muslin",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782959/folkmint/product/bangladesh/women/shalwar-kameez/muslin/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122131.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782959/folkmint/product/bangladesh/women/shalwar-kameez/muslin/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122131_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782961/folkmint/product/bangladesh/women/shalwar-kameez/muslin/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122131_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782962/folkmint/product/bangladesh/women/shalwar-kameez/muslin/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782959/folkmint/product/bangladesh/women/shalwar-kameez/muslin/grey-printed-and-embroidered-muslin-shalwar-kameez-23e264302010/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 248,
+    "variant_id": 662
+  },
+  {
+    "id": "muslin-shalwar-kameez-03",
+    "name": "Slate Blue Kantha Odyssey Theme Shalwar Kameez",
+    "description": "Slate blue muslin shalwar kameez featuring a themed print story with embroidery-inspired kantha styling.",
+    "specifications": {
+      "colour": "Slate Blue",
+      "fabric": "Muslin",
+      "value_addition": "Kantha Work",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Dry Clean"
+    },
+    "sku": "23S254302002",
+    "sizes": [],
+    "price_text": "Tk 11,400.00",
+    "price": 11400,
+    "product_url": "https://www.aarong.com/bgd/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122285.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122285.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122285_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122285_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/muslin",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782973/folkmint/product/bangladesh/women/shalwar-kameez/muslin/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122285.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782973/folkmint/product/bangladesh/women/shalwar-kameez/muslin/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122285_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782975/folkmint/product/bangladesh/women/shalwar-kameez/muslin/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000122285_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782976/folkmint/product/bangladesh/women/shalwar-kameez/muslin/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782973/folkmint/product/bangladesh/women/shalwar-kameez/muslin/slate-blue-kantha-odyssey-theme-shalwar-kameez-23s254302002/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 249,
+    "variant_id": 663
+  },
+  {
+    "id": "muslin-shalwar-kameez-04",
+    "name": "Olive Embroidered Tonal Craft Theme Shalwar Kameez",
+    "description": "Olive muslin shalwar kameez with tonal craft embroidery and coordinated set styling.",
+    "specifications": {
+      "colour": "Olive",
+      "fabric": "Muslin",
+      "value_addition": "Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Band Collar",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Dry Clean"
+    },
+    "sku": "23E244302015",
+    "sizes": [],
+    "price_text": "Tk 13,288.37",
+    "price": 13288.37,
+    "product_url": "https://www.aarong.com/bgd/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000118777.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000118777.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000118768_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000118777_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/muslin",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782990/folkmint/product/bangladesh/women/shalwar-kameez/muslin/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000118777.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782990/folkmint/product/bangladesh/women/shalwar-kameez/muslin/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000118768_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782991/folkmint/product/bangladesh/women/shalwar-kameez/muslin/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000118777_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782992/folkmint/product/bangladesh/women/shalwar-kameez/muslin/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773782990/folkmint/product/bangladesh/women/shalwar-kameez/muslin/olive-embroidered-tonal-craft-theme-shalwar-kameez-23e244302015/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 250,
+    "variant_id": 664
+  },
+  {
+    "id": "muslin-shalwar-kameez-05",
+    "name": "Black Embroidered Retro Print Theme Shalwar Kameez",
+    "description": "Black muslin shalwar kameez with retro-inspired prints and embroidery for statement occasion wear.",
+    "specifications": {
+      "colour": "Black",
+      "fabric": "Muslin",
+      "value_addition": "Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Dry Clean"
+    },
+    "sku": "23E254302008",
+    "sizes": [],
+    "price_text": "Tk 10,920.93",
+    "price": 10920.93,
+    "product_url": "https://www.aarong.com/bgd/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000120271.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000120271.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000120271_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000120271_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/muslin",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783000/folkmint/product/bangladesh/women/shalwar-kameez/muslin/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000120271.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783000/folkmint/product/bangladesh/women/shalwar-kameez/muslin/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000120271_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783001/folkmint/product/bangladesh/women/shalwar-kameez/muslin/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000120271_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783004/folkmint/product/bangladesh/women/shalwar-kameez/muslin/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783000/folkmint/product/bangladesh/women/shalwar-kameez/muslin/black-embroidered-retro-print-theme-shalwar-kameez-23e254302008/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 251,
+    "variant_id": 665
+  },
+  {
+    "id": "muslin-shalwar-kameez-06",
+    "name": "Red Printed and Embroidered Endi Muslin Shalwar Kameez",
+    "description": "Red endi muslin shalwar kameez combining all-over print and embroidery in a traditional silhouette.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Muslin",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Dry Clean"
+    },
+    "sku": "23E234302013",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000116347_2.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000116347_2.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000116347_3.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000116347_2_1.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/muslin",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783014/folkmint/product/bangladesh/women/shalwar-kameez/muslin/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000116347_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783014/folkmint/product/bangladesh/women/shalwar-kameez/muslin/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000116347_3.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783016/folkmint/product/bangladesh/women/shalwar-kameez/muslin/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000116347_2_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783018/folkmint/product/bangladesh/women/shalwar-kameez/muslin/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783014/folkmint/product/bangladesh/women/shalwar-kameez/muslin/red-printed-and-embroidered-endi-muslin-shalwar-kameez-23e234302013/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 252,
+    "variant_id": 666
+  },
+  {
+    "id": "muslin-shalwar-kameez-07",
+    "name": "Onion Pink Printed and Embroidered Muslin Shalwar Kameez",
+    "description": "Onion pink muslin shalwar kameez highlighted with printed motifs and embroidery detailing.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Muslin",
+      "value_addition": "Print, Embroidery",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Dry Clean"
+    },
+    "sku": "23E264302005",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121679.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121679.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121679_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121679_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/muslin",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783028/folkmint/product/bangladesh/women/shalwar-kameez/muslin/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121679.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783028/folkmint/product/bangladesh/women/shalwar-kameez/muslin/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121679_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783030/folkmint/product/bangladesh/women/shalwar-kameez/muslin/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121679_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783032/folkmint/product/bangladesh/women/shalwar-kameez/muslin/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783028/folkmint/product/bangladesh/women/shalwar-kameez/muslin/onion-pink-printed-and-embroidered-muslin-shalwar-kameez-23e264302005/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 253,
+    "variant_id": 667
+  },
+  {
+    "id": "muslin-shalwar-kameez-08",
+    "name": "Crimson Red Block Wax Dyed Embroidered Ornamenta Theme Shalwar Kameez",
+    "description": "Crimson red muslin kameez with block wax dyed effect and ornamenta-inspired embroidery, presented as a coordinated shalwar kameez set.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Muslin",
+      "value_addition": "Embroidery, Block Wax Dye",
+      "cut_fit": "A-Line",
+      "side_cut": "Open",
+      "bottom_style": "Classic Pants",
+      "bottom_length": "Long",
+      "collar_neck": "Round Neck",
+      "sleeve": "Full Sleeve",
+      "length": "Extra Long",
+      "waist": "Elastic Waist",
+      "care": "Dry Clean"
+    },
+    "sku": "23E264302011",
+    "sizes": [],
+    "price_text": "",
+    "price": null,
+    "product_url": "https://www.aarong.com/bgd/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011.html",
+    "source_thumbnail_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121987.jpg",
+    "source_image_urls": [
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121987.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121987_1.jpg",
+      "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121987_2.jpg"
+    ],
+    "cloudinary": {
+      "folder": "folkmint/product/bangladesh/women/shalwar-kameez/muslin",
+      "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011/thumb",
+      "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783051/folkmint/product/bangladesh/women/shalwar-kameez/muslin/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011/thumb.jpg"
+    },
+    "images": [
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121987.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783051/folkmint/product/bangladesh/women/shalwar-kameez/muslin/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011/thumb.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011/thumb",
+        "is_primary": true
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121987_1.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783052/folkmint/product/bangladesh/women/shalwar-kameez/muslin/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011/02.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011/02",
+        "is_primary": false
+      },
+      {
+        "source_url": "https://mcprod.aarong.com/media/catalog/product/0/4/0430000121987_2.jpg",
+        "secure_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783054/folkmint/product/bangladesh/women/shalwar-kameez/muslin/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011/03.jpg",
+        "public_id": "folkmint/product/bangladesh/women/shalwar-kameez/muslin/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011/03",
+        "is_primary": false
+      }
+    ],
+    "thumbnail_url": "https://res.cloudinary.com/dn3rwh1x6/image/upload/v1773783051/folkmint/product/bangladesh/women/shalwar-kameez/muslin/crimson-red-block-wax-dyed-embroidered-ornamenta-theme-shalwar-kameez-23e264302011/thumb.jpg",
+    "status": "uploaded",
+    "product_id": 254,
+    "variant_id": 668
+  }
+]

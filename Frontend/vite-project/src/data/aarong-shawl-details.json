@@ -1,0 +1,105 @@
+[
+  {
+    "name": "Green Handloom Viscose Shawl",
+    "sku": "0660000105502",
+    "description": "Green texture handloom viscose shawl with shades of grey and green weaving. Comes with fringe trim.",
+    "specifications": {
+      "colour": "Green/Grey",
+      "fabric": "Handloom Viscose",
+      "care": "Hand wash with mild detergent in cold water"
+    }
+  },
+  {
+    "name": "Yellow/Orange Viscose Shawl",
+    "sku": "0660000105236",
+    "description": "Yellow and orange viscose shawl with crochet embroidery. Comes with fringe trim.",
+    "specifications": {
+      "colour": "Yellow",
+      "fabric": "Viscose",
+      "value_addition": "Crochet Embroidery",
+      "length": "85 inch",
+      "width": "30 inch"
+    }
+  },
+  {
+    "name": "Red Crochet Embroidered Viscose Shawl",
+    "sku": "0660000105285",
+    "description": "Red texture viscose shawl with shades of crimson crochet embroidery. Comes with fringe trim.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Viscose",
+      "value_addition": "Crochet Embroidery"
+    }
+  },
+  {
+    "name": "Red Appliqued and Embroidered Cotton Shawl",
+    "sku": "0660000105903",
+    "description": "Red cotton shawl with embroidery and appliqued details. Comes with fringe trim.",
+    "specifications": {
+      "colour": "Red",
+      "fabric": "Cotton",
+      "value_addition": "Embroidery and Applique"
+    }
+  },
+  {
+    "name": "Cornflower Blue Handloom Mixed Fabric Shawl",
+    "sku": "0660000105965",
+    "description": "Cornflower blue handloom mixed fabric shawl. Features fringe trim.",
+    "specifications": {
+      "colour": "Blue",
+      "fabric": "Mixed Cotton"
+    }
+  },
+  {
+    "name": "Green Mixed Fabric Tribal Shawl",
+    "sku": "0660000105971",
+    "description": "Green and magenta mixed fabric tribal shawl. Comes with fringe trim.",
+    "specifications": {
+      "colour": "Green",
+      "fabric": "Mixed Fabric",
+      "style": "Tribal"
+    }
+  },
+  {
+    "name": "Beige Printed and Nakshi Kantha Endi Silk Shawl",
+    "sku": "0660000105866",
+    "description": "Beige endi silk shawl with red, coffee and mustard prints. Features mustard embroidery and fringe trim.",
+    "specifications": {
+      "colour": "Beige",
+      "fabric": "Endi Silk",
+      "value_addition": "Printed and Nakshi Kantha Embroidery"
+    }
+  },
+  {
+    "name": "Blue Nakshi Kantha Embroidered Endi Silk Shawl",
+    "sku": "0660000105861",
+    "description": "Blue endi silk shawl with cyan and mint green nakshi kantha embroidery. Comes with fringe trim.",
+    "specifications": {
+      "colour": "Blue",
+      "fabric": "Endi Silk",
+      "value_addition": "Nakshi Kantha Embroidery"
+    }
+  },
+  {
+    "name": "Off White Printed and Nakshi Kantha Embroidered Silk Shawl",
+    "sku": "0660000105907",
+    "description": "Off white printed silk shawl with Nakshi Kantha embroidery.",
+    "specifications": {
+      "colour": "White",
+      "fabric": "Silk",
+      "value_addition": "Nakshi Kantha Embroidery",
+      "care": "Dry Clean"
+    }
+  },
+  {
+    "name": "Mustard Printed and Nakshi Kantha Embroidered Silk Shawl",
+    "sku": "0660000105885",
+    "description": "Mustard silk shawl with orange and coffee prints. Features white and red Nakshi Kantha embroidery with sequence work detailing. Features fringe trim.",
+    "specifications": {
+      "colour": "Yellow",
+      "fabric": "Silk",
+      "value_addition": "Nakshi Kantha Embroidery",
+      "care": "Dry Clean"
+    }
+  }
+]

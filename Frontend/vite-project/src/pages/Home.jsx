@@ -46,7 +46,6 @@ function useCarousel(trackRef) {
 
   const scrollAmt = () => {
     const t = trackRef.current;
-    if (!t || !t.firstElementChild) return 320;
     const gap = parseFloat(getComputedStyle(t).gap) || 0;
     return (t.firstElementChild.offsetWidth + gap) * 2;
   };
@@ -381,9 +380,9 @@ const Home = () => {
             {[
               { slug:'saree',  cls:'t-saree',  label:'Saree' },
               { slug:'kurti',  cls:'t-kurti',  label:'Kurti' },
-              { slug:'salwar', cls:'t-salwar', label:'Salwar Kameez' },
+              { slug:'shalwars', cls:'t-salwar', label:'Shalwars' },
               { slug:'dress',  cls:'t-dress',  label:'Dress' },
-              { slug:'orna',   cls:'t-neck',   label:'Orna & Dupatta' },
+              { slug:'dupatta', cls:'t-neck',  label:'Dupatta' },
             ].map(({ slug, cls, label }) => (
               <Link key={slug} to={`/products?category=${slug}`} className="sc-tile">
                 <div className={`sc-bg ${cls}`} /><div className="sc-pattern" />

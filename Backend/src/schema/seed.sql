@@ -61,9 +61,10 @@ INSERT INTO category (name, description, parent_category) VALUES
 ('Pajama',                       'Comfort and traditional pajama styles',               1),
 -- Women
 ('Saree',                        'Women''s saree collection',                           2),
-('Salwar Kameez',                'Traditional salwar kameez designs',                   2),
+('Shalwars',                     'Traditional shalwar designs',                          2),
 ('Kurti',                        'Women''s kurti collection',                           2),
-('Shawl',                        'Handcrafted shawls and wraps',                        2),
+('Shawls',                       'Handcrafted shawls and wraps',                        2),
+('Dupatta',                      'Women''s dupatta and orna collection',                2),
 -- Women > Saree
 ('Jamdani Saree',                'Authentic Jamdani saree collection',                  12),
 ('Cotton Saree',                 'Comfortable cotton sarees',                           12),

@@ -22,7 +22,7 @@ for (let index = 0; index < args.length; index += 1) {
 
 const listingUrl = options.url || options.listing;
 if (!listingUrl) {
-	console.error('Usage: node scripts/run-migration-skill.js --url <listing_url> [--hierarchy "Women/Saree/Jamdani Saree"] [--category "Name"] [--parent "Parent"] [--folder "FolkMint/Product/women/saree/jamdani-saree"] [--keyword "search"] [--prefix "id-prefix"] [--output-map "file.json"] [--output-frontend "file.json"] [--limit 40]');
+	console.error('Usage: node scripts/run-migration-skill.js --url <listing_url> [--source-json "C:/path/file.json"] [--hierarchy "Women/Saree/Jamdani Saree"] [--category "Name"] [--parent "Parent"] [--market "bangladesh"] [--folder "FolkMint/Product/bangladesh/women/saree/jamdani-saree"] [--keyword "search"] [--prefix "id-prefix"] [--output-map "file.json"] [--output-frontend "file.json"] [--limit 40]');
 	process.exit(1);
 }
 
@@ -44,6 +44,21 @@ const slugSegment = (value) =>
 		.replace(/\s+/g, '-')
 		.replace(/-+/g, '-');
 
+const inferMarketFromUrl = (urlValue) => {
+	try {
+		const parsed = new URL(urlValue);
+		const firstSegment = parsed.pathname.split('/').filter(Boolean)[0]?.toLowerCase();
+
+		if (firstSegment === 'bgd') return 'bangladesh';
+		if (firstSegment === 'bd') return 'bangladesh';
+		if (firstSegment) return firstSegment;
+	} catch {
+		return 'global';
+	}
+
+	return 'global';
+};
+
 const inferHierarchyFromUrl = (urlValue) => {
 	try {
 		const parsed = new URL(urlValue);
@@ -64,12 +79,13 @@ const inferredHierarchySegments = inferHierarchyFromUrl(listingUrl);
 const hierarchySegments = (options.hierarchy
 	? String(options.hierarchy).split('/').map((segment) => segment.trim()).filter(Boolean)
 	: inferredHierarchySegments);
+const marketSegment = slugSegment(options.market || inferMarketFromUrl(listingUrl) || 'global') || 'global';
 
 const categoryName = options.category || hierarchySegments[hierarchySegments.length - 1] || 'Imported Collection';
 const parentCategoryName = options.parent || hierarchySegments[hierarchySegments.length - 2] || 'Uncategorized';
 const prefix = options.prefix || slugSegment(categoryName) || 'collection';
 const keyword = options.keyword || '';
-const cloudFolder = options.folder || `FolkMint/Product/${hierarchySegments.map((segment) => slugSegment(segment)).filter(Boolean).join('/')}`;
+const cloudFolder = options.folder || `FolkMint/Product/${marketSegment}/${hierarchySegments.map((segment) => slugSegment(segment)).filter(Boolean).join('/')}`;
 const categoryHierarchy = hierarchySegments.join('/');
 
 const env = {
@@ -80,8 +96,11 @@ const env = {
 	MIGRATE_PARENT_CATEGORY_NAME: parentCategoryName,
 	MIGRATE_CLOUDINARY_FOLDER: cloudFolder,
 	MIGRATE_ROOT_CLOUDINARY_FOLDER: 'FolkMint/Product',
+	MIGRATE_MARKET: marketSegment,
 	MIGRATE_COLLECTION_KEYWORD: keyword,
 	MIGRATE_COLLECTION_ID_PREFIX: prefix,
+	MIGRATE_ALLOWED_CODES: options.codes || '',
+	MIGRATE_SOURCE_JSON: options['source-json'] || '',
 	MIGRATE_OUTPUT_MAP_FILENAME: options['output-map'] || `${prefix}-cloudinary-upload-map.json`,
 	MIGRATE_OUTPUT_FRONTEND_FILENAME: options['output-frontend'] || `${prefix}.json`,
 	MIGRATE_PRODUCT_LIMIT: options.limit || '40',
