@@ -594,21 +594,6 @@ def checkout(request: CheckoutRequest, user_id: int, db=Depends(get_db)):
     finally:
         cursor.close()
 
-# User Preference
-@app.post("/api/user/preference/view/{product_id}")
-def track_view(product_id: int, user_id: int, db=Depends(get_db)):
-    if db is None: return {"status": "ok"}
-    cursor = db.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO user_preferences (user_id, view_count) VALUES (%s, 1) ON DUPLICATE KEY UPDATE view_count = view_count + 1",
-            (user_id,)
-        )
-        db.commit()
-        return {"status": "updated"}
-    finally:
-        cursor.close()
-
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy"}

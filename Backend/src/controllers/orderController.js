@@ -155,8 +155,8 @@ const createOrder = async (req, res) => {
 
     // Get cart items
     const cartResult = await client.query(
-      `SELECT ci.*, p.name, p.base_price, p.stock_quantity,
-              pv.variant_id, pv.price_modifier, pv.stock_quantity as variant_stock
+          `SELECT ci.*, p.name, p.base_price,
+            pv.variant_id, pv.price as variant_price, pv.stock_quantity as variant_stock
        FROM cart c
        JOIN cart_item ci ON c.cart_id = ci.cart_id
        JOIN product p ON ci.product_id = p.product_id
@@ -174,7 +174,14 @@ const createOrder = async (req, res) => {
     const items = [];
 
     for (const item of cartResult.rows) {
-      const stock = item.variant_id ? item.variant_stock : item.stock_quantity;
+      if (!item.variant_id) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          error: `Product ${item.name} does not have a valid purchasable variant`
+        });
+      }
+
+      const stock = Number(item.variant_stock || 0);
       if (stock < item.quantity) {
         await client.query('ROLLBACK');
         return res.status(400).json({ 
@@ -182,7 +189,7 @@ const createOrder = async (req, res) => {
         });
       }
 
-      const price = parseFloat(item.base_price) + (parseFloat(item.price_modifier) || 0);
+      const price = parseFloat(item.variant_price ?? item.base_price ?? 0);
       totalAmount += price * item.quantity;
       items.push({
         product_id: item.product_id,
@@ -251,6 +258,14 @@ const createOrder = async (req, res) => {
 
     const orderId = orderResult.rows[0].order_id;
 
+    if (appliedCoupon) {
+      await client.query(
+        `INSERT INTO order_coupon (order_id, coupon_id, discount_amount)
+         VALUES ($1, $2, $3)`,
+        [orderId, appliedCoupon.coupon_id, discountAmount]
+      );
+    }
+
     // Create order items and update stock
     for (const item of items) {
       await client.query(
@@ -264,11 +279,6 @@ const createOrder = async (req, res) => {
         await client.query(
           'UPDATE product_variant SET stock_quantity = stock_quantity - $1 WHERE variant_id = $2',
           [item.quantity, item.variant_id]
-        );
-      } else {
-        await client.query(
-          'UPDATE product SET stock_quantity = stock_quantity - $1 WHERE product_id = $2',
-          [item.quantity, item.product_id]
         );
       }
     }
@@ -343,11 +353,6 @@ const updateOrder = async (req, res) => {
             'UPDATE product_variant SET stock_quantity = stock_quantity + $1 WHERE variant_id = $2',
             [item.quantity, item.variant_id]
           );
-        } else {
-          await pool.query(
-            'UPDATE product SET stock_quantity = stock_quantity + $1 WHERE product_id = $2',
-            [item.quantity, item.product_id]
-          );
         }
       }
     }
@@ -418,11 +423,6 @@ const cancelOrder = async (req, res) => {
         await client.query(
           'UPDATE product_variant SET stock_quantity = stock_quantity + $1 WHERE variant_id = $2',
           [item.quantity, item.variant_id]
-        );
-      } else {
-        await client.query(
-          'UPDATE product SET stock_quantity = stock_quantity + $1 WHERE product_id = $2',
-          [item.quantity, item.product_id]
         );
       }
     }

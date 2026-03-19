@@ -47,7 +47,8 @@ const getPaymentMethodById = async (req, res) => {
 const createPaymentMethod = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { type, provider, account_number, is_default = false } = req.body;
+    const { type, provider, account_number, account_number_enc, is_default = false } = req.body;
+    const storedAccount = account_number_enc ?? account_number ?? null;
 
     if (!type || !provider) {
       return res.status(400).json({ error: 'Type and provider are required' });
@@ -74,10 +75,10 @@ const createPaymentMethod = async (req, res) => {
     const makeDefault = is_default || parseInt(existingCount.rows[0].count) === 0;
 
     const result = await pool.query(
-      `INSERT INTO payment_method (user_id, type, provider, account_number, is_default)
+      `INSERT INTO payment_method (user_id, type, provider, account_number_enc, is_default)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING payment_method_id, type, provider, is_default, created_at`,
-      [userId, type, provider, account_number, makeDefault]
+      [userId, type, provider, storedAccount, makeDefault]
     );
 
     res.status(201).json({ message: 'Payment method created', payment_method: result.rows[0] });
@@ -91,7 +92,8 @@ const updatePaymentMethod = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { id } = req.params;
-    const { type, provider, account_number, is_default } = req.body;
+    const { type, provider, account_number, account_number_enc, is_default } = req.body;
+    const storedAccount = account_number_enc ?? account_number;
 
     // Verify ownership
     const existing = await pool.query(
@@ -121,9 +123,9 @@ const updatePaymentMethod = async (req, res) => {
       params.push(provider);
       idx++;
     }
-    if (account_number !== undefined) {
-      updates.push(`account_number = $${idx}`);
-      params.push(account_number);
+    if (storedAccount !== undefined) {
+      updates.push(`account_number_enc = $${idx}`);
+      params.push(storedAccount);
       idx++;
     }
     if (is_default !== undefined) {

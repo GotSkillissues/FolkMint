@@ -31,7 +31,6 @@
 /**
  * @typedef {Object} UserPreferences
  * @property {number} preference_id - Primary key
- * @property {number} view_count - Non-negative integer
  * @property {number} user_id - Foreign key to users
  */
 
@@ -108,6 +107,7 @@
  * @property {string|null} color - Max 20 chars
  * @property {number} stock_quantity - Non-negative integer
  * @property {number} price - Decimal(10,2), non-negative
+ * @property {number|null} [compare_at_price] - Optional previous price
  * @property {number} product_id - Foreign key to product
  * @property {ProductImage[]} [images] - Variant images
  */
@@ -144,7 +144,7 @@
 // ==================== ORDER TYPES ====================
 
 /**
- * @typedef {'pending'|'paid'|'shipped'|'delivered'|'cancelled'} OrderStatus
+ * @typedef {'pending'|'confirmed'|'processing'|'shipped'|'delivered'|'cancelled'} OrderStatus
  */
 
 /**
@@ -155,7 +155,6 @@
  * @property {OrderStatus} status - Order status
  * @property {number} user_id - Foreign key to users
  * @property {number} address_id - Foreign key to address
- * @property {number|null} payment_id - Foreign key to payment (unique)
  * @property {string} created_at - ISO timestamp
  * @property {string} updated_at - ISO timestamp
  * @property {OrderItem[]} [items] - Order items
@@ -167,7 +166,8 @@
  * @typedef {Object} OrderItem
  * @property {number} order_item_id - Primary key
  * @property {number} quantity - Positive integer
- * @property {number} price_at_purchase - Decimal(10,2)
+ * @property {number} unit_price - Decimal(10,2)
+ * @property {number} subtotal - quantity * unit_price
  * @property {number} order_id - Foreign key to orders
  * @property {number} variant_id - Foreign key to product_variant
  * @property {ProductVariant} [variant] - Variant details

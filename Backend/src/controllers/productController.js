@@ -73,6 +73,13 @@ const parseDescriptionDetails = (descriptionText) => {
   return { cleanDescription, specifications: specs, sizes: uniqueSizes };
 };
 
+const normalizeCategorySlug = (value) => String(value || '')
+  .toLowerCase()
+  .trim()
+  .replace(/&/g, ' and ')
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '');
+
 // ==================== HELPER FUNCTIONS ====================
 
 /**
@@ -183,6 +190,7 @@ const getProducts = async (req, res) => {
       page = 1,
       limit = 12,
       category_id,
+      category,
       parent_id,
       include_descendants = 'false',
       search,
@@ -191,20 +199,15 @@ const getProducts = async (req, res) => {
       maxPrice,
     } = req.query;
     const offset = (page - 1) * limit;
-    const requestedCategoryScope = parent_id !== undefined || category_id !== undefined;
+    const requestedCategoryScope = parent_id !== undefined || category_id !== undefined || category !== undefined;
 
     let categoryIds = [];
 
     if (parent_id) {
       const parentCategoryResult = await pool.query(
-        `WITH RECURSIVE category_tree AS (
-          SELECT category_id FROM category WHERE category_id = $1
-          UNION ALL
-          SELECT c.category_id
-          FROM category c
-          JOIN category_tree ct ON c.parent_category = ct.category_id
-        )
-        SELECT category_id FROM category_tree`,
+        `SELECT descendant_category_id AS category_id
+         FROM category_closure
+         WHERE ancestor_category_id = $1`,
         [parent_id]
       );
 
@@ -217,20 +220,42 @@ const getProducts = async (req, res) => {
 
       if (include_descendants === 'true' && normalizedCategoryIds.length === 1) {
         const categoryTreeResult = await pool.query(
-          `WITH RECURSIVE category_tree AS (
-            SELECT category_id FROM category WHERE category_id = $1
-            UNION ALL
-            SELECT c.category_id
-            FROM category c
-            JOIN category_tree ct ON c.parent_category = ct.category_id
-          )
-          SELECT category_id FROM category_tree`,
+          `SELECT descendant_category_id AS category_id
+           FROM category_closure
+           WHERE ancestor_category_id = $1`,
           [normalizedCategoryIds[0]]
         );
 
         categoryIds = categoryTreeResult.rows.map((row) => row.category_id);
       } else {
         categoryIds = normalizedCategoryIds;
+      }
+    } else if (category) {
+      const rawValues = String(category)
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+
+      const parsedIds = rawValues
+        .map((value) => parseInt(value, 10))
+        .filter((value) => Number.isInteger(value));
+
+      if (parsedIds.length > 0) {
+        categoryIds = [...new Set(parsedIds)];
+      } else {
+        const normalizedSlugs = [...new Set(rawValues.map(normalizeCategorySlug).filter(Boolean))];
+
+        if (normalizedSlugs.length > 0) {
+          const slugResult = await pool.query(
+            `SELECT category_id
+             FROM category
+             WHERE category_slug = ANY($1)
+                OR regexp_replace(lower(replace(name, '&', ' and ')), '[^a-z0-9]+', '-', 'g') = ANY($1)`,
+            [normalizedSlugs]
+          );
+
+          categoryIds = slugResult.rows.map((row) => row.category_id);
+        }
       }
     }
 
@@ -244,6 +269,7 @@ const getProducts = async (req, res) => {
           page: parseInt(page),
           limit: parseInt(limit),
           total: 0,
+          totalPages: 0,
           pages: 0,
         },
       });
@@ -1131,18 +1157,68 @@ const getTopRatedProducts = async (req, res) => {
 };
 
 // ==================== GET RECOMMENDED PRODUCTS (Authenticated) ====================
-// Products from the user's preferred categories, ranked by rating.
-// Falls back to popular products when the user has no saved preferences.
+// Products ranked from user interaction signals (purchase/wishlist/cart/review),
+// aggregated at category level and then sorted by signal score + quality.
 const getRecommendedProducts = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { limit = 10 } = req.query;
 
-    // 1. Fetch products that belong to the user's preferred categories
-    const prefResult = await pool.query(
-      `SELECT
-         p.product_id, p.name, p.base_price, p.description,
+    const rankedResult = await pool.query(
+      `WITH signal_rows AS (
+         -- purchases
+         SELECT oi.product_id, 'purchase'::text AS source
+         FROM order_item oi
+         JOIN orders o ON o.order_id = oi.order_id
+         WHERE o.user_id = $1
+           AND o.status != 'cancelled'
+
+         UNION ALL
+
+         -- wishlist
+         SELECT w.product_id, 'wishlist'::text AS source
+         FROM wishlist w
+         WHERE w.user_id = $1
+
+         UNION ALL
+
+         -- cart
+         SELECT ci.product_id, 'cart'::text AS source
+         FROM cart_item ci
+         JOIN cart c ON c.cart_id = ci.cart_id
+         WHERE c.user_id = $1
+
+         UNION ALL
+
+         -- reviews
+         SELECT r.product_id, 'review'::text AS source
+         FROM review r
+         WHERE r.user_id = $1
+       ),
+       category_scores AS (
+         SELECT
+           p.category_id,
+           SUM(
+             CASE signal_rows.source
+               WHEN 'purchase' THEN 10
+               WHEN 'wishlist' THEN 5
+               WHEN 'cart' THEN 3
+               WHEN 'review' THEN 4
+               WHEN 'view' THEN 1
+               ELSE 0
+             END
+           )::int AS preference_score
+         FROM signal_rows
+         JOIN product p ON p.product_id = signal_rows.product_id
+         GROUP BY p.category_id
+       )
+       SELECT
+         p.product_id,
+         p.name,
+         p.base_price,
+         p.description,
          c.name AS category_name,
+         cs.preference_score,
          ROUND(COALESCE(AVG(r.rating), 0)::numeric, 1) AS avg_rating,
          COUNT(DISTINCT r.review_id) AS review_count,
          (SELECT pi.image_url FROM product_image pi
@@ -1150,25 +1226,20 @@ const getRecommendedProducts = async (req, res) => {
           WHERE pv2.product_id = p.product_id AND pi.is_primary = true
           LIMIT 1) AS image_url
        FROM product p
+       JOIN category_scores cs ON cs.category_id = p.category_id
        JOIN category c ON p.category_id = c.category_id
        LEFT JOIN review r ON p.product_id = r.product_id
-       WHERE p.category_id IN (
-         SELECT pc.category_id
-         FROM preference_category pc
-         JOIN user_preferences up ON pc.preference_id = up.preference_id
-         WHERE up.user_id = $1
-       )
-       GROUP BY p.product_id, p.name, p.base_price, p.description, c.name
-       ORDER BY avg_rating DESC, review_count DESC, p.created_at DESC
+       GROUP BY p.product_id, p.name, p.base_price, p.description, c.name, cs.preference_score
+       ORDER BY cs.preference_score DESC, avg_rating DESC, review_count DESC, p.created_at DESC
        LIMIT $2`,
       [userId, parseInt(limit)]
     );
 
-    if (prefResult.rows.length > 0) {
-      return res.status(200).json({ products: prefResult.rows, source: 'preferences' });
+    if (rankedResult.rows.length > 0) {
+      return res.status(200).json({ products: rankedResult.rows, source: 'signals' });
     }
 
-    // 2. No preferences stored — fall back to popular products
+    // No user signals yet — fall back to popular products.
     const fallback = await pool.query(
       `SELECT
          p.product_id, p.name, p.base_price, p.description,

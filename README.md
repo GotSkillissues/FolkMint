@@ -83,7 +83,7 @@ Backend/
 │   │   └── ...
 │   ├── schema/
 │   │   ├── seed.sql      # 🌱 Sample data for testing
-│   │   └── FolkMint.session.sql # 📊 Database table definitions
+│   │   └── FolkMint.schema.sql # 📊 Database table definitions
 │   └── utils/
 │       └── helpers.js    # 🔧 Reusable helper functions
 ```

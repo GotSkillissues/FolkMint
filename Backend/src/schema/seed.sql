@@ -4,9 +4,9 @@
 BEGIN;
 
 -- Clear existing data (in reverse order of dependencies)
-TRUNCATE TABLE notification, wishlist, coupon, review, order_item, orders, cart_item, cart,
+TRUNCATE TABLE notification, wishlist, order_coupon, coupon, review, order_item, orders, cart_item, cart,
                product_image, product_variant, product,
-               preference_category, category, payment, payment_method,
+               preference_category, category_closure, category, payment, payment_method,
                address, user_preferences, users
 RESTART IDENTITY CASCADE;
 
@@ -20,12 +20,12 @@ INSERT INTO users (username, email, password_hash, first_name, last_name, role) 
 ('rajpatel', 'raj.patel@email.com',     '$2b$10$abcdefghijklmnopqrstuvwxyz1234567890ABCDEF', 'Raj',    'Patel',  'customer');
 
 -- ========== USER PREFERENCES ==========
-INSERT INTO user_preferences (user_id, view_count) VALUES
-(2, 15),
-(3, 8),
-(4, 22),
-(5, 5),
-(6, 12);
+INSERT INTO user_preferences (user_id) VALUES
+(2),
+(3),
+(4),
+(5),
+(6);
 
 -- ========== ADDRESS ==========
 INSERT INTO address (street, city, postal_code, country, is_default, user_id) VALUES
@@ -101,87 +101,87 @@ INSERT INTO preference_category (preference_id, category_id) VALUES
 (5, 3), (5, 6);  -- Raj likes Handicrafts and Gift Cards
 
 -- ========== PRODUCT ==========
-INSERT INTO product (name, description, base_price, stock_quantity, category_id) VALUES
+INSERT INTO product (name, description, base_price, category_id) VALUES
 -- Men
-('Traditional Punjabi',         'Handwoven cotton Punjabi with intricate embroidery',        1500.00, 45, 7),
-('Khadi Kurta',                 'Premium khadi cotton kurta, perfect for any occasion',      1200.00, 48, 8),
+('Traditional Punjabi',         'Handwoven cotton Punjabi with intricate embroidery',        1500.00, 7),
+('Khadi Kurta',                 'Premium khadi cotton kurta, perfect for any occasion',      1200.00, 8),
 -- Women
-('Jamdani Saree',               'Authentic handloom Jamdani saree from Dhaka',               8500.00, 12, 17),
-('Block Print Kurti',           'Hand block printed kurti with traditional motifs',           950.00,  53, 14),
-('Batik Dress',                 'Beautiful batik print dress, unique design',                1800.00, 32, 13),
+('Jamdani Saree',               'Authentic handloom Jamdani saree from Dhaka',               8500.00, 17),
+('Block Print Kurti',           'Hand block printed kurti with traditional motifs',           950.00,  14),
+('Batik Dress',                 'Beautiful batik print dress, unique design',                1800.00, 13),
 -- Bags & Accessories
-('Jute Tote Bag',               'Eco-friendly handmade jute bag with leather handles',        450.00,  45, 37),
-('Embroidered Clutch',          'Hand-embroidered silk clutch with mirror work',              680.00,  37, 38),
-('Silk Scarf',                  'Pure silk scarf with traditional patterns',                  550.00,  33, 16),
+('Jute Tote Bag',               'Eco-friendly handmade jute bag with leather handles',        450.00,  37),
+('Embroidered Clutch',          'Hand-embroidered silk clutch with mirror work',              680.00,  38),
+('Silk Scarf',                  'Pure silk scarf with traditional patterns',                  550.00,  16),
 -- Home Decor / Showpieces
-('Nakshi Kantha Wall Hanging',  'Traditional Nakshi Kantha art piece',                       2200.00, 13, 29),
-('Block Print Cushion Cover',   'Set of 2 hand block printed cushion covers',                 580.00,  55, 4),
-('Handwoven Rug',               'Cotton handwoven rug with geometric patterns',              3500.00, 10, 4),
+('Nakshi Kantha Wall Hanging',  'Traditional Nakshi Kantha art piece',                       2200.00, 29),
+('Block Print Cushion Cover',   'Set of 2 hand block printed cushion covers',                 580.00,  4),
+('Handwoven Rug',               'Cotton handwoven rug with geometric patterns',              3500.00, 4),
 -- Handicrafts
-('Terracotta Pot Set',          'Set of 3 handmade terracotta pots',                         720.00,  20, 34),
-('Wooden Jewelry Box',          'Hand-carved wooden box with brass inlay',                  1350.00,  12, 33),
-('Hand-embroidered Table Runner','Beautiful table runner with folk motifs',                   890.00,  15, 27),
+('Terracotta Pot Set',          'Set of 3 handmade terracotta pots',                         720.00,  34),
+('Wooden Jewelry Box',          'Hand-carved wooden box with brass inlay',                  1350.00,  33),
+('Hand-embroidered Table Runner','Beautiful table runner with folk motifs',                   890.00,  27),
 -- Additional accessories under current catalog
-('Terracotta Necklace',         'Handcrafted terracotta bead necklace',                       450.00,  25, 5),
-('Silver Filigree Earrings',    'Traditional silver filigree work earrings',                 1200.00, 18, 5),
-('Brass Bangle Set',            'Set of 4 traditional brass bangles',                         380.00,  42, 5);
+('Terracotta Necklace',         'Handcrafted terracotta bead necklace',                       450.00,  5),
+('Silver Filigree Earrings',    'Traditional silver filigree work earrings',                 1200.00, 5),
+('Brass Bangle Set',            'Set of 4 traditional brass bangles',                         380.00,  5);
 
 -- ========== PRODUCT VARIANT ==========
-INSERT INTO product_variant (size, color, stock_quantity, price, price_modifier, product_id) VALUES
+INSERT INTO product_variant (size, color, stock_quantity, price, product_id) VALUES
 -- Traditional Punjabi (product 1)
-('M',        'White',      15, 1500.00,  0.00, 1),
-('L',        'White',      12, 1500.00,  0.00, 1),
-('L',        'Blue',        8, 1550.00, 50.00, 1),
-('XL',       'White',      10, 1600.00, 100.00, 1),
+('M',        'White',      15, 1500.00, 1),
+('L',        'White',      12, 1500.00, 1),
+('L',        'Blue',        8, 1550.00, 1),
+('XL',       'White',      10, 1600.00, 1),
 -- Khadi Kurta (product 2)
-('M',        'Beige',      20, 1200.00,  0.00, 2),
-('L',        'Beige',      18, 1200.00,  0.00, 2),
-('XL',       'Cream',      10, 1250.00, 50.00, 2),
+('M',        'Beige',      20, 1200.00, 2),
+('L',        'Beige',      18, 1200.00, 2),
+('XL',       'Cream',      10, 1250.00, 2),
 -- Jamdani Saree (product 3)
-('One Size', 'Red',         5, 8500.00,  0.00, 3),
-('One Size', 'Blue',        3, 8800.00, 300.00, 3),
-('One Size', 'Green',       4, 8500.00,  0.00, 3),
+('One Size', 'Red',         5, 8500.00, 3),
+('One Size', 'Blue',        3, 8800.00, 3),
+('One Size', 'Green',       4, 8500.00, 3),
 -- Block Print Kurti (product 4)
-('S',        'Yellow',     15,  950.00,  0.00, 4),
-('M',        'Yellow',     18,  950.00,  0.00, 4),
-('L',        'Blue',       12,  950.00,  0.00, 4),
-('XL',       'Pink',        8,  980.00, 30.00, 4),
+('S',        'Yellow',     15,  950.00, 4),
+('M',        'Yellow',     18,  950.00, 4),
+('L',        'Blue',       12,  950.00, 4),
+('XL',       'Pink',        8,  980.00, 4),
 -- Batik Dress (product 5)
-('S',        'Multicolor', 10, 1800.00,  0.00, 5),
-('M',        'Multicolor', 14, 1800.00,  0.00, 5),
-('L',        'Multicolor',  8, 1800.00,  0.00, 5),
+('S',        'Multicolor', 10, 1800.00, 5),
+('M',        'Multicolor', 14, 1800.00, 5),
+('L',        'Multicolor',  8, 1800.00, 5),
 -- Jute Tote Bag (product 6)
-('Medium',   'Natural',    25,  450.00,  0.00, 6),
-('Large',    'Natural',    20,  500.00, 50.00, 6),
+('Medium',   'Natural',    25,  450.00, 6),
+('Large',    'Natural',    20,  500.00, 6),
 -- Embroidered Clutch (product 7)
-('One Size', 'Red',        12,  680.00,  0.00, 7),
-('One Size', 'Gold',       10,  680.00,  0.00, 7),
-('One Size', 'Black',      15,  680.00,  0.00, 7),
+('One Size', 'Red',        12,  680.00, 7),
+('One Size', 'Gold',       10,  680.00, 7),
+('One Size', 'Black',      15,  680.00, 7),
 -- Silk Scarf (product 8)
-('One Size', 'Blue',       18,  550.00,  0.00, 8),
-('One Size', 'Red',        15,  550.00,  0.00, 8),
+('One Size', 'Blue',       18,  550.00, 8),
+('One Size', 'Red',        15,  550.00, 8),
 -- Nakshi Kantha Wall Hanging (product 9)
-('Medium',   'Multicolor',  8, 2200.00,  0.00, 9),
-('Large',    'Multicolor',  5, 2800.00, 600.00, 9),
+('Medium',   'Multicolor',  8, 2200.00, 9),
+('Large',    'Multicolor',  5, 2800.00, 9),
 -- Block Print Cushion Cover (product 10)
-('16x16',    'Blue',       30,  580.00,  0.00, 10),
-('16x16',    'Green',      25,  580.00,  0.00, 10),
+('16x16',    'Blue',       30,  580.00, 10),
+('16x16',    'Green',      25,  580.00, 10),
 -- Handwoven Rug (product 11)
-('3x5 ft',   'Beige',       6, 3500.00,  0.00, 11),
-('4x6 ft',   'Brown',       4, 4200.00, 700.00, 11),
+('3x5 ft',   'Beige',       6, 3500.00, 11),
+('4x6 ft',   'Brown',       4, 4200.00, 11),
 -- Terracotta Pot Set (product 12)
-('Small',    'Terracotta', 20,  720.00,  0.00, 12),
+('Small',    'Terracotta', 20,  720.00, 12),
 -- Wooden Jewelry Box (product 13)
-('Medium',   'Brown',      12, 1350.00,  0.00, 13),
+('Medium',   'Brown',      12, 1350.00, 13),
 -- Hand-embroidered Table Runner (product 14)
-('60 inch',  'Multicolor', 15,  890.00,  0.00, 14),
+('60 inch',  'Multicolor', 15,  890.00, 14),
 -- Terracotta Necklace (product 15)
-('One Size', 'Natural',    25,  450.00,  0.00, 15),
+('One Size', 'Natural',    25,  450.00, 15),
 -- Silver Filigree Earrings (product 16)
-('One Size', 'Silver',     18, 1200.00,  0.00, 16),
+('One Size', 'Silver',     18, 1200.00, 16),
 -- Brass Bangle Set (product 17)
-('Medium',   'Gold',       22,  380.00,  0.00, 17),
-('Large',    'Gold',       20,  400.00, 20.00, 17);
+('Medium',   'Gold',       22,  380.00, 17),
+('Large',    'Gold',       20,  400.00, 17);
 
 -- ========== PRODUCT IMAGE ==========
 INSERT INTO product_image (image_url, is_primary, variant_id) VALUES

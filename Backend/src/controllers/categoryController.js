@@ -1,6 +1,25 @@
 // Category Controller - Handle category-related operations
 const { pool } = require('../config/database');
 
+const buildCategoryTree = (rows) => {
+  const map = {};
+  const roots = [];
+
+  rows.forEach((row) => {
+    map[row.category_id] = { ...row, children: [] };
+  });
+
+  rows.forEach((row) => {
+    if (row.parent_category) {
+      map[row.parent_category]?.children.push(map[row.category_id]);
+    } else {
+      roots.push(map[row.category_id]);
+    }
+  });
+
+  return roots;
+};
+
 // Get all categories (with optional tree structure)
 const getCategories = async (req, res) => {
   try {
@@ -14,29 +33,28 @@ const getCategories = async (req, res) => {
     );
 
     if (tree === 'true') {
-      // Build hierarchical tree structure
-      const categories = result.rows;
-      const categoryMap = {};
-      const roots = [];
-
-      categories.forEach(cat => {
-        categoryMap[cat.category_id] = { ...cat, children: [] };
-      });
-
-      categories.forEach(cat => {
-        if (cat.parent_category) {
-          categoryMap[cat.parent_category]?.children.push(categoryMap[cat.category_id]);
-        } else {
-          roots.push(categoryMap[cat.category_id]);
-        }
-      });
-
-      return res.status(200).json({ categories: roots });
+      return res.status(200).json({ categories: buildCategoryTree(result.rows) });
     }
 
     res.status(200).json({ categories: result.rows });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch categories: ' + error.message });
+  }
+};
+
+const getCategoryTree = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT c.*, p.name as parent_name
+       FROM category c
+       LEFT JOIN category p ON c.parent_category = p.category_id
+       WHERE c.is_active = true
+       ORDER BY c.depth, c.sort_order, c.name, c.category_id`
+    );
+
+    return res.status(200).json({ categories: buildCategoryTree(result.rows) });
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to fetch categories: ' + error.message });
   }
 };
 
@@ -218,14 +236,9 @@ const getCategoryProducts = async (req, res) => {
     // Include all descendant categories recursively if requested
     if (include_children === 'true') {
       const descendants = await pool.query(
-        `WITH RECURSIVE category_tree AS (
-          SELECT category_id FROM category WHERE category_id = $1
-          UNION ALL
-          SELECT c.category_id
-          FROM category c
-          JOIN category_tree ct ON c.parent_category = ct.category_id
-        )
-        SELECT category_id FROM category_tree`,
+        `SELECT descendant_category_id AS category_id
+         FROM category_closure
+         WHERE ancestor_category_id = $1`,
         [id]
       );
 
@@ -266,6 +279,7 @@ const getCategoryProducts = async (req, res) => {
 
 module.exports = {
   getCategories,
+  getCategoryTree,
   getCategoryById,
   createCategory,
   updateCategory,

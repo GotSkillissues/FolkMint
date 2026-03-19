@@ -37,9 +37,7 @@ CREATE TABLE users (
 -- ---------- USER PREFERENCES ----------
 CREATE TABLE user_preferences (
     preference_id SERIAL PRIMARY KEY,
-    view_count INT NOT NULL DEFAULT 0,
     user_id INT NOT NULL UNIQUE,
-    CONSTRAINT chk_view_count_nonneg CHECK (view_count >= 0),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -80,20 +78,116 @@ CREATE TABLE payment_method (
 CREATE TABLE category (
     category_id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
+    category_slug VARCHAR(80),
     description TEXT,
     parent_category INT,
+    depth INT NOT NULL DEFAULT 0,
+    full_path TEXT,
+    sort_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true,
     CONSTRAINT uq_category_name_parent UNIQUE (name, parent_category),
+    CONSTRAINT chk_category_depth_nonneg CHECK (depth >= 0),
+    CONSTRAINT chk_category_self_parent CHECK (parent_category IS NULL OR parent_category <> category_id),
     FOREIGN KEY (parent_category) REFERENCES category(category_id) ON DELETE SET NULL
 );
 
--- ---------- PREFERENCE_CATEGORY ----------
-CREATE TABLE preference_category (
-    preference_id INT NOT NULL,
-    category_id INT NOT NULL,
-    PRIMARY KEY (preference_id, category_id),
-    FOREIGN KEY (preference_id) REFERENCES user_preferences(preference_id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES category(category_id) ON DELETE CASCADE
+CREATE TABLE category_closure (
+    ancestor_category_id INT NOT NULL,
+    descendant_category_id INT NOT NULL,
+    depth INT NOT NULL,
+    PRIMARY KEY (ancestor_category_id, descendant_category_id),
+    CONSTRAINT chk_category_closure_depth_nonneg CHECK (depth >= 0),
+    FOREIGN KEY (ancestor_category_id) REFERENCES category(category_id) ON DELETE CASCADE,
+    FOREIGN KEY (descendant_category_id) REFERENCES category(category_id) ON DELETE CASCADE
 );
+
+CREATE OR REPLACE FUNCTION normalize_category_slug(input_name TEXT)
+RETURNS TEXT AS $$
+BEGIN
+    RETURN regexp_replace(
+        regexp_replace(
+            regexp_replace(lower(trim(COALESCE(input_name, ''))), '&', ' and ', 'g'),
+            '[^a-z0-9]+', '-', 'g'
+        ),
+        '(^-+)|(-+$)', '', 'g'
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION rebuild_category_tree_state()
+RETURNS VOID AS $$
+BEGIN
+    -- Refresh derived category fields.
+    WITH RECURSIVE tree AS (
+        SELECT
+            c.category_id,
+            c.parent_category,
+            0 AS computed_depth,
+            normalize_category_slug(c.name) AS computed_slug,
+            '/' || normalize_category_slug(c.name) AS computed_path
+        FROM category c
+        WHERE c.parent_category IS NULL
+
+        UNION ALL
+
+        SELECT
+            c.category_id,
+            c.parent_category,
+            tree.computed_depth + 1,
+            normalize_category_slug(c.name) AS computed_slug,
+            tree.computed_path || '/' || normalize_category_slug(c.name)
+        FROM category c
+        JOIN tree ON c.parent_category = tree.category_id
+    )
+    UPDATE category c
+    SET
+        category_slug = tree.computed_slug,
+        depth = tree.computed_depth,
+        full_path = tree.computed_path
+    FROM tree
+    WHERE c.category_id = tree.category_id;
+
+    -- Build closure table from adjacency list.
+    DELETE FROM category_closure;
+
+    WITH RECURSIVE closure AS (
+        SELECT
+            c.category_id AS ancestor_category_id,
+            c.category_id AS descendant_category_id,
+            0 AS depth
+        FROM category c
+
+        UNION ALL
+
+        SELECT
+            closure.ancestor_category_id,
+            c.category_id AS descendant_category_id,
+            closure.depth + 1
+        FROM closure
+        JOIN category c ON c.parent_category = closure.descendant_category_id
+    )
+    INSERT INTO category_closure (ancestor_category_id, descendant_category_id, depth)
+    SELECT DISTINCT ancestor_category_id, descendant_category_id, depth
+    FROM closure;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION trg_rebuild_category_tree_state()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF pg_trigger_depth() > 1 THEN
+        RETURN NULL;
+    END IF;
+
+    PERFORM rebuild_category_tree_state();
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER category_tree_state_after_change
+AFTER INSERT OR UPDATE OR DELETE ON category
+FOR EACH ROW
+EXECUTE FUNCTION trg_rebuild_category_tree_state();
 
 -- ---------- PRODUCT ----------
 CREATE TABLE product (
@@ -101,12 +195,10 @@ CREATE TABLE product (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     base_price DECIMAL(10,2) NOT NULL DEFAULT 0,
-    stock_quantity INT NOT NULL DEFAULT 0,
     category_id INT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT chk_product_price CHECK (base_price >= 0),
-    CONSTRAINT chk_product_stock CHECK (stock_quantity >= 0),
     FOREIGN KEY (category_id) REFERENCES category(category_id)
 );
 
@@ -118,7 +210,7 @@ CREATE TABLE product_variant (
     size VARCHAR(20),
     color VARCHAR(20),
     price DECIMAL(10,2) NOT NULL,
-    price_modifier DECIMAL(10,2) NOT NULL DEFAULT 0,
+    compare_at_price DECIMAL(10,2),
     stock_quantity INT NOT NULL DEFAULT 0,
     product_id INT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -277,6 +369,11 @@ CREATE INDEX idx_users_username ON users(username);
 
 -- Catalog
 CREATE INDEX idx_category_parent ON category(parent_category);
+CREATE INDEX idx_category_slug ON category(category_slug);
+CREATE INDEX idx_category_depth ON category(depth);
+CREATE INDEX idx_category_full_path ON category(full_path);
+CREATE INDEX idx_category_closure_ancestor ON category_closure(ancestor_category_id, depth);
+CREATE INDEX idx_category_closure_descendant ON category_closure(descendant_category_id, depth);
 CREATE INDEX idx_product_category ON product(category_id);
 CREATE INDEX idx_variant_product ON product_variant(product_id);
 CREATE INDEX idx_image_variant ON product_image(variant_id);
@@ -295,10 +392,10 @@ CREATE INDEX idx_payment_order ON payment(order_id);
 -- Reviews & Preferences
 CREATE INDEX idx_review_product ON review(product_id);
 CREATE INDEX idx_review_user ON review(user_id);
-CREATE INDEX idx_prefcat_category ON preference_category(category_id);
 
 -- Category
 CREATE UNIQUE INDEX uq_category_name_root ON category(name) WHERE parent_category IS NULL;
+CREATE UNIQUE INDEX uq_category_slug_parent ON category(parent_category, category_slug);
 
 -- Wishlist, Coupon, Notification
 CREATE INDEX idx_wishlist_user ON wishlist(user_id);
@@ -306,5 +403,8 @@ CREATE INDEX idx_wishlist_product ON wishlist(product_id);
 CREATE INDEX idx_coupon_code ON coupon(code);
 CREATE INDEX idx_notification_user ON notification(user_id);
 CREATE INDEX idx_notification_user_unread ON notification(user_id) WHERE is_read = false;
+
+-- Materialize category closure + derived fields after seed inserts.
+SELECT rebuild_category_tree_state();
 
 COMMIT;

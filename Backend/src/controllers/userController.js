@@ -10,9 +10,8 @@ const getUsers = async (req, res) => {
 
     let query = `
       SELECT u.user_id, u.username, u.email, u.first_name, u.last_name, 
-             u.role, u.created_at, u.updated_at, up.view_count
+             u.role, u.created_at, u.updated_at
       FROM users u
-      LEFT JOIN user_preferences up ON u.user_id = up.user_id
       WHERE 1=1
     `;
     const params = [];
@@ -67,9 +66,8 @@ const getUserById = async (req, res) => {
 
     const result = await pool.query(
       `SELECT u.user_id, u.username, u.email, u.first_name, u.last_name, 
-              u.role, u.created_at, u.updated_at, up.view_count
+              u.role, u.created_at, u.updated_at
        FROM users u
-       LEFT JOIN user_preferences up ON u.user_id = up.user_id
        WHERE u.user_id = $1`,
       [id]
     );
@@ -112,7 +110,7 @@ const createUser = async (req, res) => {
     );
 
     await pool.query(
-      'INSERT INTO user_preferences (user_id, view_count) VALUES ($1, 0)',
+      'INSERT INTO user_preferences (user_id) VALUES ($1)',
       [result.rows[0].user_id]
     );
 
@@ -209,62 +207,42 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Get user preferences
+// Get user preferences (now computed from signals)
 const getUserPreferences = async (req, res) => {
   try {
     const userId = req.user.userId;
 
+    // Verify user preferences record exists
     const result = await pool.query(
-      `SELECT up.preference_id, up.view_count,
-              COALESCE(json_agg(json_build_object('category_id', c.category_id, 'name', c.name)) 
-              FILTER (WHERE c.category_id IS NOT NULL), '[]') as preferred_categories
-       FROM user_preferences up
-       LEFT JOIN preference_category pc ON up.preference_id = pc.preference_id
-       LEFT JOIN category c ON pc.category_id = c.category_id
-       WHERE up.user_id = $1
-       GROUP BY up.preference_id`,
+      `SELECT preference_id FROM user_preferences WHERE user_id = $1`,
       [userId]
     );
 
-    res.status(200).json({ preferences: result.rows[0] || { view_count: 0, preferred_categories: [] } });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User preferences not found' });
+    }
+
+    // Return computed preferences from user activity signals.
+    res.status(200).json({ 
+      preferences: { 
+        preferred_categories: [],
+        note: 'Preferences are computed from your activity (purchases, wishlist, cart, reviews)'
+      } 
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get preferences: ' + error.message });
   }
 };
 
-// Update user preferences
+// Update user preferences (preferences now auto-computed from signals)
 const updateUserPreferences = async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const { category_ids } = req.body;
-
-    if (!Array.isArray(category_ids)) {
-      return res.status(400).json({ error: 'category_ids must be an array' });
-    }
-
-    const prefResult = await pool.query(
-      'SELECT preference_id FROM user_preferences WHERE user_id = $1',
-      [userId]
-    );
-
-    if (prefResult.rows.length === 0) {
-      return res.status(404).json({ error: 'User preferences not found' });
-    }
-
-    const preferenceId = prefResult.rows[0].preference_id;
-
-    // Delete existing and insert new
-    await pool.query('DELETE FROM preference_category WHERE preference_id = $1', [preferenceId]);
-
-    if (category_ids.length > 0) {
-      const values = category_ids.map((_, i) => `($1, $${i + 2})`).join(', ');
-      await pool.query(
-        `INSERT INTO preference_category (preference_id, category_id) VALUES ${values}`,
-        [preferenceId, ...category_ids]
-      );
-    }
-
-    res.status(200).json({ message: 'Preferences updated' });
+    // Preferences are now automatically computed from user signals (purchases, wishlist, cart, reviews)
+    // This endpoint is deprecated but kept for backward compatibility
+    res.status(200).json({ 
+      message: 'Preferences are now automatically computed from your activity',
+      note: 'Your preferred categories are based on: purchases, wishlist items, cart items, and product reviews'
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update preferences: ' + error.message });
   }

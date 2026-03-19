@@ -1,6 +1,29 @@
 // Cart Controller - Handle cart-related operations
 const { pool } = require('../config/database');
 
+const resolveVariantForProduct = async (client, productId, variantId) => {
+  if (variantId) {
+    const explicit = await client.query(
+      `SELECT variant_id, variant_name, sku, price, stock_quantity
+       FROM product_variant
+       WHERE variant_id = $1 AND product_id = $2` ,
+      [variantId, productId]
+    );
+    return explicit.rows[0] || null;
+  }
+
+  const fallback = await client.query(
+    `SELECT variant_id, variant_name, sku, price, stock_quantity
+     FROM product_variant
+     WHERE product_id = $1 AND is_active = true
+     ORDER BY variant_id
+     LIMIT 1`,
+    [productId]
+  );
+
+  return fallback.rows[0] || null;
+};
+
 // Get user's cart
 const getCart = async (req, res) => {
   try {
@@ -24,10 +47,11 @@ const getCart = async (req, res) => {
     // Get cart items with product details
     const itemsResult = await pool.query(
       `SELECT ci.cart_item_id, ci.quantity, ci.created_at,
-              p.product_id, p.name, p.base_price, p.stock_quantity,
+            p.product_id, p.name, p.base_price,
               p.description,
-              pv.variant_id, pv.variant_name, pv.price_modifier, pv.sku,
-              pv.stock_quantity as variant_stock,
+            pv.variant_id, pv.variant_name, pv.sku,
+            pv.price as variant_price,
+            pv.stock_quantity as variant_stock,
               (SELECT pi.image_url FROM product_image pi
                JOIN product_variant pv2 ON pi.variant_id = pv2.variant_id
                WHERE pv2.product_id = p.product_id AND pi.is_primary = true LIMIT 1) as image
@@ -44,7 +68,7 @@ const getCart = async (req, res) => {
     let totalAmount = 0;
 
     const items = itemsResult.rows.map(item => {
-      const price = parseFloat(item.base_price) + (parseFloat(item.price_modifier) || 0);
+      const price = parseFloat(item.variant_price ?? item.base_price ?? 0);
       const subtotal = price * item.quantity;
       totalItems += item.quantity;
       totalAmount += subtotal;
@@ -83,9 +107,9 @@ const addToCart = async (req, res) => {
       return res.status(400).json({ error: 'Quantity must be at least 1' });
     }
 
-    // Verify product exists and has stock
+    // Verify product exists
     const productResult = await pool.query(
-      'SELECT product_id, stock_quantity, name FROM product WHERE product_id = $1',
+      'SELECT product_id, name FROM product WHERE product_id = $1 AND is_active = true',
       [product_id]
     );
 
@@ -93,20 +117,14 @@ const addToCart = async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    let availableStock = productResult.rows[0].stock_quantity;
+    const selectedVariant = await resolveVariantForProduct(pool, product_id, variant_id);
 
-    // Check variant if provided
-    if (variant_id) {
-      const variantResult = await pool.query(
-        'SELECT variant_id, stock_quantity FROM product_variant WHERE variant_id = $1 AND product_id = $2',
-        [variant_id, product_id]
-      );
-
-      if (variantResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Variant not found' });
-      }
-      availableStock = variantResult.rows[0].stock_quantity;
+    if (!selectedVariant) {
+      return res.status(400).json({ error: 'No active variant available for this product' });
     }
+
+    const selectedVariantId = selectedVariant.variant_id;
+    const availableStock = Number(selectedVariant.stock_quantity || 0);
 
     if (availableStock < quantity) {
       return res.status(400).json({ error: 'Insufficient stock' });
@@ -131,7 +149,7 @@ const addToCart = async (req, res) => {
     const existingItem = await pool.query(
       `SELECT cart_item_id, quantity FROM cart_item 
        WHERE cart_id = $1 AND product_id = $2 AND (variant_id = $3 OR (variant_id IS NULL AND $3 IS NULL))`,
-      [cartId, product_id, variant_id]
+      [cartId, product_id, selectedVariantId]
     );
 
     let result;
@@ -150,7 +168,7 @@ const addToCart = async (req, res) => {
       // Insert new item
       result = await pool.query(
         'INSERT INTO cart_item (cart_id, product_id, variant_id, quantity) VALUES ($1, $2, $3, $4) RETURNING *',
-        [cartId, product_id, variant_id, quantity]
+        [cartId, product_id, selectedVariantId, quantity]
       );
     }
 
@@ -173,10 +191,9 @@ const updateCartItem = async (req, res) => {
 
     // Verify cart item belongs to user
     const itemResult = await pool.query(
-      `SELECT ci.*, p.stock_quantity, pv.stock_quantity as variant_stock
+      `SELECT ci.*, pv.stock_quantity as variant_stock
        FROM cart_item ci
        JOIN cart c ON ci.cart_id = c.cart_id
-       JOIN product p ON ci.product_id = p.product_id
        LEFT JOIN product_variant pv ON ci.variant_id = pv.variant_id
        WHERE ci.cart_item_id = $1 AND c.user_id = $2`,
       [id, userId]
@@ -187,7 +204,7 @@ const updateCartItem = async (req, res) => {
     }
 
     const item = itemResult.rows[0];
-    const availableStock = item.variant_id ? item.variant_stock : item.stock_quantity;
+    const availableStock = Number(item.variant_stock || 0);
 
     if (quantity === 0) {
       // Remove item
@@ -285,11 +302,15 @@ const syncCart = async (req, res) => {
 
       if (!product_id || !quantity || quantity < 1) continue;
 
+      const selectedVariant = await resolveVariantForProduct(pool, product_id, variant_id);
+      if (!selectedVariant) continue;
+      const selectedVariantId = selectedVariant.variant_id;
+
       // Check existing
       const existing = await pool.query(
         `SELECT cart_item_id, quantity FROM cart_item 
          WHERE cart_id = $1 AND product_id = $2 AND (variant_id = $3 OR (variant_id IS NULL AND $3 IS NULL))`,
-        [cartId, product_id, variant_id]
+        [cartId, product_id, selectedVariantId]
       );
 
       if (existing.rows.length > 0) {
@@ -301,7 +322,7 @@ const syncCart = async (req, res) => {
       } else {
         await pool.query(
           'INSERT INTO cart_item (cart_id, product_id, variant_id, quantity) VALUES ($1, $2, $3, $4)',
-          [cartId, product_id, variant_id, quantity]
+          [cartId, product_id, selectedVariantId, quantity]
         );
       }
     }

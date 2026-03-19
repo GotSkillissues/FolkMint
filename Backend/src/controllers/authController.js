@@ -78,7 +78,7 @@ const register = async (req, res) => {
 
     // Create user preferences
     await pool.query(
-      'INSERT INTO user_preferences (user_id, view_count) VALUES ($1, 0)',
+      'INSERT INTO user_preferences (user_id) VALUES ($1)',
       [newUser.user_id]
     );
 
@@ -202,10 +202,8 @@ const getProfile = async (req, res) => {
     const userId = req.user.userId;
 
     const result = await pool.query(
-      `SELECT u.user_id, u.username, u.email, u.first_name, u.last_name, u.role, u.created_at,
-              up.view_count
+      `SELECT u.user_id, u.username, u.email, u.first_name, u.last_name, u.role, u.created_at
        FROM users u
-       LEFT JOIN user_preferences up ON u.user_id = up.user_id
        WHERE u.user_id = $1`,
       [userId]
     );

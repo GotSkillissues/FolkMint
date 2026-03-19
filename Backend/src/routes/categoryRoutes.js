@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   getCategories,
+  getCategoryTree,
   getCategoryById,
   createCategory,
   updateCategory,
@@ -14,10 +15,7 @@ const { authenticate, isAdmin, optionalAuth } = require('../middleware/authMiddl
 router.get('/', getCategories);
 
 // Get category tree (public)
-router.get('/tree', (req, res) => {
-  req.query.tree = 'true';
-  return getCategories(req, res);
-});
+router.get('/tree', getCategoryTree);
 
 // Get category by ID (public)
 router.get('/:id', getCategoryById);

@@ -14,7 +14,6 @@ CREATE TABLE users (
 
 CREATE TABLE user_preferences (
     preference_id INT AUTO_INCREMENT PRIMARY KEY,
-    view_count INT DEFAULT 0,
     user_id INT UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
