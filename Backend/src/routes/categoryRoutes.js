@@ -13,6 +13,12 @@ const { authenticate, isAdmin, optionalAuth } = require('../middleware/authMiddl
 // Get all categories (public)
 router.get('/', getCategories);
 
+// Get category tree (public)
+router.get('/tree', (req, res) => {
+  req.query.tree = 'true';
+  return getCategories(req, res);
+});
+
 // Get category by ID (public)
 router.get('/:id', getCategoryById);
 
