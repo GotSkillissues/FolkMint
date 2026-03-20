@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCategoryTree } from '../../hooks/useCategories';
+import { getCategoryUrl } from '../../utils';
 
 const FloatingCategoriesPanel = () => {
   const { tree, loading } = useCategoryTree();
@@ -26,14 +27,14 @@ const FloatingCategoriesPanel = () => {
         {children.length > 0 ? (
           <Link
             className="floating-categories-parent-link"
-            to={`/products?parent_id=${encodeURIComponent(node.category_id)}&include_descendants=true`}
+            to={getCategoryUrl({ ...node, has_children: true })}
             onClick={() => setForceClosed(true)}
           >
             {node.name || `Category ${node.category_id}`}
           </Link>
         ) : (
           <Link
-            to={`/products?category_id=${encodeURIComponent(node.category_id)}`}
+            to={getCategoryUrl({ ...node, has_children: false })}
             onClick={() => setForceClosed(true)}
           >
             {node.name || `Category ${node.category_id}`}
@@ -45,7 +46,7 @@ const FloatingCategoriesPanel = () => {
             {children.map((child) => (
               <li key={child.category_id || child.name}>
                 <Link
-                  to={`/products?parent_id=${encodeURIComponent(node.category_id)}&category_id=${encodeURIComponent(child.category_id)}`}
+                  to={getCategoryUrl({ ...child, has_children: sortedChildren(child).length > 0 })}
                   onClick={() => setForceClosed(true)}
                 >
                   {child.name || `Category ${child.category_id}`}

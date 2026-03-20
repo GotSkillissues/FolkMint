@@ -12,8 +12,15 @@ const productService = {
   // Get all products with optional filters
   getAllProducts: async (params = {}) => {
     try {
-      // params: { page, limit, category_id, search, sort, minPrice, maxPrice }
-      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.BASE, { params });
+      // Backend expects `category` (id or slug) and `search`.
+      const query = { ...params };
+      if (query.category_id && !query.category) {
+        query.category = query.category_id;
+      }
+      delete query.category_id;
+      delete query.include_descendants;
+
+      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.BASE, { params: query });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -33,7 +40,9 @@ const productService = {
   // Get products by category
   getProductsByCategory: async (categoryId, params = {}) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.BY_CATEGORY(categoryId), { params });
+      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.BASE, {
+        params: { ...params, category: categoryId },
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -43,8 +52,8 @@ const productService = {
   // Search products
   searchProducts: async (searchTerm, params = {}) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.SEARCH, {
-        params: { q: searchTerm, ...params },
+      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.BASE, {
+        params: { search: searchTerm, ...params },
       });
       return response.data;
     } catch (error) {
@@ -55,10 +64,7 @@ const productService = {
   // Get featured products
   getFeaturedProducts: async (limit = 8) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.FEATURED, {
-        params: { limit },
-      });
-      return response.data;
+      return await productService.getAllProducts({ limit, sort: 'newest' });
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -67,10 +73,7 @@ const productService = {
   // Get new arrivals
   getNewArrivals: async (limit = 8) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.NEW_ARRIVALS, {
-        params: { limit },
-      });
-      return response.data;
+      return await productService.getAllProducts({ limit, sort: 'newest' });
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -128,7 +131,7 @@ const productService = {
   // Update product (admin only)
   updateProduct: async (id, productData) => {
     try {
-      const response = await apiClient.put(API_ENDPOINTS.PRODUCTS.BY_ID(id), productData);
+      const response = await apiClient.patch(API_ENDPOINTS.PRODUCTS.BY_ID(id), productData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

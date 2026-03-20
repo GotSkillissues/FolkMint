@@ -2,6 +2,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  --header-total-height: 72px;
+  --legal-title-font: 'Playfair Display', serif;
   --gold:       #D4AF37;      /* Rich Gold accent */
   --gold-lt:    #ebd581;      /* Lighter gold */
   --gold-muted: #fbf7e6;      /* Subtle cream/gold back */
@@ -19,6 +21,7 @@
   --sh-lg:      0 16px 40px -8px rgba(10, 17, 40, 0.12);
   --r:          0.6rem;       /* Softer radius for premium look */
   --ease:       cubic-bezier(0.25, 1, 0.5, 1);
+  --btn-interaction: #000058;
 }
 
 html { 
@@ -39,6 +42,18 @@ body {
 a { text-decoration: none; color: inherit; }
 img { display: block; max-width: 100%; }
 button { font-family: 'Playfair Display', serif; cursor: pointer; }
+
+:where(button, a[class*='btn'], [role='button']):hover:not(:disabled),
+:where(button, a[class*='btn'], [role='button']):focus-visible,
+:where(button, a[class*='btn'], [role='button']).active,
+:where(button, a[class*='btn'], [role='button']).selected,
+:where(button, a[class*='btn'], [role='button'])[aria-selected='true'],
+:where(button, a[class*='btn'], [role='button'])[aria-pressed='true'],
+:where(button, a[class*='btn'], [role='button'])[aria-current='page'] {
+  background-color: var(--btn-interaction) !important;
+  border-color: var(--btn-interaction) !important;
+  color: #ffffff !important;
+}
 
 #root {
   display: flex;

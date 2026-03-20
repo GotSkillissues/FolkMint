@@ -1,31 +1,34 @@
 const express = require('express');
 const router = express.Router();
+
 const {
   getOrders,
   getOrderById,
   createOrder,
-  updateOrder,
-  cancelOrder,
-  deleteOrder
+  updateOrderStatus,
+  cancelOrder
 } = require('../controllers/orderController');
+
 const { authenticate, isAdmin } = require('../middleware/authMiddleware');
 
-// Get all orders (User: own, Admin: all)
+// GET /api/orders
+// Admin: all orders. Customer: own orders only.
 router.get('/', authenticate, getOrders);
 
-// Get order by ID
-router.get('/:id', authenticate, getOrderById);
-
-// Create new order from cart
+// POST /api/orders
+// Authenticated. Creates order from current cart.
 router.post('/', authenticate, createOrder);
 
-// Update order status (Admin only)
-router.put('/:id', authenticate, isAdmin, updateOrder);
+// GET /api/orders/:id
+// Admin can fetch any order. Customer can only fetch their own.
+router.get('/:id', authenticate, getOrderById);
 
-// Cancel order (User can cancel own pending orders)
+// PATCH /api/orders/:id/status
+// Admin only. Enforces valid forward transitions.
+router.patch('/:id/status', authenticate, isAdmin, updateOrderStatus);
+
+// POST /api/orders/:id/cancel
+// Authenticated. Customer can cancel their own pending orders only.
 router.post('/:id/cancel', authenticate, cancelOrder);
-
-// Delete order (Admin only)
-router.delete('/:id', authenticate, isAdmin, deleteOrder);
 
 module.exports = router;

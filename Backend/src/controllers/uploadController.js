@@ -1,145 +1,152 @@
-// Upload Controller - Handle image file uploads to Cloudinary
 const multer = require('multer');
 const { cloudinary, ensureCloudinaryConfigured } = require('../config/cloudinary');
 
-// Multer memory storage config (file stays in memory before Cloudinary upload)
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp'
+]);
+
+const MAX_FILE_SIZE    = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_COUNT   = 10;
+
 const storage = multer.memoryStorage();
 
-// File type filter - images only
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-  if (allowedTypes.includes(file.mimetype)) {
+  if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.'), false);
+    cb(
+      new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.'),
+      false
+    );
   }
 };
 
-// Multer instance
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB per file
-    files: 10                   // max 10 files per request
+    fileSize: MAX_FILE_SIZE,
+    files:    MAX_FILE_COUNT
   }
 });
 
-const uploadBufferToCloudinary = (fileBuffer, mimetype) => {
+// Uploads a buffer to Cloudinary and returns the result.
+// All uploads go to the folder defined in CLOUDINARY_FOLDER env var.
+const uploadBufferToCloudinary = (buffer) => {
   ensureCloudinaryConfigured();
 
-  const folder = process.env.CLOUDINARY_FOLDER;
+  const folder = process.env.CLOUDINARY_FOLDER || undefined;
 
   return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: folder || undefined,
-        resource_type: 'image',
-      },
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: 'image' },
       (error, result) => {
         if (error) return reject(error);
         resolve(result);
       }
     );
-
-    uploadStream.end(fileBuffer);
+    stream.end(buffer);
   });
 };
 
-// Upload a single image
+const buildImageResponse = (uploaded, mimetype) => ({
+  public_id: uploaded.public_id,
+  url:       uploaded.secure_url,
+  width:     uploaded.width,
+  height:    uploaded.height,
+  size:      uploaded.bytes,
+  mimetype
+});
+
 // POST /api/upload/image
+// Admin only. Uploads a single image to Cloudinary.
+// Returns the Cloudinary URL to be passed to POST /api/products/:id/images.
 const uploadImage = async (req, res, next) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
-
   try {
-    const uploaded = await uploadBufferToCloudinary(req.file.buffer, req.file.mimetype);
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
 
-    res.status(201).json({
+    const uploaded = await uploadBufferToCloudinary(req.file.buffer);
+
+    return res.status(201).json({
       message: 'Image uploaded successfully',
-      image: {
-        public_id: uploaded.public_id,
-        filename: uploaded.public_id,
-        url: uploaded.secure_url,
-        size: uploaded.bytes,
-        mimetype: req.file.mimetype,
-      }
+      image:   buildImageResponse(uploaded, req.file.mimetype)
     });
   } catch (error) {
     next(error);
   }
 };
 
-// Upload multiple images (up to 10)
 // POST /api/upload/images
+// Admin only. Uploads multiple images (up to 10) to Cloudinary in parallel.
+// Returns array of Cloudinary URLs.
 const uploadImages = async (req, res, next) => {
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ error: 'No files uploaded' });
-  }
-
   try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
+
     const images = await Promise.all(
       req.files.map(async (file) => {
-        const uploaded = await uploadBufferToCloudinary(file.buffer, file.mimetype);
-        return {
-          public_id: uploaded.public_id,
-          filename: uploaded.public_id,
-          url: uploaded.secure_url,
-          size: uploaded.bytes,
-          mimetype: file.mimetype,
-        };
+        const uploaded = await uploadBufferToCloudinary(file.buffer);
+        return buildImageResponse(uploaded, file.mimetype);
       })
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       message: `${images.length} image(s) uploaded successfully`,
-      images,
+      images
     });
   } catch (error) {
     next(error);
   }
 };
 
-// Delete an image by Cloudinary public_id
-// DELETE /api/upload/image/:publicId or DELETE /api/upload/image with body { public_id }
-const deleteImage = async (req, res, next) => {
-  const publicId = req.params.publicId || req.body?.public_id;
-
-  if (!publicId) {
-    return res.status(400).json({ error: 'public_id is required' });
-  }
-
+// DELETE /api/upload/image/:publicId
+// Admin only. Deletes an image from Cloudinary by its public_id.
+// Call this when deleting a product image to avoid orphaned files in Cloudinary.
+const deleteCloudinaryImage = async (req, res, next) => {
   try {
     ensureCloudinaryConfigured();
 
+    const publicId = req.params.publicId || String(req.body?.public_id || '').trim();
+
+    if (!publicId) {
+      return res.status(400).json({ error: 'public_id is required' });
+    }
+
     const result = await cloudinary.uploader.destroy(publicId, {
-      resource_type: 'image',
+      resource_type: 'image'
     });
 
     if (result.result === 'not found') {
       return res.status(404).json({ error: 'Image not found in Cloudinary' });
     }
 
-    res.status(200).json({
-      message: 'Image deleted successfully',
-      result,
+    return res.status(200).json({
+      message: 'Image deleted from Cloudinary',
+      result
     });
   } catch (error) {
     next(error);
   }
 };
 
-// Multer error handler middleware
+// Multer error handler middleware.
+// Must be registered after the upload middleware in the route.
 const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
     }
     if (err.code === 'LIMIT_FILE_COUNT') {
-      return res.status(400).json({ error: 'Too many files. Maximum is 10 per request.' });
+      return res.status(400).json({ error: `Too many files. Maximum is ${MAX_FILE_COUNT} per request.` });
     }
-    return res.status(400).json({ error: 'Upload error: ' + err.message });
+    return res.status(400).json({ error: `Upload error: ${err.message}` });
   }
   if (err) {
     return res.status(400).json({ error: err.message });
@@ -151,6 +158,6 @@ module.exports = {
   upload,
   uploadImage,
   uploadImages,
-  deleteImage,
+  deleteCloudinaryImage,
   handleUploadError
 };

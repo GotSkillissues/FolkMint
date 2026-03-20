@@ -2,6 +2,30 @@
   padding: 2rem 0;
 }
 
+.product-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 1.2rem;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.product-breadcrumb a {
+  color: #1f2937;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.product-breadcrumb a:hover {
+  color: #fff;
+  border-color: #000058;
+  background: #000058;
+}
+
 .product-detail-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -69,6 +93,12 @@
   right: .8rem;
 }
 
+.img-nav-btn:hover {
+  background: #000058;
+  border-color: #000058;
+  color: #fff;
+}
+
 .image-thumbnails {
   display: flex;
   flex-wrap: wrap;
@@ -86,7 +116,7 @@
 }
 
 .thumb-btn.active {
-  border-color: #d4a574;
+  border-color: #000058;
 }
 
 .thumb-image {
@@ -131,7 +161,8 @@
 }
 
 .product-description-btn:hover {
-  background: #d4a574;
+  background: #000058;
+  border-color: #000058;
   color: #fff;
 }
 
@@ -175,8 +206,9 @@
 }
 
 .qty-btn:hover {
-  background-color: #f5f5f5;
-  border-color: #d4a574;
+  background-color: #000058;
+  border-color: #000058;
+  color: #fff;
 }
 
 .quantity-controls input {
@@ -204,7 +236,7 @@
 }
 
 .add-to-cart-btn-large:hover:not(:disabled) {
-  background-color: #c49563;
+  background-color: #000058;
 }
 
 .add-to-cart-btn-large:disabled {
@@ -361,6 +393,12 @@ body.drawer-open {
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
+}
+
+.similar-nav-btn:hover {
+  background: #000058;
+  border-color: #000058;
+  color: #fff;
 }
 
 .similar-viewport {

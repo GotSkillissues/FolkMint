@@ -10,21 +10,18 @@ const REQS = [
   { key: 'len',     label: 'At least 6 characters',       test: p => p.length >= 6 },
   { key: 'upper',   label: 'At least one uppercase letter', test: p => /[A-Z]/.test(p) },
   { key: 'number',  label: 'At least one number',           test: p => /[0-9]/.test(p) },
-  { key: 'special', label: 'At least one special character',test: p => /[^A-Za-z0-9]/.test(p) },
 ];
 
 const STRENGTH_LEVELS = [
   { label: '',          color: 'transparent', width: '0%'   },
-  { label: 'Very Weak', color: '#e53935',     width: '25%'  },
-  { label: 'Weak',      color: '#f4511e',     width: '50%'  },
-  { label: 'Fair',      color: '#fb8c00',     width: '75%'  },
+  { label: 'Weak',      color: '#e53935',     width: '33%'  },
+  { label: 'Fair',      color: '#fb8c00',     width: '66%'  },
   { label: 'Strong',    color: '#43a047',     width: '100%' },
 ];
 
 function getStrength(pw) {
   if (!pw) return STRENGTH_LEVELS[0];
-  // cap at 4 (Strong) — there are 4 requirements so max score = 4
-  const score = Math.min(REQS.filter(r => r.test(pw)).length, 4);
+  const score = Math.min(REQS.filter(r => r.test(pw)).length, 3);
   return { ...STRENGTH_LEVELS[score], score };
 }
 
@@ -62,7 +59,6 @@ const Register = () => {
 
   const [firstName,   setFirstName]   = useState('');
   const [lastName,    setLastName]    = useState('');
-  const [username,    setUsername]    = useState('');
   const [email,       setEmail]       = useState('');
   const [password,    setPassword]    = useState('');
   const [confirm,     setConfirm]     = useState('');
@@ -118,7 +114,6 @@ const Register = () => {
       await register({
         first_name: firstName.trim() || undefined,
         last_name:  lastName.trim()  || undefined,
-        username:   username.trim(),
         email:      email.trim(),
         password,
       });
@@ -133,7 +128,7 @@ const Register = () => {
     } finally {
       setLoading(false);
     }
-  }, [firstName, lastName, username, email, password, confirm, register, navigate]);
+  }, [firstName, lastName, email, password, confirm, register, navigate]);
 
   return (
     <div className="auth-page">
@@ -239,23 +234,6 @@ const Register = () => {
                   onChange={e => setLastName(e.target.value)}
                 />
               </div>
-            </div>
-
-            {/* Username */}
-            <div className="af-group">
-              <label className="af-label" htmlFor="reg-username">
-                Username <span className="af-required">*</span>
-              </label>
-              <input
-                className="af-input"
-                id="reg-username"
-                type="text"
-                autoComplete="username"
-                value={username}
-                placeholder="john_doe"
-                onChange={e => { setUsername(e.target.value); setApiError(''); }}
-                required
-              />
             </div>
 
             {/* Email */}

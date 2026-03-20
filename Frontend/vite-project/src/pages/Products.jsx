@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { categoryService, productService } from '../services';
 import { useCategoryTree } from '../hooks/useCategories';
 import { Loading } from '../components';
-import { getCardImageUrl } from '../utils';
+import { getCardImageUrl, getCategoryUrl } from '../utils';
 import './PageUI.css';
 
 const getProductImage = (product) => {
@@ -13,6 +13,26 @@ const getProductImage = (product) => {
 const getProductPrice = (product) => Number(product?.price ?? product?.base_price ?? 0);
 const PAGE_SIZE = 16;
 
+const getChildren = (node) => {
+  if (!node) return [];
+  if (Array.isArray(node.children)) return node.children;
+  if (Array.isArray(node.subcategories)) return node.subcategories;
+  return [];
+};
+
+const findCategoryPath = (nodes, predicate, trail = []) => {
+  if (!Array.isArray(nodes)) return null;
+
+  for (const node of nodes) {
+    const currentTrail = [...trail, node];
+    if (predicate(node)) return currentTrail;
+    const found = findCategoryPath(getChildren(node), predicate, currentTrail);
+    if (found) return found;
+  }
+
+  return null;
+};
+
 const Products = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -20,78 +40,31 @@ const Products = () => {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0, limit: PAGE_SIZE });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchText, setSearchText] = useState('');
-  const [sortBy, setSortBy] = useState('featured');
   const { tree: categoryTree } = useCategoryTree();
 
   const query = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
   const categoryId = searchParams.get('category_id') || '';
   const parentId = searchParams.get('parent_id') || '';
-  const activeCategoryId = parentId || categoryId || '';
+  const legacyCategoryId = /^\d+$/.test(category) ? category : '';
+  const selectedCategoryId = categoryId || parentId || legacyCategoryId;
+  const activeCategoryId = selectedCategoryId || '';
   const currentPage = Math.max(1, Number(searchParams.get('page') || '1'));
 
-  useEffect(() => {
-    setSearchText(query);
-  }, [query]);
-
-  useEffect(() => {
-    setSortBy('featured');
-  }, [query, category, categoryId, parentId]);
-
-  const findCategoryNodeMeta = (nodes, targetId, parent = null) => {
-    if (!Array.isArray(nodes) || !targetId) return null;
-
-    for (const node of nodes) {
-      if (String(node?.category_id) === String(targetId)) {
-        return { node, parent };
-      }
-
-      const childNodes = Array.isArray(node?.children)
-        ? node.children
-        : Array.isArray(node?.subcategories)
-          ? node.subcategories
-          : [];
-
-      const found = findCategoryNodeMeta(childNodes, targetId, node);
-      if (found) return found;
+  const activeCategoryPath = (() => {
+    if (activeCategoryId) {
+      return findCategoryPath(categoryTree, (node) => String(node?.category_id) === String(activeCategoryId)) || [];
     }
 
-    return null;
-  };
+    if (category && !/^\d+$/.test(category)) {
+      return findCategoryPath(
+        categoryTree,
+        (node) => String(node?.category_slug || '').toLowerCase() === String(category).toLowerCase()
+      ) || [];
+    }
 
-  const getChildren = (node) => {
-    if (!node) return [];
-    if (Array.isArray(node.children)) return node.children;
-    if (Array.isArray(node.subcategories)) return node.subcategories;
     return [];
-  };
-
-  const activeMeta = findCategoryNodeMeta(categoryTree, activeCategoryId);
-  const activeNode = activeMeta?.node || null;
-  const activeParent = activeMeta?.parent || null;
-
-  const activeChildren = getChildren(activeNode);
-
-  let subcategoryNavItems = [];
-
-  if (activeNode && activeChildren.length > 0) {
-    subcategoryNavItems = activeChildren;
-  } else if (activeNode && activeParent) {
-    subcategoryNavItems = getChildren(activeParent);
-  } else if (activeNode && !activeParent) {
-    subcategoryNavItems = Array.isArray(categoryTree) ? categoryTree : [];
-  }
-
-  const buildSubcategoryUrl = (subcategoryId) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('parent_id', String(subcategoryId));
-    params.set('include_descendants', 'true');
-    params.set('page', '1');
-    params.delete('category_id');
-    params.delete('category');
-    return `/products?${params.toString()}`;
-  };
+  })();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -99,16 +72,19 @@ const Products = () => {
       setError('');
 
       try {
-        if (parentId && Array.isArray(categoryTree) && categoryTree.length > 0) {
-          const parentExists = !!findCategoryNodeMeta(categoryTree, parentId);
-          if (!parentExists) {
+        if (selectedCategoryId && Array.isArray(categoryTree) && categoryTree.length > 0) {
+          const categoryExists = !!findCategoryPath(
+            categoryTree,
+            (node) => String(node?.category_id) === String(selectedCategoryId)
+          );
+          if (!categoryExists) {
             setProducts([]);
             setPagination({ page: currentPage, totalPages: 0, total: 0, limit: PAGE_SIZE });
             return;
           }
         }
 
-        let resolvedCategoryId = categoryId || undefined;
+        let resolvedCategoryId = selectedCategoryId || undefined;
 
         if (!resolvedCategoryId && category) {
           if (/^\d+$/.test(category)) {
@@ -135,13 +111,19 @@ const Products = () => {
               resolvedCategoryId = String(matched.category_id);
             }
           }
+
+          // If a category string was provided but does not resolve, do not fall back to full catalog.
+          if (!resolvedCategoryId) {
+            setProducts([]);
+            setPagination({ page: currentPage, totalPages: 0, total: 0, limit: PAGE_SIZE });
+            return;
+          }
         }
 
         const response = await productService.getAllProducts({
           search: query || undefined,
           category_id: resolvedCategoryId,
-          parent_id: parentId || undefined,
-          include_descendants: parentId ? 'true' : undefined,
+          include_descendants: resolvedCategoryId ? 'true' : undefined,
           page: currentPage,
           limit: PAGE_SIZE,
         });
@@ -176,22 +158,7 @@ const Products = () => {
     };
 
     fetchProducts();
-  }, [query, category, categoryId, parentId, currentPage, categoryTree]);
-
-  const onSearchSubmit = (event) => {
-    event.preventDefault();
-    const params = new URLSearchParams(searchParams);
-
-    if (searchText.trim()) {
-      params.set('q', searchText.trim());
-    } else {
-      params.delete('q');
-    }
-
-    params.set('page', '1');
-
-    navigate(`/products?${params.toString()}`);
-  };
+  }, [query, category, selectedCategoryId, currentPage, categoryTree]);
 
   const onPageChange = (targetPage) => {
     const safePage = Math.max(1, targetPage);
@@ -201,79 +168,36 @@ const Products = () => {
     navigate(`/products?${params.toString()}`);
   };
 
-  const sortedProducts = [...products].sort((a, b) => {
-    const priceA = getProductPrice(a);
-    const priceB = getProductPrice(b);
-
-    if (sortBy === 'price_low') return priceA - priceB;
-    if (sortBy === 'price_high') return priceB - priceA;
-    if (sortBy === 'name_asc') return (a?.name || '').localeCompare(b?.name || '');
-
-    return 0;
-  });
-
   if (loading) return <Loading message="Loading products..." />;
 
   return (
     <div className="page-shell">
       <div className="page-head">
         <div>
+          <nav className="breadcrumb" aria-label="Breadcrumb">
+            <Link to="/">Home</Link>
+            {activeCategoryPath.map((node, index) => {
+              const isLast = index === activeCategoryPath.length - 1;
+              return (
+                <span key={node.category_id}>
+                  / {isLast ? node.name : <Link to={getCategoryUrl(node)}>{node.name}</Link>}
+                </span>
+              );
+            })}
+          </nav>
           <h1 className="page-title">Products</h1>
           <p className="page-subtitle">Discover handcrafted collections curated for every style.</p>
         </div>
       </div>
 
-      <form className="ui-toolbar" onSubmit={onSearchSubmit}>
-        <input
-          className="ui-input"
-          type="text"
-          placeholder="Search products, e.g. saree, pottery, necklace..."
-          value={searchText}
-          onChange={(event) => setSearchText(event.target.value)}
-        />
-        <div className="row-actions">
-          <select className="ui-select" value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
-            <option value="featured">Featured</option>
-            <option value="price_low">Price: Low to High</option>
-            <option value="price_high">Price: High to Low</option>
-            <option value="name_asc">Name: A-Z</option>
-          </select>
-          <button className="ui-btn" type="submit">Search</button>
-        </div>
-      </form>
-
-      {subcategoryNavItems.length > 0 && (
-        <div className="subcat-nav-wrap" role="navigation" aria-label="Subcategories">
-          <div className="subcat-nav">
-            {subcategoryNavItems.map((subcategory) => {
-              const childHasMore = getChildren(subcategory).length > 0;
-              return (
-                <Link
-                  key={subcategory.category_id}
-                  to={buildSubcategoryUrl(subcategory.category_id)}
-                  className={`subcat-link${String(activeCategoryId) === String(subcategory.category_id) ? ' active' : ''}`}
-                >
-                  {subcategory.name}
-                  {childHasMore ? ' ▾' : ''}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {(query || category || categoryId || parentId) && (
-        <p className="msg-note">
-          Showing results{query ? ` for "${query}"` : ''}{category ? ` in ${category}` : ''}
-        </p>
-      )}
+      <p className="result-count">{Number(pagination.total || products.length).toLocaleString('en-BD')} Results</p>
 
       {error && <p className="msg-error" role="alert">{error}</p>}
 
-      {!error && !sortedProducts.length && <p className="msg-note">No products found.</p>}
+      {!error && !products.length && <p className="msg-note">No products found.</p>}
 
       <div className="product-grid">
-        {sortedProducts.map((product) => {
+        {products.map((product) => {
           const productId = product?.product_id || product?.id;
           const price = getProductPrice(product);
           const imageUrl = getProductImage(product);

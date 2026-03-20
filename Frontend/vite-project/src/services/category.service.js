@@ -11,6 +11,13 @@ import { API_ENDPOINTS } from '../config/api.config';
  * - Subcategories reference their parent via parent_category
  */
 const categoryService = {
+  sortByOrder: (a, b) => {
+    const orderA = Number.isFinite(Number(a?.sort_order)) ? Number(a.sort_order) : 0;
+    const orderB = Number.isFinite(Number(b?.sort_order)) ? Number(b.sort_order) : 0;
+    if (orderA !== orderB) return orderA - orderB;
+    return String(a?.name || '').localeCompare(String(b?.name || ''));
+  },
+
   // Get all categories (flat list)
   getAllCategories: async () => {
     try {
@@ -61,6 +68,18 @@ const categoryService = {
     }
   },
 
+  // Get direct children with preview products (includes descendants per child)
+  getChildrenWithProducts: async (categoryId, limit = 8) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.CATEGORIES.CHILDREN_WITH_PRODUCTS(categoryId), {
+        params: { limit },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   // Create category (admin only)
   createCategory: async (categoryData) => {
     try {
@@ -98,14 +117,15 @@ const categoryService = {
   buildCategoryTree: (categories) => {
     const map = {};
     const roots = [];
+    const sortedCategories = [...categories].sort(categoryService.sortByOrder);
 
     // Create map
-    categories.forEach(cat => {
+    sortedCategories.forEach(cat => {
       map[cat.category_id] = { ...cat, subcategories: [] };
     });
 
     // Build tree
-    categories.forEach(cat => {
+    sortedCategories.forEach(cat => {
       if (cat.parent_category) {
         if (map[cat.parent_category]) {
           map[cat.parent_category].subcategories.push(map[cat.category_id]);
@@ -155,7 +175,9 @@ const categoryService = {
   // Get all descendant category IDs
   getDescendantIds: (categories, categoryId) => {
     const ids = [];
-    const children = categories.filter(c => c.parent_category === categoryId);
+    const children = categories
+      .filter(c => c.parent_category === categoryId)
+      .sort(categoryService.sortByOrder);
     
     children.forEach(child => {
       ids.push(child.category_id);

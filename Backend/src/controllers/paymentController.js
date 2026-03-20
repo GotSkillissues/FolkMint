@@ -1,401 +1,488 @@
-// Payment Controller - Handle payment method and payment operations
 const { pool } = require('../config/database');
 
-// ===== PAYMENT METHODS =====
+const parsePositiveInt = (value) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
 
-// Get user's payment methods
+const PAYMENT_TYPES = ['cod', 'bkash', 'visa', 'mastercard', 'amex'];
+const PAYMENT_STATUSES = ['pending', 'completed', 'failed', 'refunded'];
+
+const buildPaymentMethodResponse = (row) => ({
+  payment_method_id: row.payment_method_id,
+  type:       row.type,
+  is_default: row.is_default,
+  user_id:    row.user_id,
+  created_at: row.created_at,
+  updated_at: row.updated_at
+});
+
+const buildPaymentResponse = (row) => ({
+  payment_id:        row.payment_id,
+  order_id:          row.order_id,
+  payment_method_id: row.payment_method_id,
+  payment_type:      row.payment_type || null,
+  amount:            row.amount == null ? null : String(row.amount),
+  status:            row.status,
+  created_at:        row.created_at,
+  updated_at:        row.updated_at
+});
+
+// =====================================================================
+// PAYMENT METHODS
+// =====================================================================
+
+// GET /api/payment-methods
+// Authenticated. Returns all payment methods for the current user.
 const getPaymentMethods = async (req, res) => {
   try {
     const userId = req.user.userId;
 
     const result = await pool.query(
-      `SELECT payment_method_id, type, provider, is_default, created_at
-       FROM payment_method WHERE user_id = $1 
+      `SELECT
+         payment_method_id, type, is_default,
+         user_id, created_at, updated_at
+       FROM payment_method
+       WHERE user_id = $1
        ORDER BY is_default DESC, created_at DESC`,
       [userId]
     );
 
-    res.status(200).json({ payment_methods: result.rows });
+    return res.status(200).json({
+      payment_methods: result.rows.map(buildPaymentMethodResponse)
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch payment methods: ' + error.message });
+    console.error('Get payment methods error:', error);
+    return res.status(500).json({ error: 'Failed to fetch payment methods' });
   }
 };
 
-// Get payment method by ID
+// GET /api/payment-methods/:id
+// Authenticated. Only returns methods belonging to the current user.
 const getPaymentMethodById = async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const { id } = req.params;
+    const userId          = req.user.userId;
+    const paymentMethodId = parsePositiveInt(req.params.id);
+
+    if (!paymentMethodId) {
+      return res.status(400).json({ error: 'Invalid payment method ID' });
+    }
 
     const result = await pool.query(
-      `SELECT payment_method_id, type, provider, is_default, created_at
-       FROM payment_method WHERE payment_method_id = $1 AND user_id = $2`,
-      [id, userId]
+      `SELECT
+         payment_method_id, type, is_default,
+         user_id, created_at, updated_at
+       FROM payment_method
+       WHERE payment_method_id = $1
+         AND user_id = $2`,
+      [paymentMethodId, userId]
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Payment method not found' });
     }
 
-    res.status(200).json({ payment_method: result.rows[0] });
+    return res.status(200).json({
+      payment_method: buildPaymentMethodResponse(result.rows[0])
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch payment method: ' + error.message });
+    console.error('Get payment method error:', error);
+    return res.status(500).json({ error: 'Failed to fetch payment method' });
   }
 };
 
-// Create payment method
+// POST /api/payment-methods
+// Authenticated. Adds a new payment method.
+// First method is automatically set as default.
 const createPaymentMethod = async (req, res) => {
+  let client;
+
   try {
-    const userId = req.user.userId;
-    const { type, provider, account_number, account_number_enc, is_default = false } = req.body;
-    const storedAccount = account_number_enc ?? account_number ?? null;
+    const userId     = req.user.userId;
+    const type       = String(req.body?.type || '').trim().toLowerCase();
+    const is_default = req.body?.is_default === true;
 
-    if (!type || !provider) {
-      return res.status(400).json({ error: 'Type and provider are required' });
+    if (!type) {
+      return res.status(400).json({ error: 'Payment type is required' });
     }
 
-    const validTypes = ['card', 'bkash', 'nagad', 'rocket', 'cash_on_delivery'];
-    if (!validTypes.includes(type)) {
-      return res.status(400).json({ error: 'Invalid payment type' });
+    if (!PAYMENT_TYPES.includes(type)) {
+      return res.status(400).json({
+        error: `Invalid payment type. Must be one of: ${PAYMENT_TYPES.join(', ')}`
+      });
     }
 
-    // If default, unset other defaults
-    if (is_default) {
-      await pool.query(
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    // Check if this is the first method — make default automatically
+    const countResult = await client.query(
+      'SELECT COUNT(*)::int AS count FROM payment_method WHERE user_id = $1',
+      [userId]
+    );
+
+    const isFirst    = countResult.rows[0].count === 0;
+    const makeDefault = is_default || isFirst;
+
+    if (makeDefault) {
+      await client.query(
         'UPDATE payment_method SET is_default = false WHERE user_id = $1',
         [userId]
       );
     }
 
-    // If first method, make default
-    const existingCount = await pool.query(
-      'SELECT COUNT(*) FROM payment_method WHERE user_id = $1',
-      [userId]
-    );
-    const makeDefault = is_default || parseInt(existingCount.rows[0].count) === 0;
-
-    const result = await pool.query(
-      `INSERT INTO payment_method (user_id, type, provider, account_number_enc, is_default)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING payment_method_id, type, provider, is_default, created_at`,
-      [userId, type, provider, storedAccount, makeDefault]
+    const result = await client.query(
+      `INSERT INTO payment_method (user_id, type, is_default)
+       VALUES ($1, $2, $3)
+       RETURNING payment_method_id, type, is_default, user_id, created_at, updated_at`,
+      [userId, type, makeDefault]
     );
 
-    res.status(201).json({ message: 'Payment method created', payment_method: result.rows[0] });
+    await client.query('COMMIT');
+
+    return res.status(201).json({
+      message: 'Payment method added successfully',
+      payment_method: buildPaymentMethodResponse(result.rows[0])
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create payment method: ' + error.message });
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+      client = null;
+    }
+    console.error('Create payment method error:', error);
+    return res.status(500).json({ error: 'Failed to add payment method' });
+  } finally {
+    if (client) client.release();
   }
 };
 
-// Update payment method
-const updatePaymentMethod = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { id } = req.params;
-    const { type, provider, account_number, account_number_enc, is_default } = req.body;
-    const storedAccount = account_number_enc ?? account_number;
+// PATCH /api/payment-methods/:id/default
+// Authenticated. Sets a method as default, unsets all others.
+const setDefaultPaymentMethod = async (req, res) => {
+  let client;
 
-    // Verify ownership
-    const existing = await pool.query(
-      'SELECT payment_method_id FROM payment_method WHERE payment_method_id = $1 AND user_id = $2',
-      [id, userId]
+  try {
+    const userId          = req.user.userId;
+    const paymentMethodId = parsePositiveInt(req.params.id);
+
+    if (!paymentMethodId) {
+      return res.status(400).json({ error: 'Invalid payment method ID' });
+    }
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      `SELECT payment_method_id
+       FROM payment_method
+       WHERE payment_method_id = $1
+         AND user_id = $2`,
+      [paymentMethodId, userId]
     );
 
     if (existing.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Payment method not found' });
     }
 
-    const updates = [];
-    const params = [];
-    let idx = 1;
-
-    if (type !== undefined) {
-      const validTypes = ['card', 'bkash', 'nagad', 'rocket', 'cash_on_delivery'];
-      if (!validTypes.includes(type)) {
-        return res.status(400).json({ error: 'Invalid payment type' });
-      }
-      updates.push(`type = $${idx}`);
-      params.push(type);
-      idx++;
-    }
-    if (provider !== undefined) {
-      updates.push(`provider = $${idx}`);
-      params.push(provider);
-      idx++;
-    }
-    if (storedAccount !== undefined) {
-      updates.push(`account_number_enc = $${idx}`);
-      params.push(storedAccount);
-      idx++;
-    }
-    if (is_default !== undefined) {
-      if (is_default) {
-        await pool.query(
-          'UPDATE payment_method SET is_default = false WHERE user_id = $1 AND payment_method_id != $2',
-          [userId, id]
-        );
-      }
-      updates.push(`is_default = $${idx}`);
-      params.push(is_default);
-      idx++;
-    }
-
-    if (updates.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
-    }
-
-    params.push(id);
-
-    const result = await pool.query(
-      `UPDATE payment_method SET ${updates.join(', ')} WHERE payment_method_id = $${idx}
-       RETURNING payment_method_id, type, provider, is_default, created_at`,
-      params
+    await client.query(
+      'UPDATE payment_method SET is_default = false, updated_at = NOW() WHERE user_id = $1',
+      [userId]
     );
 
-    res.status(200).json({ message: 'Payment method updated', payment_method: result.rows[0] });
+    const result = await client.query(
+      `UPDATE payment_method
+       SET is_default = true, updated_at = NOW()
+       WHERE payment_method_id = $1
+         AND user_id = $2
+       RETURNING payment_method_id, type, is_default, user_id, created_at, updated_at`,
+      [paymentMethodId, userId]
+    );
+
+    await client.query('COMMIT');
+
+    return res.status(200).json({
+      message: 'Default payment method updated',
+      payment_method: buildPaymentMethodResponse(result.rows[0])
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update payment method: ' + error.message });
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+      client = null;
+    }
+    console.error('Set default payment method error:', error);
+    return res.status(500).json({ error: 'Failed to set default payment method' });
+  } finally {
+    if (client) client.release();
   }
 };
 
-// Delete payment method
+// DELETE /api/payment-methods/:id
+// Authenticated. Cannot delete a method linked to a pending payment.
+// If deleting the default, promotes another method automatically.
 const deletePaymentMethod = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { id } = req.params;
+  let client;
 
-    const result = await pool.query(
-      'DELETE FROM payment_method WHERE payment_method_id = $1 AND user_id = $2 RETURNING payment_method_id, is_default',
-      [id, userId]
+  try {
+    const userId          = req.user.userId;
+    const paymentMethodId = parsePositiveInt(req.params.id);
+
+    if (!paymentMethodId) {
+      return res.status(400).json({ error: 'Invalid payment method ID' });
+    }
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      `SELECT payment_method_id, is_default
+       FROM payment_method
+       WHERE payment_method_id = $1
+         AND user_id = $2`,
+      [paymentMethodId, userId]
     );
 
-    if (result.rows.length === 0) {
+    if (existing.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Payment method not found' });
     }
 
-    // If deleted was default, make another default
-    if (result.rows[0].is_default) {
-      await pool.query(
-        `UPDATE payment_method SET is_default = true 
-         WHERE user_id = $1 
-         AND payment_method_id = (SELECT payment_method_id FROM payment_method WHERE user_id = $1 LIMIT 1)`,
+    const wasDefault = existing.rows[0].is_default;
+
+    // Block if linked to a pending payment
+    const pendingCheck = await client.query(
+      `SELECT 1
+       FROM payment
+       WHERE payment_method_id = $1
+         AND status = 'pending'
+       LIMIT 1`,
+      [paymentMethodId]
+    );
+
+    if (pendingCheck.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({
+        error: 'Cannot delete a payment method linked to a pending payment'
+      });
+    }
+
+    // Schema uses ON DELETE SET NULL on payment.payment_method_id
+    // so historical payments are preserved after deletion
+    await client.query(
+      'DELETE FROM payment_method WHERE payment_method_id = $1 AND user_id = $2',
+      [paymentMethodId, userId]
+    );
+
+    // If deleted was default, promote the most recently added remaining method
+    if (wasDefault) {
+      await client.query(
+        `UPDATE payment_method
+         SET is_default = true, updated_at = NOW()
+         WHERE payment_method_id = (
+           SELECT payment_method_id
+           FROM payment_method
+           WHERE user_id = $1
+           ORDER BY created_at DESC
+           LIMIT 1
+         )`,
         [userId]
       );
     }
 
-    res.status(200).json({ message: 'Payment method deleted' });
+    await client.query('COMMIT');
+
+    return res.status(200).json({ message: 'Payment method deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete payment method: ' + error.message });
-  }
-};
-
-// Set default payment method
-const setDefaultPaymentMethod = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { id } = req.params;
-
-    const existing = await pool.query(
-      'SELECT payment_method_id FROM payment_method WHERE payment_method_id = $1 AND user_id = $2',
-      [id, userId]
-    );
-
-    if (existing.rows.length === 0) {
-      return res.status(404).json({ error: 'Payment method not found' });
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+      client = null;
     }
-
-    await pool.query('UPDATE payment_method SET is_default = false WHERE user_id = $1', [userId]);
-    
-    const result = await pool.query(
-      'UPDATE payment_method SET is_default = true WHERE payment_method_id = $1 RETURNING *',
-      [id]
-    );
-
-    res.status(200).json({ message: 'Default payment method set', payment_method: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to set default: ' + error.message });
+    console.error('Delete payment method error:', error);
+    return res.status(500).json({ error: 'Failed to delete payment method' });
+  } finally {
+    if (client) client.release();
   }
 };
 
-// ===== PAYMENTS =====
+// =====================================================================
+// PAYMENTS
+// =====================================================================
 
-// Get payments (Admin: all, User: own)
+// GET /api/payments
+// Admin: all payments. Customer: own payments only.
 const getPayments = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
-    const offset = (page - 1) * limit;
-    const userId = req.user.userId;
+    const userId  = req.user.userId;
     const isAdmin = req.user.role === 'admin';
+    const page    = Math.max(1, Number.parseInt(req.query.page,  10) || 1);
+    const limit   = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+    const offset  = (page - 1) * limit;
+    const { status } = req.query;
 
-    let query = `
-      SELECT p.*, o.user_id, pm.type as payment_type, pm.provider
-      FROM payment p
-      JOIN orders o ON p.order_id = o.order_id
-      LEFT JOIN payment_method pm ON p.payment_method_id = pm.payment_method_id
-      WHERE 1=1
-    `;
+    if (status && !PAYMENT_STATUSES.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status filter' });
+    }
+
+    const conditions = [];
     const params = [];
     let idx = 1;
 
     if (!isAdmin) {
-      query += ` AND o.user_id = $${idx}`;
+      conditions.push(`o.user_id = $${idx}`);
       params.push(userId);
       idx++;
     }
 
     if (status) {
-      query += ` AND p.status = $${idx}`;
+      conditions.push(`pay.status = $${idx}`);
       params.push(status);
       idx++;
     }
 
-    const countQuery = query.replace(/SELECT .* FROM/, 'SELECT COUNT(*) FROM');
-    const countResult = await pool.query(countQuery, params);
-    const total = parseInt(countResult.rows[0].count);
+    const whereClause = conditions.length
+      ? `WHERE ${conditions.join(' AND ')}`
+      : '';
 
-    query += ` ORDER BY p.created_at DESC LIMIT $${idx} OFFSET $${idx + 1}`;
-    params.push(limit, offset);
+    const countResult = await pool.query(
+      `SELECT COUNT(*)
+       FROM payment pay
+       JOIN orders o ON o.order_id = pay.order_id
+       ${whereClause}`,
+      params
+    );
+    const total = Number.parseInt(countResult.rows[0].count, 10);
 
-    const result = await pool.query(query, params);
+    const result = await pool.query(
+      `SELECT
+         pay.payment_id, pay.order_id, pay.payment_method_id,
+         pay.amount, pay.status,
+         pay.created_at, pay.updated_at,
+         pm.type AS payment_type
+       FROM payment pay
+       JOIN orders o ON o.order_id = pay.order_id
+       LEFT JOIN payment_method pm ON pm.payment_method_id = pay.payment_method_id
+       ${whereClause}
+       ORDER BY pay.created_at DESC
+       LIMIT $${idx} OFFSET $${idx + 1}`,
+      [...params, limit, offset]
+    );
 
-    res.status(200).json({
-      payments: result.rows,
+    return res.status(200).json({
+      payments: result.rows.map(buildPaymentResponse),
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page,
+        limit,
         total,
         pages: Math.ceil(total / limit)
       }
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch payments: ' + error.message });
+    console.error('Get payments error:', error);
+    return res.status(500).json({ error: 'Failed to fetch payments' });
   }
 };
 
-// Get payment by ID
+// GET /api/payments/:id
+// Admin can fetch any payment. Customer can only fetch their own.
 const getPaymentById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const userId = req.user.userId;
-    const isAdmin = req.user.role === 'admin';
+    const paymentId = parsePositiveInt(req.params.id);
+    const userId    = req.user.userId;
+    const isAdmin   = req.user.role === 'admin';
+
+    if (!paymentId) {
+      return res.status(400).json({ error: 'Invalid payment ID' });
+    }
 
     const result = await pool.query(
-      `SELECT p.*, o.user_id, pm.type as payment_type, pm.provider
-       FROM payment p
-       JOIN orders o ON p.order_id = o.order_id
-       LEFT JOIN payment_method pm ON p.payment_method_id = pm.payment_method_id
-       WHERE p.payment_id = $1`,
-      [id]
+      `SELECT
+         pay.payment_id, pay.order_id, pay.payment_method_id,
+         pay.amount, pay.status,
+         pay.created_at, pay.updated_at,
+         pm.type AS payment_type,
+         o.user_id
+       FROM payment pay
+       JOIN orders o ON o.order_id = pay.order_id
+       LEFT JOIN payment_method pm ON pm.payment_method_id = pay.payment_method_id
+       WHERE pay.payment_id = $1`,
+      [paymentId]
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Payment not found' });
     }
 
-    if (!isAdmin && result.rows[0].user_id !== userId) {
+    const payment = result.rows[0];
+
+    if (!isAdmin && payment.user_id !== userId) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    res.status(200).json({ payment: result.rows[0] });
+    return res.status(200).json({ payment: buildPaymentResponse(payment) });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch payment: ' + error.message });
+    console.error('Get payment error:', error);
+    return res.status(500).json({ error: 'Failed to fetch payment' });
   }
 };
 
-// Process payment (simulate payment processing)
-const processPayment = async (req, res) => {
-  try {
-    const { order_id, payment_method_id } = req.body;
-    const userId = req.user.userId;
-
-    if (!order_id) {
-      return res.status(400).json({ error: 'Order ID is required' });
-    }
-
-    // Verify order belongs to user and is pending
-    const orderResult = await pool.query(
-      'SELECT * FROM orders WHERE order_id = $1 AND user_id = $2 AND status = $3',
-      [order_id, userId, 'pending']
-    );
-
-    if (orderResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found or not pending' });
-    }
-
-    const order = orderResult.rows[0];
-
-    // Check if payment already exists
-    const existingPayment = await pool.query(
-      'SELECT payment_id FROM payment WHERE order_id = $1',
-      [order_id]
-    );
-
-    let result;
-    if (existingPayment.rows.length > 0) {
-      // Update existing payment
-      result = await pool.query(
-        `UPDATE payment SET status = 'completed', payment_method_id = $1, updated_at = NOW()
-         WHERE order_id = $2 RETURNING *`,
-        [payment_method_id, order_id]
-      );
-    } else {
-      // Create new payment
-      result = await pool.query(
-        `INSERT INTO payment (order_id, payment_method_id, amount, status)
-         VALUES ($1, $2, $3, 'completed') RETURNING *`,
-        [order_id, payment_method_id, order.total_amount]
-      );
-    }
-
-    // Update order status
-    await pool.query(
-      "UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE order_id = $1",
-      [order_id]
-    );
-
-    res.status(200).json({ message: 'Payment processed', payment: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to process payment: ' + error.message });
-  }
-};
-
-// Update payment status (Admin only)
+// PATCH /api/payments/:id/status
+// Admin only. Manually update payment status.
+// Used for bKash/card gateway callbacks or manual corrections.
 const updatePaymentStatus = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
+    const paymentId = parsePositiveInt(req.params.id);
+    const status    = String(req.body?.status || '').trim();
 
-    const validStatuses = ['pending', 'completed', 'failed', 'refunded'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
+    if (!paymentId) {
+      return res.status(400).json({ error: 'Invalid payment ID' });
     }
 
-    const result = await pool.query(
-      'UPDATE payment SET status = $1, updated_at = NOW() WHERE payment_id = $2 RETURNING *',
-      [status, id]
+    if (!PAYMENT_STATUSES.includes(status)) {
+      return res.status(400).json({
+        error: `Invalid status. Must be one of: ${PAYMENT_STATUSES.join(', ')}`
+      });
+    }
+
+    const existing = await pool.query(
+      'SELECT payment_id FROM payment WHERE payment_id = $1',
+      [paymentId]
     );
 
-    if (result.rows.length === 0) {
+    if (existing.rows.length === 0) {
       return res.status(404).json({ error: 'Payment not found' });
     }
 
-    res.status(200).json({ message: 'Payment status updated', payment: result.rows[0] });
+    const result = await pool.query(
+      `UPDATE payment
+       SET status = $1, updated_at = NOW()
+       WHERE payment_id = $2
+       RETURNING payment_id, order_id, payment_method_id,
+                 amount, status, created_at, updated_at`,
+      [status, paymentId]
+    );
+
+    return res.status(200).json({
+      message: 'Payment status updated',
+      payment: buildPaymentResponse(result.rows[0])
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update payment: ' + error.message });
+    console.error('Update payment status error:', error);
+    return res.status(500).json({ error: 'Failed to update payment status' });
   }
 };
 
 module.exports = {
-  // Payment Methods
+  // Payment methods
   getPaymentMethods,
   getPaymentMethodById,
   createPaymentMethod,
-  updatePaymentMethod,
-  deletePaymentMethod,
   setDefaultPaymentMethod,
+  deletePaymentMethod,
   // Payments
   getPayments,
   getPaymentById,
-  processPayment,
   updatePaymentStatus
 };

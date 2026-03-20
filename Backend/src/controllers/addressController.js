@@ -1,284 +1,439 @@
-// Address Controller - Handle address-related operations
 const { pool } = require('../config/database');
 
-const ensureAddressSoftDeleteColumn = async () => {
-  await pool.query(
-    `ALTER TABLE address
-     ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN NOT NULL DEFAULT false`
-  );
+const parsePositiveInt = (value) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 };
 
-// Get user's addresses
+const normalizeText = (value) => String(value || '').trim();
+
+const normalizeOptionalText = (value) => {
+  const trimmed = normalizeText(value);
+  return trimmed.length ? trimmed : null;
+};
+
+const buildAddressResponse = (address) => ({
+  address_id: address.address_id,
+  street: address.street,
+  city: address.city,
+  postal_code: address.postal_code,
+  country: address.country,
+  is_default: address.is_default,
+  user_id: address.user_id,
+  created_at: address.created_at,
+  updated_at: address.updated_at
+});
+
+// GET /api/addresses
+// Returns all non-deleted addresses for the authenticated user
 const getAddresses = async (req, res) => {
   try {
-    await ensureAddressSoftDeleteColumn();
     const userId = req.user.userId;
 
     const result = await pool.query(
-      `SELECT *
+      `SELECT address_id, street, city, postal_code, country,
+              is_default, user_id, created_at, updated_at
        FROM address
-       WHERE user_id = $1 AND is_deleted = false
+       WHERE user_id = $1
+         AND is_deleted = false
        ORDER BY is_default DESC, created_at DESC`,
       [userId]
     );
 
-    res.status(200).json({ addresses: result.rows });
+    return res.status(200).json({
+      addresses: result.rows.map(buildAddressResponse)
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch addresses: ' + error.message });
+    console.error('Get addresses error:', error);
+    return res.status(500).json({ error: 'Failed to fetch addresses' });
   }
 };
 
-// Get address by ID
+// GET /api/addresses/:id
 const getAddressById = async (req, res) => {
   try {
-    await ensureAddressSoftDeleteColumn();
     const userId = req.user.userId;
-    const { id } = req.params;
+    const addressId = parsePositiveInt(req.params.id);
+
+    if (!addressId) {
+      return res.status(400).json({ error: 'Invalid address ID' });
+    }
 
     const result = await pool.query(
-      'SELECT * FROM address WHERE address_id = $1 AND user_id = $2 AND is_deleted = false',
-      [id, userId]
+      `SELECT address_id, street, city, postal_code, country,
+              is_default, user_id, created_at, updated_at
+       FROM address
+       WHERE address_id = $1
+         AND user_id = $2
+         AND is_deleted = false`,
+      [addressId, userId]
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Address not found' });
     }
 
-    res.status(200).json({ address: result.rows[0] });
+    return res.status(200).json({
+      address: buildAddressResponse(result.rows[0])
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch address: ' + error.message });
+    console.error('Get address error:', error);
+    return res.status(500).json({ error: 'Failed to fetch address' });
   }
 };
 
-// Create address
+// POST /api/addresses
 const createAddress = async (req, res) => {
-  try {
-    await ensureAddressSoftDeleteColumn();
-    const userId = req.user.userId;
-    const { street, city, postal_code, country, is_default = false } = req.body;
+  let client;
 
-    if (!street || !city || !country) {
-      return res.status(400).json({ error: 'Street, city, and country are required' });
+  try {
+    const userId = req.user.userId;
+    const body = req.body || {};
+
+    const street = normalizeText(body.street);
+    const city = normalizeText(body.city);
+    const postal_code = normalizeOptionalText(body.postal_code);
+    const country = normalizeText(body.country) || 'Bangladesh';
+    const requestedDefault = body.is_default === true;
+
+    if (!street) {
+      return res.status(400).json({ error: 'Street is required' });
     }
 
-    // If this is default, unset other defaults
-    if (is_default) {
-      await pool.query(
-        'UPDATE address SET is_default = false WHERE user_id = $1',
+    if (!city) {
+      return res.status(400).json({ error: 'City is required' });
+    }
+
+    if (!country) {
+      return res.status(400).json({ error: 'Country is required' });
+    }
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    const countResult = await client.query(
+      `SELECT COUNT(*)::int AS count
+       FROM address
+       WHERE user_id = $1
+         AND is_deleted = false`,
+      [userId]
+    );
+
+    const isFirstAddress = countResult.rows[0].count === 0;
+    const makeDefault = requestedDefault || isFirstAddress;
+
+    if (makeDefault) {
+      await client.query(
+        `UPDATE address
+         SET is_default = false,
+             updated_at = NOW()
+         WHERE user_id = $1
+           AND is_deleted = false`,
         [userId]
       );
     }
 
-    // If this is first address, make it default
-    const existingCount = await pool.query(
-      'SELECT COUNT(*) FROM address WHERE user_id = $1 AND is_deleted = false',
-      [userId]
-    );
-    const makeDefault = is_default || parseInt(existingCount.rows[0].count) === 0;
-
-    const result = await pool.query(
-      `INSERT INTO address (user_id, street, city, postal_code, country, is_default, is_deleted)
-       VALUES ($1, $2, $3, $4, $5, $6, false)
-       RETURNING *`,
-      [userId, street, city, postal_code, country, makeDefault]
+    const result = await client.query(
+      `INSERT INTO address (
+         street, city, postal_code, country,
+         is_default, is_deleted, user_id
+       )
+       VALUES ($1, $2, $3, $4, $5, false, $6)
+       RETURNING address_id, street, city, postal_code, country,
+                 is_default, user_id, created_at, updated_at`,
+      [street, city, postal_code, country, makeDefault, userId]
     );
 
-    res.status(201).json({ message: 'Address created', address: result.rows[0] });
+    await client.query('COMMIT');
+
+    return res.status(201).json({
+      message: 'Address created successfully',
+      address: buildAddressResponse(result.rows[0])
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create address: ' + error.message });
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+      client = null;
+    }
+    console.error('Create address error:', error);
+    return res.status(500).json({ error: 'Failed to create address' });
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 };
 
-// Update address
+// PATCH /api/addresses/:id
+// General field update only. Use the dedicated /default endpoint to change default.
 const updateAddress = async (req, res) => {
   try {
-    await ensureAddressSoftDeleteColumn();
     const userId = req.user.userId;
-    const { id } = req.params;
-    const { street, city, postal_code, country, is_default } = req.body;
+    const addressId = parsePositiveInt(req.params.id);
 
-    // Verify ownership
+    if (!addressId) {
+      return res.status(400).json({ error: 'Invalid address ID' });
+    }
+
     const existing = await pool.query(
-      'SELECT address_id FROM address WHERE address_id = $1 AND user_id = $2 AND is_deleted = false',
-      [id, userId]
+      `SELECT address_id
+       FROM address
+       WHERE address_id = $1
+         AND user_id = $2
+         AND is_deleted = false`,
+      [addressId, userId]
     );
 
     if (existing.rows.length === 0) {
       return res.status(404).json({ error: 'Address not found' });
     }
 
+    const body = req.body || {};
     const updates = [];
     const params = [];
     let idx = 1;
 
-    if (street !== undefined) {
+    if (Object.prototype.hasOwnProperty.call(body, 'street')) {
+      const street = normalizeText(body.street);
+      if (!street) {
+        return res.status(400).json({ error: 'Street cannot be empty' });
+      }
       updates.push(`street = $${idx}`);
       params.push(street);
       idx++;
     }
-    if (city !== undefined) {
+
+    if (Object.prototype.hasOwnProperty.call(body, 'city')) {
+      const city = normalizeText(body.city);
+      if (!city) {
+        return res.status(400).json({ error: 'City cannot be empty' });
+      }
       updates.push(`city = $${idx}`);
       params.push(city);
       idx++;
     }
-    if (postal_code !== undefined) {
+
+    if (Object.prototype.hasOwnProperty.call(body, 'postal_code')) {
       updates.push(`postal_code = $${idx}`);
-      params.push(postal_code);
+      params.push(normalizeOptionalText(body.postal_code));
       idx++;
     }
-    if (country !== undefined) {
+
+    if (Object.prototype.hasOwnProperty.call(body, 'country')) {
+      const country = normalizeText(body.country);
+      if (!country) {
+        return res.status(400).json({ error: 'Country cannot be empty' });
+      }
       updates.push(`country = $${idx}`);
       params.push(country);
       idx++;
     }
-    if (is_default !== undefined) {
-      if (is_default) {
-        // Unset other defaults
-        await pool.query(
-          'UPDATE address SET is_default = false WHERE user_id = $1 AND address_id != $2',
-          [userId, id]
-        );
-      }
-      updates.push(`is_default = $${idx}`);
-      params.push(is_default);
-      idx++;
-    }
 
-    if (updates.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
-    }
-
-    params.push(id);
-
-    const result = await pool.query(
-      `UPDATE address SET ${updates.join(', ')} WHERE address_id = $${idx}
-       RETURNING *`,
-      params
-    );
-
-    res.status(200).json({ message: 'Address updated', address: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update address: ' + error.message });
-  }
-};
-
-// Delete address
-const deleteAddress = async (req, res) => {
-  try {
-    await ensureAddressSoftDeleteColumn();
-    const userId = req.user.userId;
-    const { id } = req.params;
-
-    const ownership = await pool.query(
-      'SELECT address_id, is_default FROM address WHERE address_id = $1 AND user_id = $2 AND is_deleted = false',
-      [id, userId]
-    );
-
-    if (ownership.rows.length === 0) {
-      return res.status(404).json({ error: 'Address not found' });
-    }
-
-    const linkedOrders = await pool.query(
-      'SELECT status FROM orders WHERE address_id = $1 AND user_id = $2',
-      [id, userId]
-    );
-
-    const hasActiveLinkedOrder = linkedOrders.rows.some((row) => !['cancelled', 'delivered'].includes(row.status));
-
-    if (hasActiveLinkedOrder) {
-      return res.status(409).json({
-        error: 'This address is used in active orders and cannot be deleted yet.'
+    if (Object.prototype.hasOwnProperty.call(body, 'is_default')) {
+      return res.status(400).json({
+        error: 'Use the dedicated default-address endpoint to change the default address'
       });
     }
 
-    const hasTerminalLinkedOrder = linkedOrders.rows.length > 0;
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
 
-    let removedAddressWasDefault = ownership.rows[0].is_default;
+    updates.push('updated_at = NOW()');
+    params.push(addressId, userId);
 
-    if (hasTerminalLinkedOrder) {
-      await pool.query(
+    const result = await pool.query(
+      `UPDATE address
+       SET ${updates.join(', ')}
+       WHERE address_id = $${idx}
+         AND user_id = $${idx + 1}
+         AND is_deleted = false
+       RETURNING address_id, street, city, postal_code, country,
+                 is_default, user_id, created_at, updated_at`,
+      params
+    );
+
+    return res.status(200).json({
+      message: 'Address updated successfully',
+      address: buildAddressResponse(result.rows[0])
+    });
+  } catch (error) {
+    console.error('Update address error:', error);
+    return res.status(500).json({ error: 'Failed to update address' });
+  }
+};
+
+// PATCH /api/addresses/:id/default
+const setDefaultAddress = async (req, res) => {
+  let client;
+
+  try {
+    const userId = req.user.userId;
+    const addressId = parsePositiveInt(req.params.id);
+
+    if (!addressId) {
+      return res.status(400).json({ error: 'Invalid address ID' });
+    }
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      `SELECT address_id, street, city, postal_code, country,
+              is_default, user_id, created_at, updated_at
+       FROM address
+       WHERE address_id = $1
+         AND user_id = $2
+         AND is_deleted = false`,
+      [addressId, userId]
+    );
+
+    if (existing.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Address not found' });
+    }
+
+    await client.query(
+      `UPDATE address
+       SET is_default = false,
+           updated_at = NOW()
+       WHERE user_id = $1
+         AND is_deleted = false`,
+      [userId]
+    );
+
+    const result = await client.query(
+      `UPDATE address
+       SET is_default = true,
+           updated_at = NOW()
+       WHERE address_id = $1
+         AND user_id = $2
+         AND is_deleted = false
+       RETURNING address_id, street, city, postal_code, country,
+                 is_default, user_id, created_at, updated_at`,
+      [addressId, userId]
+    );
+
+    await client.query('COMMIT');
+
+    return res.status(200).json({
+      message: 'Default address updated successfully',
+      address: buildAddressResponse(result.rows[0])
+    });
+  } catch (error) {
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+      client = null;
+    }
+    console.error('Set default address error:', error);
+    return res.status(500).json({ error: 'Failed to set default address' });
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+};
+
+// DELETE /api/addresses/:id
+// If any order references the address, soft delete it.
+// Otherwise hard delete is safe.
+const deleteAddress = async (req, res) => {
+  let client;
+
+  try {
+    const userId = req.user.userId;
+    const addressId = parsePositiveInt(req.params.id);
+
+    if (!addressId) {
+      return res.status(400).json({ error: 'Invalid address ID' });
+    }
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      `SELECT address_id, is_default
+       FROM address
+       WHERE address_id = $1
+         AND user_id = $2
+         AND is_deleted = false`,
+      [addressId, userId]
+    );
+
+    if (existing.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Address not found' });
+    }
+
+    const wasDefault = existing.rows[0].is_default;
+
+    const orderReferenceCheck = await client.query(
+      `SELECT 1
+       FROM orders
+       WHERE address_id = $1
+       LIMIT 1`,
+      [addressId]
+    );
+
+    const hasOrderReference = orderReferenceCheck.rows.length > 0;
+
+    if (hasOrderReference) {
+      await client.query(
         `UPDATE address
          SET is_deleted = true,
              is_default = false,
              updated_at = NOW()
-         WHERE address_id = $1 AND user_id = $2`,
-        [id, userId]
+         WHERE address_id = $1
+           AND user_id = $2`,
+        [addressId, userId]
       );
     } else {
-      const result = await pool.query(
-        'DELETE FROM address WHERE address_id = $1 AND user_id = $2 RETURNING address_id, is_default',
-        [id, userId]
+      await client.query(
+        `DELETE FROM address
+         WHERE address_id = $1
+           AND user_id = $2`,
+        [addressId, userId]
       );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Address not found' });
-      }
-
-      removedAddressWasDefault = result.rows[0].is_default;
     }
 
-    // If deleted address was default, make another default
-    if (removedAddressWasDefault) {
-      await pool.query(
-        `UPDATE address SET is_default = true 
-         WHERE user_id = $1 
-         AND is_deleted = false
-         AND address_id = (
+    if (wasDefault) {
+      await client.query(
+        `UPDATE address
+         SET is_default = true,
+             updated_at = NOW()
+         WHERE address_id = (
            SELECT address_id
            FROM address
-           WHERE user_id = $1 AND is_deleted = false
-           ORDER BY created_at ASC
+           WHERE user_id = $1
+             AND is_deleted = false
+           ORDER BY created_at DESC
            LIMIT 1
          )`,
         [userId]
       );
     }
 
-    if (hasTerminalLinkedOrder) {
-      return res.status(200).json({
-        message: 'Address removed from your account. Linked order records kept for history.'
-      });
-    }
+    await client.query('COMMIT');
 
-    res.status(200).json({ message: 'Address deleted' });
+    return res.status(200).json({
+      message: hasOrderReference
+        ? 'Address removed from your active list and preserved for order history'
+        : 'Address deleted successfully'
+    });
   } catch (error) {
-    if (error.code === '23503') {
-      return res.status(409).json({
-        error: 'This address is used in active orders and cannot be deleted yet.'
-      });
+    if (client) {
+      await client.query('ROLLBACK');
+      client.release();
+      client = null;
     }
-    res.status(500).json({ error: 'Failed to delete address: ' + error.message });
-  }
-};
-
-// Set default address
-const setDefaultAddress = async (req, res) => {
-  try {
-    await ensureAddressSoftDeleteColumn();
-    const userId = req.user.userId;
-    const { id } = req.params;
-
-    // Verify ownership
-    const existing = await pool.query(
-      'SELECT address_id FROM address WHERE address_id = $1 AND user_id = $2 AND is_deleted = false',
-      [id, userId]
-    );
-
-    if (existing.rows.length === 0) {
-      return res.status(404).json({ error: 'Address not found' });
+    console.error('Delete address error:', error);
+    return res.status(500).json({ error: 'Failed to delete address' });
+  } finally {
+    if (client) {
+      client.release();
     }
-
-    // Unset all defaults and set new default
-    await pool.query('UPDATE address SET is_default = false WHERE user_id = $1', [userId]);
-    
-    const result = await pool.query(
-      'UPDATE address SET is_default = true WHERE address_id = $1 RETURNING *',
-      [id]
-    );
-
-    res.status(200).json({ message: 'Default address set', address: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to set default: ' + error.message });
   }
 };
 
@@ -287,6 +442,6 @@ module.exports = {
   getAddressById,
   createAddress,
   updateAddress,
-  deleteAddress,
-  setDefaultAddress
+  setDefaultAddress,
+  deleteAddress
 };

@@ -1,338 +1,357 @@
-// Review Controller - Handle review-related operations
 const { pool } = require('../config/database');
 
-// Get reviews (optionally filtered by product)
-const getReviews = async (req, res) => {
+const parsePositiveInt = (value) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
+const normalizeOptionalText = (value) => {
+  const trimmed = String(value || '').trim();
+  return trimmed.length ? trimmed : null;
+};
+
+const buildReviewResponse = (row) => ({
+  review_id:  row.review_id,
+  rating:     row.rating,
+  comment:    row.comment,
+  user_id:    row.user_id,
+  product_id: row.product_id,
+  created_at: row.created_at,
+  updated_at: row.updated_at
+});
+
+// GET /api/reviews/product/:productId
+// Public. Paginated reviews for a product with summary.
+const getProductReviews = async (req, res) => {
   try {
-    const { product_id, page = 1, limit = 10, rating } = req.query;
-    const offset = (page - 1) * limit;
+    const productId = parsePositiveInt(req.params.productId);
+    const page      = Math.max(1, Number.parseInt(req.query.page,  10) || 1);
+    const limit     = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+    const offset    = (page - 1) * limit;
 
-    let query = `
-      SELECT r.*, u.username, u.first_name, u.last_name,
-             p.name as product_name
-      FROM review r
-      JOIN users u ON r.user_id = u.user_id
-      JOIN product p ON r.product_id = p.product_id
-      WHERE 1=1
-    `;
-    const params = [];
-    let idx = 1;
-
-    if (product_id) {
-      query += ` AND r.product_id = $${idx}`;
-      params.push(product_id);
-      idx++;
+    if (!productId) {
+      return res.status(400).json({ error: 'Invalid product ID' });
     }
 
-    if (rating) {
-      query += ` AND r.rating = $${idx}`;
-      params.push(rating);
-      idx++;
+    const productCheck = await pool.query(
+      'SELECT product_id FROM product WHERE product_id = $1 AND is_active = true',
+      [productId]
+    );
+
+    if (productCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
     }
 
-    const countQuery = query.replace(/SELECT .* FROM/, 'SELECT COUNT(*) FROM');
-    const countResult = await pool.query(countQuery, params);
-    const total = parseInt(countResult.rows[0].count);
+    const countResult = await pool.query(
+      'SELECT COUNT(*)::int AS count FROM review WHERE product_id = $1',
+      [productId]
+    );
+    const total = countResult.rows[0].count;
 
-    query += ` ORDER BY r.created_at DESC LIMIT $${idx} OFFSET $${idx + 1}`;
-    params.push(limit, offset);
+    const result = await pool.query(
+      `SELECT
+         r.review_id, r.rating, r.comment,
+         r.user_id, r.product_id,
+         r.created_at, r.updated_at,
+         u.first_name, u.last_name
+       FROM review r
+       JOIN users u ON u.user_id = r.user_id
+       WHERE r.product_id = $1
+       ORDER BY r.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [productId, limit, offset]
+    );
 
-    const result = await pool.query(query, params);
+    // Summary stats
+    const summaryResult = await pool.query(
+      `SELECT
+         COUNT(*)::int                                      AS total_reviews,
+         ROUND(AVG(rating)::numeric, 1)                     AS avg_rating,
+         COUNT(*) FILTER (WHERE rating = 5)::int            AS five_star,
+         COUNT(*) FILTER (WHERE rating = 4)::int            AS four_star,
+         COUNT(*) FILTER (WHERE rating = 3)::int            AS three_star,
+         COUNT(*) FILTER (WHERE rating = 2)::int            AS two_star,
+         COUNT(*) FILTER (WHERE rating = 1)::int            AS one_star
+       FROM review
+       WHERE product_id = $1`,
+      [productId]
+    );
 
-    // Get average rating if product filter applied
-    let averageRating = null;
-    if (product_id) {
-      const avgResult = await pool.query(
-        'SELECT AVG(rating)::numeric(2,1) as avg_rating, COUNT(*) as review_count FROM review WHERE product_id = $1',
-        [product_id]
-      );
-      averageRating = {
-        average: parseFloat(avgResult.rows[0].avg_rating) || 0,
-        count: parseInt(avgResult.rows[0].review_count)
-      };
-    }
+    const summary = summaryResult.rows[0];
 
-    res.status(200).json({
-      reviews: result.rows,
-      rating_summary: averageRating,
+    return res.status(200).json({
+      summary: {
+        total_reviews: summary.total_reviews,
+        avg_rating:    summary.avg_rating ? String(summary.avg_rating) : '0.0',
+        distribution: {
+          5: summary.five_star,
+          4: summary.four_star,
+          3: summary.three_star,
+          2: summary.two_star,
+          1: summary.one_star
+        }
+      },
+      reviews: result.rows.map((row) => ({
+        ...buildReviewResponse(row),
+        reviewer_name: [row.first_name, row.last_name].filter(Boolean).join(' ') || 'Anonymous'
+      })),
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page,
+        limit,
         total,
         pages: Math.ceil(total / limit)
       }
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch reviews: ' + error.message });
+    console.error('Get product reviews error:', error);
+    return res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 };
 
-// Get review by ID
-const getReviewById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await pool.query(
-      `SELECT r.*, u.username, u.first_name, u.last_name, p.name as product_name
-       FROM review r
-       JOIN users u ON r.user_id = u.user_id
-       JOIN product p ON r.product_id = p.product_id
-       WHERE r.review_id = $1`,
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Review not found' });
-    }
-
-    res.status(200).json({ review: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch review: ' + error.message });
-  }
-};
-
-// Create review
-const createReview = async (req, res) => {
+// GET /api/reviews/my-reviews
+// Authenticated. Returns all reviews written by the current user.
+const getMyReviews = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { product_id, rating, comment } = req.body;
-
-    if (!product_id || !rating) {
-      return res.status(400).json({ error: 'Product ID and rating are required' });
-    }
-
-    if (rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
-    }
-
-    // Verify product exists
-    const productExists = await pool.query(
-      'SELECT product_id FROM product WHERE product_id = $1',
-      [product_id]
-    );
-
-    if (productExists.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    // Check if user has purchased this product (optional verification)
-    const hasPurchased = await pool.query(
-      `SELECT oi.order_item_id FROM order_item oi
-       JOIN orders o ON oi.order_id = o.order_id
-       WHERE o.user_id = $1 AND oi.product_id = $2 AND o.status = 'delivered'
-       LIMIT 1`,
-      [userId, product_id]
-    );
-
-    // Check if user already reviewed this product
-    const existingReview = await pool.query(
-      'SELECT review_id FROM review WHERE user_id = $1 AND product_id = $2',
-      [userId, product_id]
-    );
-
-    if (existingReview.rows.length > 0) {
-      return res.status(409).json({ error: 'You have already reviewed this product' });
-    }
-
-    const result = await pool.query(
-      `INSERT INTO review (user_id, product_id, rating, comment, verified_purchase)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [userId, product_id, rating, comment, hasPurchased.rows.length > 0]
-    );
-
-    res.status(201).json({ message: 'Review created', review: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create review: ' + error.message });
-  }
-};
-
-// Update review
-const updateReview = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { id } = req.params;
-    const { rating, comment } = req.body;
-    const isAdmin = req.user.role === 'admin';
-
-    // Verify ownership (unless admin)
-    const existing = await pool.query(
-      'SELECT * FROM review WHERE review_id = $1',
-      [id]
-    );
-
-    if (existing.rows.length === 0) {
-      return res.status(404).json({ error: 'Review not found' });
-    }
-
-    if (!isAdmin && existing.rows[0].user_id !== userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
-    const updates = [];
-    const params = [];
-    let idx = 1;
-
-    if (rating !== undefined) {
-      if (rating < 1 || rating > 5) {
-        return res.status(400).json({ error: 'Rating must be between 1 and 5' });
-      }
-      updates.push(`rating = $${idx}`);
-      params.push(rating);
-      idx++;
-    }
-    if (comment !== undefined) {
-      updates.push(`comment = $${idx}`);
-      params.push(comment);
-      idx++;
-    }
-
-    if (updates.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
-    }
-
-    updates.push('updated_at = NOW()');
-    params.push(id);
-
-    const result = await pool.query(
-      `UPDATE review SET ${updates.join(', ')} WHERE review_id = $${idx}
-       RETURNING *`,
-      params
-    );
-
-    res.status(200).json({ message: 'Review updated', review: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update review: ' + error.message });
-  }
-};
-
-// Delete review
-const deleteReview = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { id } = req.params;
-    const isAdmin = req.user.role === 'admin';
-
-    // Verify ownership (unless admin)
-    const existing = await pool.query(
-      'SELECT user_id FROM review WHERE review_id = $1',
-      [id]
-    );
-
-    if (existing.rows.length === 0) {
-      return res.status(404).json({ error: 'Review not found' });
-    }
-
-    if (!isAdmin && existing.rows[0].user_id !== userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
-    await pool.query('DELETE FROM review WHERE review_id = $1', [id]);
-
-    res.status(200).json({ message: 'Review deleted' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete review: ' + error.message });
-  }
-};
-
-// Get product review summary
-const getProductReviewSummary = async (req, res) => {
-  try {
-    const { product_id } = req.params;
-
-    // Get average and count
-    const summaryResult = await pool.query(
-      `SELECT 
-         AVG(rating)::numeric(2,1) as average_rating,
-         COUNT(*) as total_reviews,
-         COUNT(*) FILTER (WHERE rating = 5) as five_star,
-         COUNT(*) FILTER (WHERE rating = 4) as four_star,
-         COUNT(*) FILTER (WHERE rating = 3) as three_star,
-         COUNT(*) FILTER (WHERE rating = 2) as two_star,
-         COUNT(*) FILTER (WHERE rating = 1) as one_star,
-         COUNT(*) FILTER (WHERE verified_purchase = true) as verified_purchases
-       FROM review WHERE product_id = $1`,
-      [product_id]
-    );
-
-    if (summaryResult.rows[0].total_reviews === '0') {
-      return res.status(200).json({
-        summary: {
-          average_rating: 0,
-          total_reviews: 0,
-          distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-          verified_purchases: 0
-        }
-      });
-    }
-
-    const summary = summaryResult.rows[0];
-
-    res.status(200).json({
-      summary: {
-        average_rating: parseFloat(summary.average_rating) || 0,
-        total_reviews: parseInt(summary.total_reviews),
-        distribution: {
-          5: parseInt(summary.five_star),
-          4: parseInt(summary.four_star),
-          3: parseInt(summary.three_star),
-          2: parseInt(summary.two_star),
-          1: parseInt(summary.one_star)
-        },
-        verified_purchases: parseInt(summary.verified_purchases)
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch summary: ' + error.message });
-  }
-};
-
-// Get user's reviews
-const getUserReviews = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { page = 1, limit = 10 } = req.query;
+    const page   = Math.max(1, Number.parseInt(req.query.page,  10) || 1);
+    const limit  = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
     const offset = (page - 1) * limit;
 
     const countResult = await pool.query(
-      'SELECT COUNT(*) FROM review WHERE user_id = $1',
+      'SELECT COUNT(*)::int AS count FROM review WHERE user_id = $1',
       [userId]
     );
-    const total = parseInt(countResult.rows[0].count);
+    const total = countResult.rows[0].count;
 
     const result = await pool.query(
-      `SELECT r.*, p.name as product_name,
-              (SELECT pi.image_url FROM product_image pi
-               JOIN product_variant pv ON pi.variant_id = pv.variant_id
-               WHERE pv.product_id = p.product_id AND pi.is_primary = true LIMIT 1) as product_image
+      `SELECT
+         r.review_id, r.rating, r.comment,
+         r.user_id, r.product_id,
+         r.created_at, r.updated_at,
+         p.name AS product_name,
+         p.sku  AS product_sku,
+         (
+           SELECT pi.image_url FROM product_image pi
+           WHERE pi.product_id = p.product_id AND pi.is_primary = true
+           LIMIT 1
+         ) AS product_image
        FROM review r
-       JOIN product p ON r.product_id = p.product_id
+       JOIN product p ON p.product_id = r.product_id
        WHERE r.user_id = $1
        ORDER BY r.created_at DESC
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset]
     );
 
-    res.status(200).json({
-      reviews: result.rows,
+    return res.status(200).json({
+      reviews: result.rows.map((row) => ({
+        ...buildReviewResponse(row),
+        product_name:  row.product_name,
+        product_sku:   row.product_sku,
+        product_image: row.product_image || null
+      })),
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page,
+        limit,
         total,
         pages: Math.ceil(total / limit)
       }
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch reviews: ' + error.message });
+    console.error('Get my reviews error:', error);
+    return res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+};
+
+// POST /api/reviews
+// Authenticated. Creates a review.
+// Backend enforces purchase check — user must have a delivered order
+// containing this product before a review is allowed.
+const createReview = async (req, res) => {
+  try {
+    const userId     = req.user.userId;
+    const product_id = parsePositiveInt(req.body?.product_id);
+    const rating     = Number.parseInt(req.body?.rating, 10);
+    const comment    = normalizeOptionalText(req.body?.comment);
+
+    if (!product_id) {
+      return res.status(400).json({ error: 'product_id is required' });
+    }
+
+    if (isNaN(rating) || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+    }
+
+    // Verify product exists
+    const productCheck = await pool.query(
+      'SELECT product_id FROM product WHERE product_id = $1 AND is_active = true',
+      [product_id]
+    );
+
+    if (productCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Enforce purchase check — must have a delivered order with this product
+    const purchaseCheck = await pool.query(
+      `SELECT 1
+       FROM order_item oi
+       JOIN orders o ON o.order_id = oi.order_id
+       WHERE o.user_id = $1
+         AND oi.product_id = $2
+         AND o.status = 'delivered'
+       LIMIT 1`,
+      [userId, product_id]
+    );
+
+    if (purchaseCheck.rows.length === 0) {
+      return res.status(403).json({
+        error: 'You can only review products you have purchased and received'
+      });
+    }
+
+    // Check if already reviewed
+    const existingReview = await pool.query(
+      'SELECT review_id FROM review WHERE user_id = $1 AND product_id = $2',
+      [userId, product_id]
+    );
+
+    if (existingReview.rows.length > 0) {
+      return res.status(409).json({
+        error: 'You have already reviewed this product'
+      });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO review (user_id, product_id, rating, comment)
+       VALUES ($1, $2, $3, $4)
+       RETURNING review_id, rating, comment, user_id, product_id, created_at, updated_at`,
+      [userId, product_id, rating, comment]
+    );
+
+    return res.status(201).json({
+      message: 'Review submitted successfully',
+      review:  buildReviewResponse(result.rows[0])
+    });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'You have already reviewed this product' });
+    }
+    console.error('Create review error:', error);
+    return res.status(500).json({ error: 'Failed to submit review' });
+  }
+};
+
+// PATCH /api/reviews/:id
+// Authenticated. User can only edit their own review.
+// Only rating and comment are editable.
+const updateReview = async (req, res) => {
+  try {
+    const userId   = req.user.userId;
+    const reviewId = parsePositiveInt(req.params.id);
+
+    if (!reviewId) {
+      return res.status(400).json({ error: 'Invalid review ID' });
+    }
+
+    const existing = await pool.query(
+      'SELECT review_id, user_id FROM review WHERE review_id = $1',
+      [reviewId]
+    );
+
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    if (existing.rows[0].user_id !== userId) {
+      return res.status(403).json({ error: 'You can only edit your own reviews' });
+    }
+
+    const body    = req.body || {};
+    const updates = [];
+    const params  = [];
+    let idx       = 1;
+
+    if (Object.prototype.hasOwnProperty.call(body, 'rating')) {
+      const rating = Number.parseInt(body.rating, 10);
+      if (isNaN(rating) || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+      }
+      updates.push(`rating = $${idx}`);
+      params.push(rating);
+      idx++;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'comment')) {
+      updates.push(`comment = $${idx}`);
+      params.push(normalizeOptionalText(body.comment));
+      idx++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    updates.push('updated_at = NOW()');
+    params.push(reviewId);
+
+    const result = await pool.query(
+      `UPDATE review
+       SET ${updates.join(', ')}
+       WHERE review_id = $${idx}
+       RETURNING review_id, rating, comment, user_id, product_id, created_at, updated_at`,
+      params
+    );
+
+    return res.status(200).json({
+      message: 'Review updated successfully',
+      review:  buildReviewResponse(result.rows[0])
+    });
+  } catch (error) {
+    console.error('Update review error:', error);
+    return res.status(500).json({ error: 'Failed to update review' });
+  }
+};
+
+// DELETE /api/reviews/:id
+// User can delete their own review.
+// Admin can delete any review.
+const deleteReview = async (req, res) => {
+  try {
+    const userId   = req.user.userId;
+    const isAdmin  = req.user.role === 'admin';
+    const reviewId = parsePositiveInt(req.params.id);
+
+    if (!reviewId) {
+      return res.status(400).json({ error: 'Invalid review ID' });
+    }
+
+    const existing = await pool.query(
+      'SELECT review_id, user_id FROM review WHERE review_id = $1',
+      [reviewId]
+    );
+
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    if (!isAdmin && existing.rows[0].user_id !== userId) {
+      return res.status(403).json({ error: 'You can only delete your own reviews' });
+    }
+
+    await pool.query('DELETE FROM review WHERE review_id = $1', [reviewId]);
+
+    return res.status(200).json({ message: 'Review deleted successfully' });
+  } catch (error) {
+    console.error('Delete review error:', error);
+    return res.status(500).json({ error: 'Failed to delete review' });
   }
 };
 
 module.exports = {
-  getReviews,
-  getReviewById,
+  getProductReviews,
+  getMyReviews,
   createReview,
   updateReview,
-  deleteReview,
-  getProductReviewSummary,
-  getUserReviews
+  deleteReview
 };

@@ -20,8 +20,7 @@ export const AuthProvider = ({ children }) => {
     // Check if user is already logged in
     const initAuth = async () => {
       const token = authService.getToken();
-      const currentUser = authService.getCurrentUser();
-      
+
       if (token) {
         try {
           const response = await authService.getProfile();
@@ -31,20 +30,37 @@ export const AuthProvider = ({ children }) => {
             setUser(profileUser);
             setIsAuthenticated(true);
             localStorage.setItem('user', JSON.stringify(profileUser));
-          } else if (currentUser) {
-            setUser(currentUser);
-            setIsAuthenticated(true);
+          } else {
+            authService.clearSession();
+            setUser(null);
+            setIsAuthenticated(false);
           }
         } catch {
-          if (currentUser) {
-            setUser(currentUser);
-            setIsAuthenticated(true);
-          } else {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+          try {
+            await authService.refreshAccessToken();
+            const retryResponse = await authService.getProfile();
+            const retryUser = retryResponse?.user;
+
+            if (retryUser) {
+              setUser(retryUser);
+              setIsAuthenticated(true);
+              localStorage.setItem('user', JSON.stringify(retryUser));
+            } else {
+              authService.clearSession();
+              setUser(null);
+              setIsAuthenticated(false);
+            }
+          } catch {
+            authService.clearSession();
+            setUser(null);
+            setIsAuthenticated(false);
           }
         }
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
       }
+
       setLoading(false);
     };
 
@@ -52,25 +68,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    try {
-      const response = await authService.login(email, password);
-      setUser(response.user);
-      setIsAuthenticated(true);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await authService.login(email, password);
+    setUser(response.user);
+    setIsAuthenticated(true);
+    return response;
   };
 
   const register = async (userData) => {
-    try {
-      const response = await authService.register(userData);
-      setUser(response.user);
-      setIsAuthenticated(true);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await authService.register(userData);
+    setUser(response.user);
+    setIsAuthenticated(true);
+    return response;
   };
 
   const logout = async () => {

@@ -1,29 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const {
-  register,
-  login,
-  logout,
-  refreshToken,
-  getProfile
-} = require('../controllers/authController');
+
+const { register, login, logout, refreshToken, getMe } = require('../controllers/authController');
 const { authenticate } = require('../middleware/authMiddleware');
 const { authLimiter, sensitiveLimiter } = require('../middleware/rateLimitMiddleware');
 
-// Register new user
+// POST /api/auth/register
 router.post('/register', authLimiter, register);
 
-// Login user
+// POST /api/auth/login
 router.post('/login', authLimiter, login);
 
-// Logout user
+// POST /api/auth/logout
 router.post('/logout', authenticate, logout);
 
-// Refresh token — rate limited to prevent token farming
+// POST /api/auth/refresh-token
 router.post('/refresh-token', sensitiveLimiter, refreshToken);
 
-// Get current user profile
-router.get('/profile', authenticate, getProfile);
-router.get('/me', authenticate, getProfile);
+// GET /api/auth/me
+router.get('/me', authenticate, getMe);
 
 module.exports = router;

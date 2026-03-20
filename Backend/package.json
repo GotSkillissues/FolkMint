@@ -7,6 +7,7 @@
     "dev": "nodemon --watch src/server.js",
     "db:schema": "psql -U postgres -d folkmint -f src/schema/FolkMint.schema.sql",
     "db:seed": "node src/schema/runSeed.js",
+    "db:create-admin": "node src/schema/createAdmin.js",
     "db:reset": "npm run db:schema && npm run db:seed",
     "db:test": "node src/test.js",
     "test": "echo \"Error: no test specified\" && exit 1"

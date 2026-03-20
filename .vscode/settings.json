@@ -10,6 +10,17 @@
             "database": "folkmint",
             "username": "frienduser",
             "password": "hqhq"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "database": "folkmint",
+            "username": "postgres",
+            "name": "folkmint",
+            "password": "hqhq"
         }
     ]
 }

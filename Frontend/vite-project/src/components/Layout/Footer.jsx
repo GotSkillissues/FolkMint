@@ -88,33 +88,26 @@ const Footer = () => {
         </div>
         <div className="pay-logo" title="American Express">
           <svg width="56" height="36" viewBox="0 0 56 36" xmlns="http://www.w3.org/2000/svg" aria-label="American Express">
-            <rect width="56" height="36" rx="5" fill="#2557D6"/>
-            <text x="28" y="22" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontSize="11" fontWeight="700" letterSpacing="1">AMERICAN</text>
-            <text x="28" y="30" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" letterSpacing="2">EXPRESS</text>
+            <rect width="56" height="36" rx="5" fill="#1B9AD7"/>
+            <rect x="4" y="7" width="48" height="22" rx="2" fill="none" stroke="#ffffff" strokeWidth="1.5"/>
+            <rect x="8" y="11" width="40" height="14" rx="1.5" fill="#ffffff" opacity="0.13"/>
+            <text x="28" y="18" textAnchor="middle" fill="#ffffff" fontFamily="Arial,sans-serif" fontSize="6.6" fontWeight="900" letterSpacing="1">AMERICAN</text>
+            <text x="28" y="24.8" textAnchor="middle" fill="#ffffff" fontFamily="Arial,sans-serif" fontSize="7.2" fontWeight="900" letterSpacing="1.2">EXPRESS</text>
           </svg>
         </div>
-        <div className="pay-logo" title="bKash">
-          <svg width="56" height="36" viewBox="0 0 56 36" xmlns="http://www.w3.org/2000/svg" aria-label="bKash">
-            <rect width="56" height="36" rx="5" fill="#E2136E"/>
-            <text x="28" y="24" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="800">bKash</text>
-          </svg>
-        </div>
-        <div className="pay-logo" title="Nagad">
-          <svg width="56" height="36" viewBox="0 0 56 36" xmlns="http://www.w3.org/2000/svg" aria-label="Nagad">
-            <rect width="56" height="36" rx="5" fill="#F47B20"/>
-            <text x="28" y="24" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontSize="13" fontWeight="800">Nagad</text>
-          </svg>
-        </div>
-        <div className="pay-logo" title="Rocket">
-          <svg width="56" height="36" viewBox="0 0 56 36" xmlns="http://www.w3.org/2000/svg" aria-label="Rocket">
-            <rect width="56" height="36" rx="5" fill="#6A0DAD"/>
-            <text x="28" y="25" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontSize="12" fontWeight="800">Rocket</text>
+        <div className="pay-logo bkash-logo" title="bKash">
+          <svg width="66" height="36" viewBox="0 0 66 36" xmlns="http://www.w3.org/2000/svg" aria-label="bKash">
+            <rect width="66" height="36" rx="5" fill="#ffffff" stroke="#e0e0e0" strokeWidth="1"/>
+            <text x="9" y="24" fill="#111111" fontFamily="Arial,sans-serif" fontSize="14.5" fontWeight="900">
+              <tspan fill="#E2136E" fontSize="16.5">b</tspan>
+              <tspan dx="1">Kash</tspan>
+            </text>
           </svg>
         </div>
       </div>
 
       <div className="ft-bottom">
-        <span className="ft-copy">&copy; 2025 FolkMint. All rights reserved.</span>
+        <span className="ft-copy">&copy; 2026 FolkMint. All rights reserved.</span>
         <span className="ft-craft">Celebrating the art &amp; craft of Bangladesh</span>
       </div>
     </footer>

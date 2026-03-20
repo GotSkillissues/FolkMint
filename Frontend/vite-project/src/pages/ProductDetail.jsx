@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { categoryService, productService } from '../services';
+import { useCategoryTree } from '../hooks/useCategories';
 import { useCart } from '../context';
 import { Loading } from '../components';
-import { getCardImageUrl } from '../utils';
+import { getCardImageUrl, getCategoryUrl } from '../utils';
 import './ProductDetail.css';
 
 const normalizeNameKey = (value) =>
@@ -76,27 +77,6 @@ const getNormalizedItems = (payload) => {
   return [];
 };
 
-const extractSkuCode = (item) => {
-  const sku = String(item?.sku || '').trim();
-  if (sku) return sku.toUpperCase();
-
-  const firstVariantSku = String(item?.variants?.[0]?.sku || '').trim();
-  if (firstVariantSku) return firstVariantSku.toUpperCase();
-
-  const productUrl = String(item?.product_url || '').trim();
-  const urlMatch = productUrl.match(/-([a-z0-9]{8,})\.html$/i);
-  if (urlMatch?.[1]) return urlMatch[1];
-
-  const description = getDetailDescription(item) || String(item?.description || '').trim();
-  const sourceUrlMatch = description.match(/\[source_url:(.*?)\]/i);
-  if (sourceUrlMatch?.[1]) {
-    const sourceCodeMatch = sourceUrlMatch[1].match(/-([a-z0-9]{8,})\.html$/i);
-    if (sourceCodeMatch?.[1]) return sourceCodeMatch[1];
-  }
-
-  return '';
-};
-
 const stripSourceMarker = (text) => String(text || '').replace(/\s*\[source_url:[^\]]+\]\s*/gi, '').trim();
 
 const formatSpecificationLabel = (label) =>
@@ -106,9 +86,31 @@ const formatSpecificationLabel = (label) =>
     .trim()
     .replace(/\b\w/g, (character) => character.toUpperCase());
 
+const getChildren = (node) => {
+  if (!node) return [];
+  if (Array.isArray(node.children)) return node.children;
+  if (Array.isArray(node.subcategories)) return node.subcategories;
+  return [];
+};
+
+const findCategoryPath = (nodes, predicate, trail = []) => {
+  if (!Array.isArray(nodes)) return null;
+
+  for (const node of nodes) {
+    const currentTrail = [...trail, node];
+    if (predicate(node)) return currentTrail;
+
+    const found = findCategoryPath(getChildren(node), predicate, currentTrail);
+    if (found) return found;
+  }
+
+  return null;
+};
+
 const ProductDetail = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
+  const { tree: categoryTree } = useCategoryTree();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -303,6 +305,28 @@ const ProductDetail = () => {
   const detailSpecifications = product?.specifications && typeof product.specifications === 'object'
     ? Object.entries(product.specifications).filter(([, value]) => String(value || '').trim().length > 0)
     : [];
+  const categoryBreadcrumbPath = (() => {
+    if (!product || !Array.isArray(categoryTree) || categoryTree.length === 0) return [];
+
+    const rawCategoryId = product?.category?.category_id || product?.category_id;
+    if (rawCategoryId != null) {
+      const byIdPath = findCategoryPath(
+        categoryTree,
+        (node) => String(node?.category_id) === String(rawCategoryId)
+      );
+      if (Array.isArray(byIdPath) && byIdPath.length > 0) return byIdPath;
+    }
+
+    const productCategoryName = String(product?.category?.name || product?.category_name || '').trim();
+    if (!productCategoryName) return [];
+
+    return (
+      findCategoryPath(
+        categoryTree,
+        (node) => normalizeNameKey(node?.name) === normalizeNameKey(productCategoryName)
+      ) || []
+    );
+  })();
 
   const onPrevImage = () => {
     if (productImages.length <= 1) return;
@@ -524,6 +548,18 @@ const ProductDetail = () => {
 
   return (
     <div className="product-detail-page">
+      <div className="product-detail-container">
+        <nav className="product-breadcrumb" aria-label="Breadcrumb">
+          <Link to="/">Home</Link>
+          {categoryBreadcrumbPath.map((categoryNode) => (
+            <span key={`crumb-${categoryNode.category_id}`}>
+              / <Link to={getCategoryUrl(categoryNode)}>{categoryNode.name}</Link>
+            </span>
+          ))}
+          <span>/ {product.name}</span>
+        </nav>
+      </div>
+
       <div className="product-detail-container">
         <div className="product-images">
           <div className="main-image-wrap">

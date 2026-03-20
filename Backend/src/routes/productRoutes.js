@@ -1,83 +1,125 @@
 const express = require('express');
 const router = express.Router();
+
 const {
+  // Public
   getProducts,
   getProductById,
-  getProductsByCategory,
-  searchProducts,
-  getFeaturedProducts,
-  getNewArrivals,
-  getPopularProducts,
+  getSimilarProducts,
+  getYouMayAlsoLike,
   getTopRatedProducts,
+  getPopularProducts,
   getRecommendedProducts,
+  canReview,
+  // Product CRUD
   createProduct,
   updateProduct,
   deleteProduct,
-  getProductVariants,
+  // Variant CRUD
+  getVariants,
   createVariant,
   updateVariant,
-  updateVariantStock,
   deleteVariant,
-  addVariantImage,
+  // Image CRUD
+  getImages,
+  addImage,
+  setPrimaryImage,
   deleteImage
 } = require('../controllers/productController');
+
 const { authenticate, isAdmin } = require('../middleware/authMiddleware');
 
-// ==================== SPECIAL ROUTES (must come before /:id) ====================
-// Search products
-router.get('/search', searchProducts);
+// =====================================================================
+// SPECIAL NAMED ROUTES
+// All of these MUST come before /:id — otherwise Express matches
+// 'top-rated', 'popular', 'recommended' as product IDs
+// =====================================================================
 
-// Get featured products
-router.get('/featured', getFeaturedProducts);
-
-// Get new arrivals
-router.get('/new-arrivals', getNewArrivals);
-
-// Get popular products (most ordered in last 30 days) - public
-router.get('/popular', getPopularProducts);
-
-// Get top-rated products (avg rating >= min_rating) - public
+// GET /api/products/top-rated
 router.get('/top-rated', getTopRatedProducts);
 
-// Get personalised "For You" products - requires login
-router.get('/for-you', authenticate, getRecommendedProducts);
+// GET /api/products/popular
+router.get('/popular', getPopularProducts);
 
-// Get products by category
-router.get('/category/:categoryId', getProductsByCategory);
+// GET /api/products/recommended
+// Authenticated — personalised by user signals, falls back to top rated
+router.get('/recommended', authenticate, getRecommendedProducts);
 
-// ==================== PRODUCT CRUD ====================
-// Get all products
+// =====================================================================
+// VARIANT ROUTES WITHOUT PRODUCT CONTEXT
+// These use /variants/:variantId — must come before /:id
+// to prevent 'variants' being matched as a product ID
+// =====================================================================
+
+// PATCH /api/products/variants/:variantId
+router.patch('/variants/:variantId', authenticate, isAdmin, updateVariant);
+
+// DELETE /api/products/variants/:variantId
+router.delete('/variants/:variantId', authenticate, isAdmin, deleteVariant);
+
+// =====================================================================
+// IMAGE ROUTES WITHOUT PRODUCT CONTEXT
+// These use /images/:imageId — must come before /:id
+// =====================================================================
+
+// PATCH /api/products/images/:imageId/primary
+router.patch('/images/:imageId/primary', authenticate, isAdmin, setPrimaryImage);
+
+// DELETE /api/products/images/:imageId
+router.delete('/images/:imageId', authenticate, isAdmin, deleteImage);
+
+// =====================================================================
+// PRODUCT CRUD
+// =====================================================================
+
+// GET /api/products
 router.get('/', getProducts);
 
-// Get product by ID
-router.get('/:id', getProductById);
-
-// Create new product (admin)
+// POST /api/products
 router.post('/', authenticate, isAdmin, createProduct);
 
-// Update product (admin)
-router.put('/:id', authenticate, isAdmin, updateProduct);
+// =====================================================================
+// PRODUCT BY ID AND NESTED ROUTES
+// All /:id routes come after all named routes above
+// =====================================================================
 
-// Delete product (admin)
+// GET /api/products/:id
+router.get('/:id', getProductById);
+
+// PATCH /api/products/:id
+router.patch('/:id', authenticate, isAdmin, updateProduct);
+
+// DELETE /api/products/:id
 router.delete('/:id', authenticate, isAdmin, deleteProduct);
 
-// ==================== VARIANT ROUTES ====================
-// Get variants for a product
-router.get('/:productId/variants', getProductVariants);
+// GET /api/products/:id/similar
+router.get('/:id/similar', getSimilarProducts);
 
-// Create variant for a product (admin)
-router.post('/:productId/variants', authenticate, isAdmin, createVariant);
+// GET /api/products/:id/you-may-also-like
+router.get('/:id/you-may-also-like', getYouMayAlsoLike);
 
-// ==================== VARIANT BY ID ====================
-router.put('/variants/:id', authenticate, isAdmin, updateVariant);
-router.patch('/variants/:id/stock', authenticate, isAdmin, updateVariantStock);
-router.delete('/variants/:id', authenticate, isAdmin, deleteVariant);
+// GET /api/products/:id/can-review
+// Authenticated
+router.get('/:id/can-review', authenticate, canReview);
 
-// ==================== IMAGE ROUTES ====================
-// Add image to variant (admin)
-router.post('/variants/:variantId/images', authenticate, isAdmin, addVariantImage);
+// =====================================================================
+// VARIANT ROUTES WITH PRODUCT CONTEXT
+// =====================================================================
 
-// Delete image (admin)
-router.delete('/images/:id', authenticate, isAdmin, deleteImage);
+// GET /api/products/:id/variants
+router.get('/:id/variants', getVariants);
+
+// POST /api/products/:id/variants
+router.post('/:id/variants', authenticate, isAdmin, createVariant);
+
+// =====================================================================
+// IMAGE ROUTES WITH PRODUCT CONTEXT
+// =====================================================================
+
+// GET /api/products/:id/images
+router.get('/:id/images', getImages);
+
+// POST /api/products/:id/images
+router.post('/:id/images', authenticate, isAdmin, addImage);
 
 module.exports = router;

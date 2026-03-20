@@ -1,22 +1,47 @@
 const express = require('express');
 const router = express.Router();
+
 const {
   upload,
   uploadImage,
   uploadImages,
-  deleteImage,
+  deleteCloudinaryImage,
   handleUploadError
 } = require('../controllers/uploadController');
+
 const { authenticate, isAdmin } = require('../middleware/authMiddleware');
 
-// Upload a single image (admin only)
-router.post('/image', authenticate, isAdmin, upload.single('image'), handleUploadError, uploadImage);
+// All upload routes are admin only
+router.use(authenticate, isAdmin);
 
-// Upload multiple images (admin only)
-router.post('/images', authenticate, isAdmin, upload.array('images', 10), handleUploadError, uploadImages);
+// POST /api/upload/image
+// Uploads a single image to Cloudinary.
+// Returns the URL to be passed to POST /api/products/:id/images.
+// upload.single('image') — multer processes the file field named 'image'
+router.post(
+  '/image',
+  upload.single('image'),
+  uploadImage,
+  handleUploadError
+);
 
-// Delete an image by Cloudinary public_id (admin only)
-router.delete('/image/:publicId', authenticate, isAdmin, deleteImage);
-router.delete('/image', authenticate, isAdmin, deleteImage);
+// POST /api/upload/images
+// Uploads up to 10 images in parallel.
+// upload.array('images', 10) — multer processes the file field named 'images'
+router.post(
+  '/images',
+  upload.array('images', 10),
+  uploadImages,
+  handleUploadError
+);
+
+// DELETE /api/upload/image/:publicId
+// Deletes an image from Cloudinary by public_id.
+// Call this alongside DELETE /api/products/images/:imageId
+// to remove the file from Cloudinary and the DB reference in one flow.
+router.delete(
+  '/image/:publicId',
+  deleteCloudinaryImage
+);
 
 module.exports = router;

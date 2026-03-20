@@ -73,40 +73,12 @@ export const PAYMENT_METHOD_ICONS = {
 };
 
 // ===========================================
-// PRODUCT CATEGORIES (from seed data)
+// PRODUCT CATEGORIES
 // ===========================================
-
-// Root Categories
-export const ROOT_CATEGORIES = {
-  CLOTHING: { id: 1, name: 'Clothing' },
-  ACCESSORIES: { id: 2, name: 'Accessories' },
-  HOME_DECOR: { id: 3, name: 'Home Decor' },
-  HANDICRAFTS: { id: 4, name: 'Handicrafts' },
-  JEWELRY: { id: 5, name: 'Jewelry' },
-};
-
-// Category Hierarchy
-export const CATEGORY_HIERARCHY = {
-  // Clothing subcategories
-  MEN: { id: 6, name: 'Men', parent: 1 },
-  WOMEN: { id: 7, name: 'Women', parent: 1 },
-  KIDS: { id: 8, name: 'Kids', parent: 1 },
-  // Accessories subcategories
-  BAGS: { id: 9, name: 'Bags', parent: 2 },
-  SCARVES: { id: 10, name: 'Scarves', parent: 2 },
-  // Home Decor subcategories
-  WALL_ART: { id: 11, name: 'Wall Art', parent: 3 },
-  CUSHIONS: { id: 12, name: 'Cushions', parent: 3 },
-  RUGS: { id: 13, name: 'Rugs', parent: 3 },
-  // Handicrafts subcategories
-  POTTERY: { id: 14, name: 'Pottery', parent: 4 },
-  WOODWORK: { id: 15, name: 'Woodwork', parent: 4 },
-  TEXTILES: { id: 16, name: 'Textiles', parent: 4 },
-  // Jewelry subcategories
-  NECKLACES: { id: 17, name: 'Necklaces', parent: 5 },
-  EARRINGS: { id: 18, name: 'Earrings', parent: 5 },
-  BRACELETS: { id: 19, name: 'Bracelets', parent: 5 },
-};
+// Category objects should come from backend category APIs.
+// These are retained as empty exports for backward compatibility.
+export const ROOT_CATEGORIES = {};
+export const CATEGORY_HIERARCHY = {};
 
 // ===========================================
 // PRODUCT VARIANT OPTIONS

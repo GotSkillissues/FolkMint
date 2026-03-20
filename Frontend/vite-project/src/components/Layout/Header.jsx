@@ -1,18 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, useCart } from '../../context';
+import { useCategoryTree } from '../../hooks/useCategories';
+import { wishlistService } from '../../services';
+import { getCategoryUrl } from '../../utils';
 import FloatingCategoriesPanel from './FloatingCategoriesPanel';
 import './Header.css';
 
 const Header = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { cartCount } = useCart();
+  const { tree: categoryTree } = useCategoryTree();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [scrolled, setScrolled]     = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchVal, setSearchVal]   = useState('');
+  const [wishlistCount, setWishlistCount] = useState(0);
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -37,54 +42,52 @@ const Header = () => {
     if (e.key === 'Escape') { setSearchOpen(false); setSearchVal(''); }
   };
 
-  const getInitials = () => {
-    if (!user) return 'U';
-    const ini = ((user.first_name?.[0] ?? '') + (user.last_name?.[0] ?? '')).toUpperCase();
-    return ini || user.username?.[0]?.toUpperCase() || 'U';
-  };
-
   const query = new URLSearchParams(location.search);
-  const activeParentId = query.get('parent_id');
+  const activeCategoryId = query.get('category_id') || query.get('parent_id') || '';
+  const activeCategorySlug = query.get('category');
+  const pathParts = location.pathname.split('/');
+  const activeCategoryRouteId = pathParts[1] === 'categories' ? pathParts[2] : '';
+
+  const rootCategories = Array.isArray(categoryTree)
+    ? categoryTree.filter((node) => !node?.parent_category)
+    : [];
 
   const navItems = [
     { key: 'home', label: 'Home', to: '/', active: location.pathname === '/' },
-    {
-      key: 'men',
-      label: 'Men',
-      to: '/products?parent_id=1&include_descendants=true',
-      active: location.pathname === '/products' && activeParentId === '1',
-    },
-    {
-      key: 'women',
-      label: 'Women',
-      to: '/products?parent_id=2&include_descendants=true',
-      active: location.pathname === '/products' && activeParentId === '2',
-    },
-    {
-      key: 'decor',
-      label: 'Home Décor',
-      to: '/products?parent_id=4&include_descendants=true',
-      active: location.pathname === '/products' && activeParentId === '4',
-    },
-    {
-      key: 'handicrafts',
-      label: 'Handicrafts',
-      to: '/products?parent_id=3&include_descendants=true',
-      active: location.pathname === '/products' && activeParentId === '3',
-    },
-    {
-      key: 'bags',
-      label: 'Bags & Accessories',
-      to: '/products?parent_id=5&include_descendants=true',
-      active: location.pathname === '/products' && activeParentId === '5',
-    },
-    {
-      key: 'gift-cards',
-      label: 'Gift Cards',
-      to: '/products?parent_id=6&include_descendants=true',
-      active: location.pathname === '/products' && activeParentId === '6',
-    },
+    ...rootCategories
+      .filter((node) => node?.category_slug)
+      .map((node) => ({
+        key: `cat-${node.category_id}`,
+        label: node.name,
+        to: getCategoryUrl(node),
+        active:
+          (location.pathname.startsWith('/categories/') && String(activeCategoryRouteId) === String(node.category_id)) ||
+          (location.pathname === '/products' &&
+            (activeCategorySlug === node.category_slug || String(activeCategoryId) === String(node.category_id))),
+      })),
   ];
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let active = true;
+
+    wishlistService.getWishlist({ limit: 1 })
+      .then((response) => {
+        if (!active) return;
+        const items = Array.isArray(response?.wishlist) ? response.wishlist : [];
+        setWishlistCount(items.length);
+      })
+      .catch(() => {
+        if (active) setWishlistCount(0);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated]);
 
   return (
     <header className={`site-header${scrolled ? ' scrolled' : ''}`} id="site-header">
@@ -155,8 +158,8 @@ const Header = () => {
           {/* Auth — guest */}
           {!isAuthenticated && (
             <div className="auth-guest">
-              <Link to="/login" className="btn-login">Log in</Link>
-              <Link to="/register" className="btn-register">Register</Link>
+              <NavLink to="/login" className="btn-login">Log in</NavLink>
+              <NavLink to="/register" className="btn-register">Register</NavLink>
             </div>
           )}
 
@@ -164,24 +167,38 @@ const Header = () => {
           {isAuthenticated && (
             <>
               {user?.role === 'admin' && (
-                <Link to="/admin" className="btn-login" aria-label="Admin dashboard">Admin</Link>
+                <NavLink to="/admin" className="admin-btn" aria-label="Admin dashboard">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 3l8 4v6c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7l8-4z" />
+                    <path d="M9.5 12.5l1.8 1.8 3.2-3.2" />
+                  </svg>
+                </NavLink>
               )}
-                <Link to="/account" state={{ defaultSection: 'details' }} className="user-account-btn" aria-label="My account">
-                  <div className="user-avatar">{getInitials()}</div>
-                  <span className="user-name">My Account</span>
-              </Link>
+                <NavLink to="/account" state={{ defaultSection: 'details' }} className="user-account-btn" aria-label="My account">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M20 21a8 8 0 0 0-16 0" />
+                    <circle cx="12" cy="8" r="4" />
+                  </svg>
+              </NavLink>
+
+              <NavLink to="/wishlist" className="wishlist-btn" aria-label="Wishlist">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.8 4.6a5.1 5.1 0 0 0-7.2 0L12 6.2l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2l1.6 1.6L12 20.6l7.2-7.2 1.6-1.6a5.1 5.1 0 0 0 0-7.2z" />
+                </svg>
+                {wishlistCount > 0 && <span className="wishlist-badge-dot" />}
+              </NavLink>
             </>
           )}
 
           {/* Cart */}
-          <Link to="/cart" className="cart-btn" aria-label="Shopping cart">
+          <NavLink to="/cart" className="cart-btn" aria-label="Shopping cart">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
               <line x1="3" y1="6" x2="21" y2="6"/>
               <path d="M16 10a4 4 0 01-8 0"/>
             </svg>
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
-          </Link>
+          </NavLink>
 
         </div>
       </div>

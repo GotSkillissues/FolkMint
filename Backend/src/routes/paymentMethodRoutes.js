@@ -1,34 +1,35 @@
 const express = require('express');
 const router = express.Router();
+
 const {
   getPaymentMethods,
   getPaymentMethodById,
   createPaymentMethod,
-  updatePaymentMethod,
-  deletePaymentMethod,
-  setDefaultPaymentMethod
+  setDefaultPaymentMethod,
+  deletePaymentMethod
 } = require('../controllers/paymentController');
+
 const { authenticate } = require('../middleware/authMiddleware');
 
 // All payment method routes require authentication
 router.use(authenticate);
 
-// Get user's payment methods
+// GET /api/payment-methods
 router.get('/', getPaymentMethods);
 
-// Get payment method by ID
-router.get('/:id', getPaymentMethodById);
-
-// Create new payment method
+// POST /api/payment-methods
 router.post('/', createPaymentMethod);
 
-// Update payment method
-router.put('/:id', updatePaymentMethod);
+// GET /api/payment-methods/:id
+router.get('/:id', getPaymentMethodById);
 
-// Set default payment method
-router.put('/:id/default', setDefaultPaymentMethod);
+// PATCH /api/payment-methods/:id/default
+// Must come before /:id to avoid 'default' being matched as an ID
+// In practice Express handles this correctly since /default is a second
+// segment, but explicit ordering makes intent clear
+router.patch('/:id/default', setDefaultPaymentMethod);
 
-// Delete payment method
+// DELETE /api/payment-methods/:id
 router.delete('/:id', deletePaymentMethod);
 
 module.exports = router;

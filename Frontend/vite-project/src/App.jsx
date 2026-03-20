@@ -9,6 +9,7 @@ import {
   ProductDetail,
   Cart,
   Products,
+  CategoryLanding,
   Checkout,
   Account,
   Orders,
@@ -46,6 +47,7 @@ function App() {
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/categories/:id" element={<CategoryLanding />} />
               <Route path="/products/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/about" element={<About />} />

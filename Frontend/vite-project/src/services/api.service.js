@@ -1,6 +1,28 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api.config';
 
+const TOKEN_KEY = 'token';
+const REFRESH_TOKEN_KEY = 'refreshToken';
+
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+const subscribeTokenRefresh = (callback) => {
+  refreshSubscribers.push(callback);
+};
+
+const onRefreshed = (newToken) => {
+  refreshSubscribers.forEach((callback) => callback(newToken));
+  refreshSubscribers = [];
+};
+
+const clearSessionAndRedirect = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem('user');
+  window.location.href = '/login';
+};
+
 // Create axios instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -13,7 +35,7 @@ const apiClient = axios.create({
 // Request interceptor - Add auth token to requests
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,19 +49,64 @@ apiClient.interceptors.request.use(
 // Response interceptor - Handle errors globally
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response) {
       const { status, config } = error.response;
       const isAuthEndpoint = config?.url?.startsWith('/auth/');
 
+      // Try refresh token flow for expired/invalid access token on non-auth endpoints.
+      if (status === 401 && !isAuthEndpoint && !config?._retry) {
+        const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+
+        if (!refreshToken) {
+          clearSessionAndRedirect();
+          return Promise.reject(error);
+        }
+
+        if (isRefreshing) {
+          return new Promise((resolve) => {
+            subscribeTokenRefresh((newToken) => {
+              config.headers.Authorization = `Bearer ${newToken}`;
+              resolve(apiClient(config));
+            });
+          });
+        }
+
+        config._retry = true;
+        isRefreshing = true;
+
+        try {
+          const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
+            refreshToken,
+          });
+
+          const newToken = refreshResponse.data?.token;
+          const newRefreshToken = refreshResponse.data?.refreshToken;
+
+          if (!newToken) {
+            throw new Error('No access token returned from refresh endpoint');
+          }
+
+          localStorage.setItem(TOKEN_KEY, newToken);
+          if (newRefreshToken) {
+            localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+          }
+
+          onRefreshed(newToken);
+          config.headers.Authorization = `Bearer ${newToken}`;
+          return apiClient(config);
+        } catch (refreshError) {
+          clearSessionAndRedirect();
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
+      }
+
       switch (status) {
         case 401:
-          // Only force-logout if a token exists (expired session) and it's not a
-          // login/register call — those legitimately return 401 for bad credentials.
-          if (!isAuthEndpoint && localStorage.getItem('token')) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
+          if (!isAuthEndpoint && localStorage.getItem(TOKEN_KEY)) {
+            clearSessionAndRedirect();
           }
           break;
         case 403:

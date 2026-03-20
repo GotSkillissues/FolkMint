@@ -1,35 +1,43 @@
 const express = require('express');
 const router = express.Router();
+
 const {
   getCategories,
-  getCategoryTree,
   getCategoryById,
+  getCategoryBySlug,
+  getChildrenWithProducts,
   createCategory,
   updateCategory,
-  deleteCategory,
-  getCategoryProducts
+  deleteCategory
 } = require('../controllers/categoryController');
-const { authenticate, isAdmin, optionalAuth } = require('../middleware/authMiddleware');
 
-// Get all categories (public)
+const { authenticate, isAdmin } = require('../middleware/authMiddleware');
+
+// GET /api/categories
+// Public. ?tree=true returns nested structure
 router.get('/', getCategories);
 
-// Get category tree (public)
-router.get('/tree', getCategoryTree);
+// GET /api/categories/slug/:slug
+// Must be before /:id — otherwise 'slug' gets matched as a category ID
+router.get('/slug/:slug', getCategoryBySlug);
 
-// Get category by ID (public)
+// GET /api/categories/:id/children-with-products
+// Must be before /:id
+router.get('/:id/children-with-products', getChildrenWithProducts);
+
+// GET /api/categories/:id
 router.get('/:id', getCategoryById);
 
-// Get products in category (public)
-router.get('/:id/products', getCategoryProducts);
-
-// Create new category (Admin only)
+// POST /api/categories
+// Admin only
 router.post('/', authenticate, isAdmin, createCategory);
 
-// Update category (Admin only)
-router.put('/:id', authenticate, isAdmin, updateCategory);
+// PATCH /api/categories/:id
+// Admin only
+router.patch('/:id', authenticate, isAdmin, updateCategory);
 
-// Delete category (Admin only)
+// DELETE /api/categories/:id
+// Admin only
 router.delete('/:id', authenticate, isAdmin, deleteCategory);
 
 module.exports = router;

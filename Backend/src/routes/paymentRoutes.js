@@ -1,23 +1,24 @@
 const express = require('express');
 const router = express.Router();
+
 const {
   getPayments,
   getPaymentById,
-  processPayment,
   updatePaymentStatus
 } = require('../controllers/paymentController');
+
 const { authenticate, isAdmin } = require('../middleware/authMiddleware');
 
-// Get payments (User: own, Admin: all)
+// GET /api/payments
+// Admin: all payments. Customer: own payments only.
 router.get('/', authenticate, getPayments);
 
-// Get payment by ID
+// GET /api/payments/:id
+// Admin can fetch any payment. Customer can only fetch their own.
 router.get('/:id', authenticate, getPaymentById);
 
-// Process payment
-router.post('/process', authenticate, processPayment);
-
-// Update payment status (Admin only)
-router.put('/:id/status', authenticate, isAdmin, updatePaymentStatus);
+// PATCH /api/payments/:id/status
+// Admin only. Used for gateway callbacks and manual corrections.
+router.patch('/:id/status', authenticate, isAdmin, updatePaymentStatus);
 
 module.exports = router;

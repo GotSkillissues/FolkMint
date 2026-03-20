@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+
 const {
   getCart,
   addToCart,
@@ -8,27 +9,31 @@ const {
   clearCart,
   syncCart
 } = require('../controllers/cartController');
+
 const { authenticate } = require('../middleware/authMiddleware');
 
 // All cart routes require authentication
 router.use(authenticate);
 
-// Get user's cart
+// GET /api/cart
 router.get('/', getCart);
 
-// Add item to cart
+// POST /api/cart
 router.post('/', addToCart);
 
-// Sync cart (merge guest cart)
+// POST /api/cart/sync
+// Must come before /:variantId — otherwise 'sync' is matched as a variant ID
 router.post('/sync', syncCart);
 
-// Clear cart
-router.delete('/clear', clearCart);
+// DELETE /api/cart
+// Must come before /:variantId — otherwise Express never reaches this
+// since DELETE / does not have a param segment
+router.delete('/', clearCart);
 
-// Update cart item quantity
-router.put('/:id', updateCartItem);
+// PATCH /api/cart/:variantId
+router.patch('/:variantId', updateCartItem);
 
-// Remove item from cart
-router.delete('/:id', removeFromCart);
+// DELETE /api/cart/:variantId
+router.delete('/:variantId', removeFromCart);
 
 module.exports = router;

@@ -32,6 +32,7 @@ export default function HomePage() {
           { name: "Saree", slug: "women-saree", img: placeholderImg("Saree") },
           { name: "Salwar Kameez", slug: "women-salwar", img: placeholderImg("Salwar") },
           { name: "Kurti", slug: "women-kurti", img: placeholderImg("Kurti") },
+          { name: "Dupatta", slug: "women-dupatta", img: placeholderImg("Dupatta") },
           { name: "Jewelry", slug: "women-jewelry", img: placeholderImg("Jewelry") },
         ],
       },

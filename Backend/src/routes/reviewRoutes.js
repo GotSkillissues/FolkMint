@@ -1,35 +1,36 @@
 const express = require('express');
 const router = express.Router();
+
 const {
-  getReviews,
-  getReviewById,
+  getProductReviews,
+  getMyReviews,
   createReview,
   updateReview,
-  deleteReview,
-  getProductReviewSummary,
-  getUserReviews
+  deleteReview
 } = require('../controllers/reviewController');
-const { authenticate, optionalAuth } = require('../middleware/authMiddleware');
 
-// Get reviews (public, optionally filtered by product)
-router.get('/', getReviews);
+const { authenticate, isAdmin } = require('../middleware/authMiddleware');
 
-// Get user's reviews (authenticated)
-router.get('/my-reviews', authenticate, getUserReviews);
+// GET /api/reviews/product/:productId
+// Public. Paginated reviews with rating distribution summary.
+// Must come before /:id — otherwise 'product' is matched as a review ID
+router.get('/product/:productId', getProductReviews);
 
-// Get product review summary (public)
-router.get('/product/:product_id/summary', getProductReviewSummary);
+// GET /api/reviews/my-reviews
+// Authenticated. Returns all reviews written by the current user.
+// Must come before /:id — otherwise 'my-reviews' is matched as a review ID
+router.get('/my-reviews', authenticate, getMyReviews);
 
-// Get review by ID (public)
-router.get('/:id', getReviewById);
-
-// Create review (authenticated)
+// POST /api/reviews
+// Authenticated. Purchase check enforced in controller.
 router.post('/', authenticate, createReview);
 
-// Update review (authenticated, owner or admin)
-router.put('/:id', authenticate, updateReview);
+// PATCH /api/reviews/:id
+// Authenticated. User can only edit their own review.
+router.patch('/:id', authenticate, updateReview);
 
-// Delete review (authenticated, owner or admin)
+// DELETE /api/reviews/:id
+// User can delete their own. Admin can delete any.
 router.delete('/:id', authenticate, deleteReview);
 
 module.exports = router;
