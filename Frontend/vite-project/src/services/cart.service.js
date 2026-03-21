@@ -40,7 +40,7 @@ const cartService = {
   // Update cart item quantity
   updateCartItem: async (cartItemId, quantity) => {
     try {
-      const response = await apiClient.put(API_ENDPOINTS.CART.UPDATE_ITEM(cartItemId), {
+      const response = await apiClient.patch(API_ENDPOINTS.CART.UPDATE_ITEM(cartItemId), {
         quantity,
       });
       return response.data;

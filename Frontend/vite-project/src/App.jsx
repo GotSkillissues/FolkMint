@@ -1,4 +1,11 @@
 import { useEffect } from 'react';
+import AdminLayout from './components/Layout/AdminLayout';
+import {
+  AdminAnalytics,
+  AdminCategories,
+  AdminReviews,
+  AdminNotifications,
+} from './pages';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider, CartProvider } from './context';
 import { Layout, ProtectedRoute, RequireAdmin } from './components';
@@ -14,6 +21,7 @@ import {
   Account,
   Orders,
   Wishlist,
+  Notifications,
   About,
   Terms,
   Privacy,
@@ -55,25 +63,25 @@ function App() {
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/shipping" element={<Shipping />} />
               <Route path="/help" element={<Help />} />
-              
+
               {/* Auth Routes - Only for non-authenticated users */}
-              <Route 
-                path="/login" 
+              <Route
+                path="/login"
                 element={
                   <ProtectedRoute requireAuth={false}>
                     <Login />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/register" 
+              <Route
+                path="/register"
                 element={
                   <ProtectedRoute requireAuth={false}>
                     <Register />
                   </ProtectedRoute>
-                } 
+                }
               />
-              
+
               {/* Protected Routes - Require authentication */}
               <Route
                 path="/checkout"
@@ -100,6 +108,14 @@ function App() {
                 }
               />
               <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/wishlist"
                 element={
                   <ProtectedRoute>
@@ -107,22 +123,15 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              {/* Admin Routes */}
               <Route
                 path="/admin"
                 element={
                   <ProtectedRoute>
                     <RequireAdmin>
-                      <AdminDashboard />
-                    </RequireAdmin>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <ProtectedRoute>
-                    <RequireAdmin>
-                      <AdminUsers />
+                      <AdminLayout>
+                        <AdminDashboard />
+                      </AdminLayout>
                     </RequireAdmin>
                   </ProtectedRoute>
                 }
@@ -132,7 +141,9 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RequireAdmin>
-                      <AdminOrders />
+                      <AdminLayout>
+                        <AdminOrders />
+                      </AdminLayout>
                     </RequireAdmin>
                   </ProtectedRoute>
                 }
@@ -142,12 +153,74 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RequireAdmin>
-                      <AdminProducts />
+                      <AdminLayout>
+                        <AdminProducts />
+                      </AdminLayout>
                     </RequireAdmin>
                   </ProtectedRoute>
                 }
               />
-              
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute>
+                    <RequireAdmin>
+                      <AdminLayout>
+                        <AdminUsers />
+                      </AdminLayout>
+                    </RequireAdmin>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <ProtectedRoute>
+                    <RequireAdmin>
+                      <AdminLayout>
+                        <AdminAnalytics />
+                      </AdminLayout>
+                    </RequireAdmin>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/categories"
+                element={
+                  <ProtectedRoute>
+                    <RequireAdmin>
+                      <AdminLayout>
+                        <AdminCategories />
+                      </AdminLayout>
+                    </RequireAdmin>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/reviews"
+                element={
+                  <ProtectedRoute>
+                    <RequireAdmin>
+                      <AdminLayout>
+                        <AdminReviews />
+                      </AdminLayout>
+                    </RequireAdmin>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/notifications"
+                element={
+                  <ProtectedRoute>
+                    <RequireAdmin>
+                      <AdminLayout>
+                        <AdminNotifications />
+                      </AdminLayout>
+                    </RequireAdmin>
+                  </ProtectedRoute>
+                }
+              />
+
             </Routes>
           </Layout>
         </CartProvider>

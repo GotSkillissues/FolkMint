@@ -22,8 +22,79 @@ const adminService = {
   // Get analytics data
   getAnalytics: async (params = {}) => {
     try {
-      // params: { from_date, to_date, type }
       const response = await apiClient.get(API_ENDPOINTS.ADMIN.ANALYTICS, { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get recent activity (orders + new users)
+  getRecentActivity: async (limit = 8) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.RECENT_ACTIVITY, {
+        params: { limit },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get sales report
+  getSalesReport: async (params = {}) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.SALES, { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get top products
+  getTopProducts: async (params = {}) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.TOP_PRODUCTS, { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get order status breakdown
+  getOrderStatusBreakdown: async () => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.ORDER_STATUS_BREAKDOWN);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get low stock variants
+  getLowStock: async (params = {}) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.LOW_STOCK, { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get category performance
+  getCategoryPerformance: async () => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.CATEGORIES);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get review stats
+  getReviewStats: async () => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.REVIEWS);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -35,7 +106,6 @@ const adminService = {
   // Get all users with filters
   getUsers: async (params = {}) => {
     try {
-      // params: { page, limit, role, search, sort }
       const response = await apiClient.get(API_ENDPOINTS.ADMIN.USERS, { params });
       return response.data;
     } catch (error) {
@@ -68,7 +138,6 @@ const adminService = {
   // Get all orders with filters
   getOrders: async (params = {}) => {
     try {
-      // params: { page, limit, status, user_id, from_date, to_date, sort }
       const response = await apiClient.get(API_ENDPOINTS.ADMIN.ORDERS, { params });
       return response.data;
     } catch (error) {
@@ -94,7 +163,6 @@ const adminService = {
   // Get all products with admin details
   getProducts: async (params = {}) => {
     try {
-      // params: { page, limit, category_id, status, sort }
       const response = await apiClient.get(API_ENDPOINTS.ADMIN.PRODUCTS, { params });
       return response.data;
     } catch (error) {
@@ -117,7 +185,6 @@ const adminService = {
   // Bulk update product prices
   bulkUpdatePrices: async (updates) => {
     try {
-      // updates: [{ product_id, base_price }, ...]
       const response = await apiClient.patch(`${API_ENDPOINTS.ADMIN.PRODUCTS}/bulk-price`, {
         updates,
       });
@@ -130,7 +197,6 @@ const adminService = {
   // Bulk update stock
   bulkUpdateStock: async (updates) => {
     try {
-      // updates: [{ variant_id, stock_quantity }, ...]
       const response = await apiClient.patch(`${API_ENDPOINTS.ADMIN.PRODUCTS}/bulk-stock`, {
         updates,
       });
@@ -141,29 +207,6 @@ const adminService = {
   },
 
   // ==================== REPORTS ====================
-
-  // Get sales report
-  getSalesReport: async (params = {}) => {
-    try {
-      // params: { from_date, to_date, group_by }
-      const response = await apiClient.get(`${API_ENDPOINTS.ADMIN.ANALYTICS}/sales`, { params });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  // Get top selling products
-  getTopProducts: async (limit = 10) => {
-    try {
-      const response = await apiClient.get(`${API_ENDPOINTS.ADMIN.ANALYTICS}/top-products`, {
-        params: { limit },
-      });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
 
   // Get customer insights
   getCustomerInsights: async () => {
@@ -178,7 +221,6 @@ const adminService = {
   // Export data
   exportData: async (type, params = {}) => {
     try {
-      // type: 'orders', 'products', 'customers'
       const response = await apiClient.get(`${API_ENDPOINTS.ADMIN.ANALYTICS}/export/${type}`, {
         params,
         responseType: 'blob',

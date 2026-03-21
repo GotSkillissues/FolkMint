@@ -16,7 +16,7 @@ const isPublicCatalogRead = (req) => {
 // Auth endpoints (login, register) - strict: 10 requests per 15 min
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 20,
   standardHeaders: true,
   legacyHeaders: false,
   message: rateLimitMessage('login/register'),
@@ -26,7 +26,7 @@ const authLimiter = rateLimit({
 // General API - 100 requests per 15 min per IP
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 200,
   standardHeaders: true,
   legacyHeaders: false,
   message: rateLimitMessage('API'),
@@ -36,7 +36,7 @@ const apiLimiter = rateLimit({
 // Upload endpoint - 20 uploads per hour
 const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 20,
+  max: 40,
   standardHeaders: true,
   legacyHeaders: false,
   message: rateLimitMessage('upload')

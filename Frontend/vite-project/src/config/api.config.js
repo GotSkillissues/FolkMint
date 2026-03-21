@@ -197,6 +197,7 @@ export const API_ENDPOINTS = {
     CHECK: (variantId) => `/wishlist/check/${variantId}`,
     REMOVE_BY_VARIANT: (variantId) => `/wishlist/variant/${variantId}`,
     MOVE_TO_CART: (wishlistId) => `/wishlist/${wishlistId}/move-to-cart`,
+    
   },
 
   // ==================== REVIEWS ====================
@@ -272,3 +273,5 @@ export const HTTP_STATUS = {
   NOT_FOUND: 404,
   INTERNAL_SERVER_ERROR: 500,
 };
+
+

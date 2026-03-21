@@ -148,6 +148,107 @@ const productService = {
     }
   },
 
+
+  // ==================== VARIANTS ====================
+
+  // GET /api/products/:id/variants
+  getVariants: async (productId) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.VARIANTS(productId));
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // POST /api/products/:id/variants
+  createVariant: async (productId, variantData) => {
+    try {
+      const response = await apiClient.post(API_ENDPOINTS.PRODUCTS.VARIANTS(productId), variantData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // PATCH /api/products/variants/:variantId
+  updateVariant: async (variantId, variantData) => {
+    try {
+      const response = await apiClient.patch(API_ENDPOINTS.PRODUCTS.VARIANT_BY_ID(variantId), variantData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // DELETE /api/products/variants/:variantId
+  deleteVariant: async (variantId) => {
+    try {
+      const response = await apiClient.delete(API_ENDPOINTS.PRODUCTS.VARIANT_BY_ID(variantId));
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // ==================== IMAGES ====================
+
+  // GET /api/products/:id/images
+  getImages: async (productId) => {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.PRODUCTS.IMAGES(productId));
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // POST /api/products/:id/images
+  addImage: async (productId, imageData) => {
+    try {
+      const response = await apiClient.post(API_ENDPOINTS.PRODUCTS.IMAGES(productId), imageData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // PATCH /api/products/images/:imageId/primary
+  setPrimaryImage: async (imageId) => {
+    try {
+      const response = await apiClient.patch(API_ENDPOINTS.PRODUCTS.SET_PRIMARY_IMAGE(imageId));
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // DELETE /api/products/images/:imageId
+  deleteImage: async (imageId) => {
+    try {
+      const response = await apiClient.delete(API_ENDPOINTS.PRODUCTS.IMAGE_BY_ID(imageId));
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // ==================== UPLOAD ====================
+
+  // POST /api/upload/image — uploads to Cloudinary via backend, returns { url }
+  uploadImage: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await apiClient.post(API_ENDPOINTS.UPLOAD.SINGLE_IMAGE, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   // ==================== UTILITY FUNCTIONS ====================
 
   // Get the lowest price from variants

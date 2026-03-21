@@ -40,4 +40,5 @@ export { default as wishlistService } from './wishlist.service';
 // Admin
 export { default as adminService } from './admin.service';
 
-
+//notifications
+export { default as notificationService } from './notification.service';

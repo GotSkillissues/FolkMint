@@ -2,19 +2,17 @@ import apiClient from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
 
 const getStoredUser = () => {
-  const raw = localStorage.getItem('user');
-  return raw ? JSON.parse(raw) : null;
+  try {
+    const raw = localStorage.getItem('user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 };
 
-/**
- * User Service
- * Handles user profile and preferences
- * Maps to: users, user_preferences, preference_category tables
- */
 const userService = {
-  // ==================== PROFILE ====================
 
-  // Get user profile
+  // GET /api/auth/me
   getProfile: async () => {
     try {
       const response = await apiClient.get(API_ENDPOINTS.AUTH.ME);
@@ -24,71 +22,61 @@ const userService = {
     }
   },
 
-  // Update user profile
+  // PATCH /api/users/:id  — only first_name, last_name (no email, no username in schema)
   updateProfile: async (userData) => {
     try {
       const currentUser = getStoredUser();
-      if (!currentUser?.user_id) {
-        throw new Error('User not found in local session');
-      }
-
-      const response = await apiClient.put(API_ENDPOINTS.USERS.BY_ID(currentUser.user_id), userData);
+      if (!currentUser?.user_id) throw new Error('No user session found. Please log in again.');
+      // Only send fields the backend accepts for self-update
+      const payload = {};
+      if (Object.prototype.hasOwnProperty.call(userData, 'first_name')) payload.first_name = userData.first_name;
+      if (Object.prototype.hasOwnProperty.call(userData, 'last_name'))  payload.last_name  = userData.last_name;
+      const response = await apiClient.patch(API_ENDPOINTS.USERS.BY_ID(currentUser.user_id), payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
-  // Change password
-  changePassword: async (passwordData) => {
+  // PATCH /api/users/:id  — password field only
+  // Backend validates: min 6 chars, 1 uppercase, 1 number
+  changePassword: async ({ password }) => {
     try {
-      // passwordData: { current_password, new_password }
-      const response = await apiClient.put(API_ENDPOINTS.USERS.CHANGE_PASSWORD, passwordData);
+      const currentUser = getStoredUser();
+      if (!currentUser?.user_id) throw new Error('No user session found. Please log in again.');
+      const response = await apiClient.patch(API_ENDPOINTS.USERS.BY_ID(currentUser.user_id), { password });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
-  // ==================== PREFERENCES ====================
+// POST /api/auth/register
+  // Only endpoint that creates users. Always creates as 'customer'.
+  // Caller must PATCH role separately if admin role is needed.
+  createUser: async (userData) => {
+    try {
+      const response = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, userData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 
-  // Get user preferences (view count & preferred categories)
+  // GET /api/users/me/preferences
   getPreferences: async () => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.USERS.PREFERENCES);
+      const response = await apiClient.get(API_ENDPOINTS.USERS.MY_PREFERENCES);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
-  // Update user preferences
-  updatePreferences: async (preferencesData) => {
-    try {
-      // preferencesData: { category_ids: number[] }
-      const response = await apiClient.put(API_ENDPOINTS.USERS.UPDATE_PREFERENCES, preferencesData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
+  // ── Admin operations ──────────────────────────────────
 
-  // Increment view count (called when viewing products)
-  incrementViewCount: async () => {
-    try {
-      const response = await apiClient.post(API_ENDPOINTS.USERS.PREFERENCES + '/view');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  // ==================== ADMIN OPERATIONS ====================
-
-  // Get all users (admin only)
   getAllUsers: async (params = {}) => {
     try {
-      // params: { page, limit, role, search }
       const response = await apiClient.get(API_ENDPOINTS.USERS.BASE, { params });
       return response.data;
     } catch (error) {
@@ -96,7 +84,6 @@ const userService = {
     }
   },
 
-  // Get user by ID (admin only)
   getUserById: async (userId) => {
     try {
       const response = await apiClient.get(API_ENDPOINTS.USERS.BY_ID(userId));
@@ -106,28 +93,16 @@ const userService = {
     }
   },
 
-  // Update user (admin only)
+  // Admin: can also update role
   updateUser: async (userId, userData) => {
     try {
-      // userData: { first_name?, last_name?, role?, etc. }
-      const response = await apiClient.put(API_ENDPOINTS.USERS.BY_ID(userId), userData);
+      const response = await apiClient.patch(API_ENDPOINTS.USERS.BY_ID(userId), userData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
-  // Create user (admin only)
-  createUser: async (userData) => {
-    try {
-      const response = await apiClient.post(API_ENDPOINTS.USERS.BASE, userData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  // Delete user (admin only)
   deleteUser: async (userId) => {
     try {
       const response = await apiClient.delete(API_ENDPOINTS.USERS.BY_ID(userId));
@@ -137,42 +112,27 @@ const userService = {
     }
   },
 
-  // ==================== UTILITY FUNCTIONS ====================
+  // ── Utilities ─────────────────────────────────────────
 
-  // Get user's full name
   getFullName: (user) => {
     if (!user) return '';
-    const firstName = user.first_name || '';
-    const lastName = user.last_name || '';
-    return `${firstName} ${lastName}`.trim() || user.username;
+    return `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || '';
   },
 
-  // Get user's initials
   getInitials: (user) => {
     if (!user) return '?';
     if (user.first_name && user.last_name) {
       return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
     }
-    return user.username ? user.username[0].toUpperCase() : '?';
+    if (user.first_name) return user.first_name[0].toUpperCase();
+    if (user.email)      return user.email[0].toUpperCase();
+    return '?';
   },
 
-  // Check if user is admin
-  isAdmin: (user) => {
-    return user?.role === 'admin';
-  },
+  isAdmin: (user) => user?.role === 'admin',
 
-  // Check if user is customer
-  isCustomer: (user) => {
-    return user?.role === 'customer';
-  },
-
-  // Format join date
-  formatJoinDate: (createdAt) => {
-    return new Date(createdAt).toLocaleDateString('en-BD', {
-      year: 'numeric',
-      month: 'long',
-    });
-  },
+  formatJoinDate: (createdAt) =>
+    new Date(createdAt).toLocaleDateString('en-BD', { year: 'numeric', month: 'long' }),
 };
 
 export default userService;

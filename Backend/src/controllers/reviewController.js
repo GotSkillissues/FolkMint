@@ -20,6 +20,72 @@ const buildReviewResponse = (row) => ({
   updated_at: row.updated_at
 });
 
+// GET /api/reviews
+// Admin only. All reviews across all users with product + user info.
+const getAllReviews = async (req, res) => {
+  try {
+    const page   = Math.max(1, Number.parseInt(req.query.page,  10) || 1);
+    const limit  = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 15));
+    const offset = (page - 1) * limit;
+    const rating = parsePositiveInt(req.query.rating);
+
+    const conditions = [];
+    const params     = [];
+    let   idx        = 1;
+
+    if (rating) {
+      conditions.push(`r.rating = $${idx}`);
+      params.push(rating);
+      idx++;
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int AS count FROM review r ${whereClause}`,
+      params
+    );
+    const total = countResult.rows[0].count;
+
+    const result = await pool.query(
+      `SELECT
+         r.review_id, r.rating, r.comment,
+         r.user_id, r.product_id,
+         r.created_at, r.updated_at,
+         u.first_name, u.last_name, u.email,
+         p.name AS product_name,
+         p.sku
+       FROM review r
+       JOIN users   u ON u.user_id    = r.user_id
+       JOIN product p ON p.product_id = r.product_id
+       ${whereClause}
+       ORDER BY r.created_at DESC
+       LIMIT $${idx} OFFSET $${idx + 1}`,
+      [...params, limit, offset]
+    );
+
+    return res.status(200).json({
+      reviews: result.rows.map(row => ({
+        ...buildReviewResponse(row),
+        first_name:   row.first_name  || null,
+        last_name:    row.last_name   || null,
+        email:        row.email,
+        product_name: row.product_name,
+        sku:          row.sku         || null,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Get all reviews error:', error);
+    return res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+};
+
 // GET /api/reviews/product/:productId
 // Public. Paginated reviews for a product with summary.
 const getProductReviews = async (req, res) => {
@@ -107,6 +173,9 @@ const getProductReviews = async (req, res) => {
     return res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 };
+
+// Admin only. Returns all reviews across all users with product + user info.
+
 
 // GET /api/reviews/my-reviews
 // Authenticated. Returns all reviews written by the current user.
@@ -346,12 +415,79 @@ const deleteReview = async (req, res) => {
     console.error('Delete review error:', error);
     return res.status(500).json({ error: 'Failed to delete review' });
   }
+  // GET /api/reviews
+// Admin only. Returns all reviews across all users with product + user info.
+// Supports ?page, ?limit, ?rating filter.
+const getAllReviews = async (req, res) => {
+  try {
+    const page   = Math.max(1, Number.parseInt(req.query.page,  10) || 1);
+    const limit  = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 15));
+    const offset = (page - 1) * limit;
+    const rating = parsePositiveInt(req.query.rating);
+
+    const conditions = [];
+    const params     = [];
+    let   idx        = 1;
+
+    if (rating) {
+      conditions.push(`r.rating = $${idx}`);
+      params.push(rating);
+      idx++;
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int AS count FROM review r ${whereClause}`,
+      params
+    );
+    const total = countResult.rows[0].count;
+
+    const result = await pool.query(
+      `SELECT
+         r.review_id, r.rating, r.comment,
+         r.user_id, r.product_id,
+         r.created_at, r.updated_at,
+         u.first_name, u.last_name, u.email,
+         p.name AS product_name,
+         p.sku
+       FROM review r
+       JOIN users   u ON u.user_id    = r.user_id
+       JOIN product p ON p.product_id = r.product_id
+       ${whereClause}
+       ORDER BY r.created_at DESC
+       LIMIT $${idx} OFFSET $${idx + 1}`,
+      [...params, limit, offset]
+    );
+
+    return res.status(200).json({
+      reviews: result.rows.map(row => ({
+        ...buildReviewResponse(row),
+        first_name:   row.first_name  || null,
+        last_name:    row.last_name   || null,
+        email:        row.email,
+        product_name: row.product_name,
+        sku:          row.sku         || null,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Get all reviews error:', error);
+    return res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+};
 };
 
 module.exports = {
+  getAllReviews,
   getProductReviews,
   getMyReviews,
   createReview,
   updateReview,
-  deleteReview
+  deleteReview,
 };

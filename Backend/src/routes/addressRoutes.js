@@ -24,13 +24,11 @@ router.post('/', createAddress);
 // GET /api/addresses/:id
 router.get('/:id', getAddressById);
 
+// PATCH /api/addresses/:id/default  ← MUST be before /:id
+router.patch('/:id/default', setDefaultAddress);
+
 // PATCH /api/addresses/:id
 router.patch('/:id', updateAddress);
-
-// PATCH /api/addresses/:id/default
-// Must be before /:id to avoid ambiguity — but Express handles this correctly
-// because /default is a longer, more specific match after the param segment
-router.patch('/:id/default', setDefaultAddress);
 
 // DELETE /api/addresses/:id
 router.delete('/:id', deleteAddress);

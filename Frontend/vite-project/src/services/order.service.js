@@ -82,14 +82,13 @@ const orderService = {
 
   // Update order status (admin only)
   updateOrderStatus: async (orderId, status) => {
-    try {
-      // status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
-      const response = await apiClient.put(API_ENDPOINTS.ORDERS.BY_ID(orderId), { status });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
+  try {
+    const response = await apiClient.patch(API_ENDPOINTS.ORDERS.UPDATE_STATUS(orderId), { status });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+},
 
   // Delete order (admin only, for cancelled orders)
   deleteOrder: async (orderId) => {

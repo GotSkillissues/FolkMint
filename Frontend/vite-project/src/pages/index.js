@@ -19,3 +19,8 @@ export { default as AdminDashboard } from './AdminDashboard';
 export { default as AdminUsers } from './AdminUsers';
 export { default as AdminOrders } from './AdminOrders';
 export { default as AdminProducts } from './AdminProducts';
+export { default as AdminAnalytics }     from './AdminAnalytics';
+export { default as AdminCategories }    from './AdminCategories';
+export { default as AdminReviews }       from './AdminReviews';
+export { default as AdminNotifications } from './AdminNotifications';
+export { default as Notifications } from './Notifications';

@@ -1,211 +1,138 @@
 import { useState, useEffect, useCallback } from 'react';
 import { addressService } from '../services';
 
-const ADDRESS_META_STORAGE_KEY = 'folkmint_address_meta';
+// Schema truth: address has only street, city, postal_code, country, is_default
+// No first_name, last_name, apartment, district in the DB
+// The old hook faked those fields via localStorage — removed entirely
 
-const readAddressMetaMap = () => {
-  try {
-    const raw = localStorage.getItem(ADDRESS_META_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : {};
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    return {};
-  }
-};
+const getErrorMessage = (err, fallback) =>
+  err?.error || err?.message || fallback;
 
-const writeAddressMetaMap = (metaMap) => {
-  localStorage.setItem(ADDRESS_META_STORAGE_KEY, JSON.stringify(metaMap || {}));
-};
-
-const attachAddressMeta = (address, metaMap) => {
-  const meta = metaMap?.[String(address?.address_id)] || {};
-  return {
-    ...address,
-    first_name: meta.first_name || '',
-    last_name: meta.last_name || '',
-    apartment: meta.apartment || '',
-    district: meta.district || '',
-  };
-};
-
-const toApiAddressPayload = (addressData) => ({
-  street: addressData?.street || '',
-  city: addressData?.city || '',
-  postal_code: addressData?.postal_code || '',
-  country: addressData?.country || 'Bangladesh',
-  is_default: !!addressData?.is_default,
-});
-
-const toMetaAddressPayload = (addressData) => ({
-  first_name: addressData?.first_name || '',
-  last_name: addressData?.last_name || '',
-  apartment: addressData?.apartment || '',
-  district: addressData?.district || '',
-});
-
-const getErrorMessage = (err, fallback) => {
-  return err?.error || err?.message || fallback;
-};
-
-/**
- * Hook for managing user addresses
- */
 export const useAddresses = () => {
-  const [addresses, setAddresses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [addresses, setAddresses]           = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [error, setError]                   = useState(null);
   const [selectedAddress, setSelectedAddress] = useState(null);
-  const [addressMetaMap, setAddressMetaMap] = useState(readAddressMetaMap);
 
   const fetchAddresses = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await addressService.getUserAddresses();
-      const rawList = response.addresses || response.data || response || [];
-      const addressList = Array.isArray(rawList)
-        ? rawList
-          .filter((item) => item?.address_id)
-          .map((item) => attachAddressMeta(item, addressMetaMap))
-        : [];
-      setAddresses(addressList);
-      
-      // Auto-select first address if none selected
-      if (!selectedAddress && addressList.length > 0) {
-        setSelectedAddress(addressList[0]);
-      }
+      const res  = await addressService.getUserAddresses();
+      const list = Array.isArray(res?.addresses) ? res.addresses : [];
+      setAddresses(list);
+      // keep selectedAddress in sync — if it was deleted upstream, clear it
+      setSelectedAddress(prev => {
+        if (!prev) return list.find(a => a.is_default) || list[0] || null;
+        const still = list.find(a => a.address_id === prev.address_id);
+        return still ?? (list.find(a => a.is_default) || list[0] || null);
+      });
     } catch (err) {
       setError(getErrorMessage(err, 'Failed to fetch addresses'));
     } finally {
       setLoading(false);
     }
-  }, [selectedAddress, addressMetaMap]);
-
-  useEffect(() => {
-    fetchAddresses();
   }, []);
 
-  // Add new address
+  useEffect(() => { fetchAddresses(); }, [fetchAddresses]);
+
+  // POST /api/addresses
   const addAddress = async (addressData) => {
     try {
-      const response = await addressService.createAddress(toApiAddressPayload(addressData));
-      const newAddress = response.address || response.data?.address || response.data || response;
-      if (!newAddress?.address_id) {
-        return { success: false, error: 'Invalid address response from server' };
+      const res = await addressService.createAddress(addressData);
+      const created = res?.address;
+      if (!created?.address_id) {
+        return { success: false, error: 'Invalid response from server' };
       }
-
-      const nextMetaMap = {
-        ...addressMetaMap,
-        [String(newAddress.address_id)]: toMetaAddressPayload(addressData),
-      };
-      setAddressMetaMap(nextMetaMap);
-      writeAddressMetaMap(nextMetaMap);
-
-      const mergedAddress = attachAddressMeta(newAddress, nextMetaMap);
-      setAddresses((prev) => {
-        const normalized = mergedAddress.is_default
-          ? prev.map((addr) => ({ ...addr, is_default: false }))
+      setAddresses(prev => {
+        // if new address is default, demote all others locally
+        const base = created.is_default
+          ? prev.map(a => ({ ...a, is_default: false }))
           : prev;
-        return [...normalized, mergedAddress];
+        return [created, ...base];
       });
-
-      if (mergedAddress.is_default) {
-        setSelectedAddress(mergedAddress);
+      if (created.is_default) {
+        setSelectedAddress(created);
+      } else if (!selectedAddress) {
+        setSelectedAddress(created);
       }
-
-      return { success: true, address: mergedAddress };
+      return { success: true, address: created };
     } catch (err) {
       return { success: false, error: getErrorMessage(err, 'Failed to add address') };
     }
   };
 
-  // Update existing address
+  // PATCH /api/addresses/:id  (fields only — never sends is_default)
   const updateAddress = async (addressId, addressData) => {
     try {
-      const response = await addressService.updateAddress(addressId, toApiAddressPayload(addressData));
-      const updatedAddress = response.address || response.data?.address || response.data || response;
-      if (!updatedAddress?.address_id) {
-        return { success: false, error: 'Invalid address response from server' };
+      const res = await addressService.updateAddress(addressId, addressData);
+      const updated = res?.address;
+      if (!updated?.address_id) {
+        return { success: false, error: 'Invalid response from server' };
       }
-
-      const nextMetaMap = {
-        ...addressMetaMap,
-        [String(addressId)]: toMetaAddressPayload(addressData),
-      };
-      setAddressMetaMap(nextMetaMap);
-      writeAddressMetaMap(nextMetaMap);
-
-      const mergedAddress = attachAddressMeta(updatedAddress, nextMetaMap);
-      setAddresses((prev) => {
-        const normalized = mergedAddress.is_default
-          ? prev.map((addr) => ({ ...addr, is_default: false }))
-          : prev;
-
-        return normalized.map((addr) =>
-          addr.address_id === addressId ? mergedAddress : addr
-        );
-      });
-
+      setAddresses(prev =>
+        prev.map(a => a.address_id === addressId ? { ...a, ...updated } : a)
+      );
       if (selectedAddress?.address_id === addressId) {
-        setSelectedAddress(mergedAddress);
-      } else if (mergedAddress.is_default) {
-        setSelectedAddress(mergedAddress);
+        setSelectedAddress(prev => ({ ...prev, ...updated }));
       }
-
-      return { success: true, address: mergedAddress };
+      return { success: true, address: updated };
     } catch (err) {
       return { success: false, error: getErrorMessage(err, 'Failed to update address') };
     }
   };
 
-  // Delete address
+  // PATCH /api/addresses/:id/default  — dedicated endpoint, atomically clears others
+  const setDefaultAddress = async (addressId) => {
+    try {
+      const res = await addressService.setDefaultAddress(addressId);
+      const updated = res?.address;
+      if (!updated?.address_id) {
+        return { success: false, error: 'Invalid response from server' };
+      }
+      // demote all locally, then set the one confirmed by server
+      setAddresses(prev =>
+        prev.map(a =>
+          a.address_id === addressId
+            ? { ...a, is_default: true }
+            : { ...a, is_default: false }
+        )
+      );
+      setSelectedAddress(updated);
+      return { success: true, address: updated };
+    } catch (err) {
+      return { success: false, error: getErrorMessage(err, 'Failed to set default address') };
+    }
+  };
+
+  // DELETE /api/addresses/:id
+  // Backend handles soft-delete vs hard-delete and auto-promotes next default
+  // We refetch after delete so local state reflects what the server decided
   const deleteAddress = async (addressId) => {
     try {
       await addressService.deleteAddress(addressId);
-
-      const nextMetaMap = { ...addressMetaMap };
-      delete nextMetaMap[String(addressId)];
-      setAddressMetaMap(nextMetaMap);
-      writeAddressMetaMap(nextMetaMap);
-
-      setAddresses(prev => {
-        const filtered = prev.filter(addr => addr.address_id !== addressId);
-
-        const hasDefault = filtered.some((addr) => addr.is_default);
-        const normalized = !hasDefault && filtered.length > 0
-          ? filtered.map((addr, index) => ({ ...addr, is_default: index === 0 }))
-          : filtered;
-
-        if (selectedAddress?.address_id === addressId) {
-          setSelectedAddress(normalized[0] || null);
-        }
-        return normalized;
-      });
+      // Refetch so default promotion from backend is reflected accurately
+      await fetchAddresses();
       return { success: true };
     } catch (err) {
       return { success: false, error: getErrorMessage(err, 'Failed to delete address') };
     }
   };
 
-  // Select address
   const selectAddress = (addressId) => {
-    const address = addresses.find(a => a.address_id === addressId);
-    setSelectedAddress(address || null);
+    const found = addresses.find(a => a.address_id === addressId);
+    if (found) setSelectedAddress(found);
   };
 
-  // Format address for display
+  // Human-readable single line — only real schema fields
   const formatAddress = (address) => {
     if (!address) return '';
-    const parts = [
-      [address.first_name, address.last_name].filter(Boolean).join(' ').trim(),
+    return [
       address.street,
-      address.apartment,
       address.city,
-      address.district,
       address.postal_code,
       address.country,
-    ].filter(Boolean);
-    return parts.join(', ');
+    ].filter(Boolean).join(', ');
   };
 
   return {
@@ -215,6 +142,7 @@ export const useAddresses = () => {
     selectedAddress,
     addAddress,
     updateAddress,
+    setDefaultAddress,
     deleteAddress,
     selectAddress,
     formatAddress,

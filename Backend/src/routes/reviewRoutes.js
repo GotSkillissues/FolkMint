@@ -1,24 +1,28 @@
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
 
 const {
+  getAllReviews,
   getProductReviews,
   getMyReviews,
   createReview,
   updateReview,
-  deleteReview
+  deleteReview,
 } = require('../controllers/reviewController');
 
 const { authenticate, isAdmin } = require('../middleware/authMiddleware');
 
+// GET /api/reviews
+// Admin only. All reviews across all users with product + user info.
+// Must be before /:id
+router.get('/', authenticate, isAdmin, getAllReviews);
+
 // GET /api/reviews/product/:productId
-// Public. Paginated reviews with rating distribution summary.
-// Must come before /:id — otherwise 'product' is matched as a review ID
+// Public. Must be before /:id
 router.get('/product/:productId', getProductReviews);
 
 // GET /api/reviews/my-reviews
-// Authenticated. Returns all reviews written by the current user.
-// Must come before /:id — otherwise 'my-reviews' is matched as a review ID
+// Authenticated. Must be before /:id
 router.get('/my-reviews', authenticate, getMyReviews);
 
 // POST /api/reviews

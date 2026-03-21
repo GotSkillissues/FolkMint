@@ -48,6 +48,20 @@ const wishlistService = {
       throw error.response?.data || error;
     }
   },
+
+  // POST /api/wishlist/:wishlistId/move-to-cart
+  // Moves a wishlisted out-of-stock item to cart when it comes back in stock.
+  // Backend verifies stock > 0 and removes from wishlist atomically.
+  moveToCart: async (wishlistId) => {
+    try {
+      const response = await apiClient.post(
+        API_ENDPOINTS.WISHLIST.MOVE_TO_CART(wishlistId)
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
 
 export default wishlistService;
