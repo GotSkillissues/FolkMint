@@ -226,7 +226,7 @@ const Cart = () => {
         @keyframes cr-spin { to { transform: rotate(360deg); } }
 
         .cr-page {
-          width: 100%; padding: 40px 48px 64px;
+          width: 100%; padding: 20px 48px 64px;
           display: flex; flex-direction: column; gap: 12px;
           background: var(--bg-alt); min-height: 100vh;
         }
@@ -396,9 +396,9 @@ const Cart = () => {
         }
         .cr-continue-link:hover { color: var(--dark); }
 
-        @media (max-width: 1100px) { .cr-page { padding: 32px 28px 56px; } }
+        @media (max-width: 1100px) { .cr-page { padding: 20px 28px 56px; } }
         @media (max-width: 900px) {
-          .cr-page { padding: 24px 20px 48px; }
+          .cr-page { padding: 20px 20px 48px; }
           .cr-layout { grid-template-columns: 1fr; }
           .cr-summary { position: static; }
           .cr-head { flex-direction: column; align-items: flex-start; }

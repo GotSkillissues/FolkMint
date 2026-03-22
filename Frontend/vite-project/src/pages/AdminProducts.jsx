@@ -534,6 +534,10 @@ const AdminProducts = () => {
   const loadMoreRef = useRef(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     categoryService
       .getAllCategories()
       .then((res) => setCategories(normalizeCategories(res)))

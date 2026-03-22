@@ -111,7 +111,7 @@ const CategoryLanding = () => {
         @keyframes cl-spin { to { transform: rotate(360deg); } }
 
         .cl-page {
-          width: 100%; padding: 100px 48px 64px;
+          width: 100%; padding: 20px 48px 64px;
           display: flex; flex-direction: column; gap: 20px;
           background: var(--bg-alt); min-height: 100vh;
         }
@@ -161,8 +161,8 @@ const CategoryLanding = () => {
         }
         .cl-btn-primary:hover { background: var(--black); }
 
-        @media (max-width: 1100px) { .cl-page { padding: 88px 28px 56px; } }
-        @media (max-width: 860px) { .cl-page { padding: 80px 20px 48px; } }
+        @media (max-width: 1100px) { .cl-page { padding: 20px 28px 56px; } }
+        @media (max-width: 860px) { .cl-page { padding: 20px 20px 48px; } }
       `}</style>
     </div>
   );

@@ -858,7 +858,7 @@ export default function Account() {
 
         /* ── Page ── */
         .ac-page {
-          width: 100%; padding: 40px 48px 64px;
+          width: 100%; padding: 20px 48px 64px;
           display: flex; flex-direction: column; gap: 12px;
           background: var(--bg-alt); min-height: 100vh;
         }
@@ -1249,9 +1249,9 @@ export default function Account() {
         }
 
         /* ── Responsive ── */
-        @media (max-width: 1100px) { .ac-page { padding: 32px 28px 56px; } }
+        @media (max-width: 1100px) { .ac-page { padding: 20px 28px 56px; } }
         @media (max-width: 860px) {
-          .ac-page { padding: 24px 20px 48px; }
+          .ac-page { padding: 20px 20px 48px; }
           .ac-layout { grid-template-columns: 1fr; }
           .ac-sidebar { position: static; max-height: none; overflow: visible; }
           .ac-profile-card { flex-direction: row; text-align: left; padding: 16px 20px; }

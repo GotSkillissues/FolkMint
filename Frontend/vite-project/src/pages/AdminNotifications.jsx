@@ -33,6 +33,10 @@ const AdminNotifications = () => {
   const [toast, setToast]     = useState({ msg: '', type: 'success' });
   const loadMoreRef = useRef(null);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const showToast  = (msg, type = 'success') => setToast({ msg, type });
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
 

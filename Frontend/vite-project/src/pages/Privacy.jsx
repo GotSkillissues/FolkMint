@@ -327,7 +327,7 @@ const Privacy = () => {
           grid-template-columns: 1fr 320px;
           gap: 60px;
           align-items: center;
-          padding: 80px 80px 72px;
+          padding: 20px 80px 72px;
           background: radial-gradient(circle at 20% 50%, #fdfdfc 0%, var(--bg-alt) 100%);
           border-bottom: 1px solid var(--border);
         }

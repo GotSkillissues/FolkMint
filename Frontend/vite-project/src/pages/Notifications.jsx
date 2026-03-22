@@ -69,6 +69,10 @@ const Notifications = () => {
   const [clearingRead, setClearingRead] = useState(false);
   const loadMoreRef = useRef(null);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const showToast  = useCallback((msg, type = 'success') => setToast({ msg, type }), []);
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
 
@@ -320,7 +324,7 @@ const Notifications = () => {
         @keyframes notif-fade { from { opacity: 0; transform: translateY(-4px); } }
 
         .notif-page {
-            width: 100%; padding: 32px 48px 64px;
+          width: 100%; padding: 20px 48px 64px;
         }
 
         /* Head */
@@ -486,9 +490,9 @@ const Notifications = () => {
         .notif-pag-btn:disabled { opacity: .4; cursor: not-allowed; }
 
         /* Responsive */
-        @media (max-width: 1100px) { .notif-page { padding: 88px 28px 56px; } }
+        @media (max-width: 1100px) { .notif-page { padding: 20px 28px 56px; } }
         @media (max-width: 860px) {
-          .notif-page { padding: 80px 20px 48px; }
+          .notif-page { padding: 20px 20px 48px; }
           .notif-head { flex-direction: column; align-items: flex-start; }
         }
       `}</style>

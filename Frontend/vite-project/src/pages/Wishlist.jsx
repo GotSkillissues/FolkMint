@@ -44,6 +44,10 @@ const Wishlist = () => {
   const [movingId, setMovingId] = useState(null);
   const loadMoreRef = useRef(null);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const showToast = useCallback((msg, type = 'success') => setToast({ msg, type }), []);
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
 
@@ -235,7 +239,7 @@ const Wishlist = () => {
         @keyframes wl-spin { to { transform: rotate(360deg); } }
 
         .wl-page {
-          width: 100%; padding: 40px 48px 64px;
+          width: 100%; padding: 20px 48px 64px;
           display: flex; flex-direction: column; gap: 16px;
           background: var(--bg-alt); min-height: 100vh;
         }
@@ -388,9 +392,9 @@ const Wishlist = () => {
         .wl-btn-ghost:hover { border-color: #f5c2c7; color: #9f1239; }
 
         /* Responsive */
-        @media (max-width: 1100px) { .wl-page { padding: 32px 28px 56px; } }
+        @media (max-width: 1100px) { .wl-page { padding: 20px 28px 56px; } }
         @media (max-width: 860px) {
-          .wl-page { padding: 24px 20px 48px; }
+          .wl-page { padding: 20px 20px 48px; }
           .wl-head { flex-direction: column; align-items: flex-start; }
           .wl-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
         }

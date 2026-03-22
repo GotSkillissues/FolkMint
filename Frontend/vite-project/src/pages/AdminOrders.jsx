@@ -60,6 +60,10 @@ const AdminOrders = () => {
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
   const loadMoreRef = useRef(null);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   /* ── fetch ── */
   const loadOrders = useCallback(async (page = 1, status = statusFilter, append = false) => {
     if (append) setLoadingMore(true);

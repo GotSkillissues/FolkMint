@@ -110,6 +110,10 @@ const Products = () => {
   })();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     setSearchInput(query);
   }, [query]);
 
@@ -421,7 +425,7 @@ const Products = () => {
 
         .pr-page {
           width: 100%;
-          padding: 100px 48px 64px;
+          padding: 20px 48px 64px;
           display: flex;
           flex-direction: column;
           gap: 20px;
@@ -759,12 +763,12 @@ const Products = () => {
         }
 
         @media (max-width: 1100px) {
-          .pr-page { padding: 88px 28px 56px; }
+          .pr-page { padding: 20px 28px 56px; }
           .pr-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
 
         @media (max-width: 860px) {
-          .pr-page { padding: 80px 20px 48px; }
+          .pr-page { padding: 20px 20px 48px; }
           .pr-head { flex-direction: column; align-items: flex-start; }
           .pr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .pr-search-input { min-width: 180px; }

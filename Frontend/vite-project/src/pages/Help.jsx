@@ -249,7 +249,7 @@ const Help = () => {
 
         /* ── HERO ── */
         .help-hero {
-          padding: 80px 80px 64px;
+          padding: 20px 80px 64px;
           background: radial-gradient(circle at 20% 50%, #fdfdfc 0%, var(--bg-alt) 100%);
           border-bottom: 1px solid var(--border);
         }

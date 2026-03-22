@@ -601,7 +601,7 @@ const ProductDetail = () => {
           flexDirection: 'column',
           gap: 12,
           background: '#fff',
-          padding: '100px 24px',
+          padding: '20px 24px',
           textAlign: 'center',
         }}
       >
@@ -1069,7 +1069,7 @@ const ProductDetail = () => {
         .pd-page {
           width: 100%;
           min-height: 100vh;
-          padding: 32px 48px 80px;
+          padding: 20px 48px 80px;
           display: flex;
           flex-direction: column;
           gap: 40px;
@@ -1652,13 +1652,13 @@ const ProductDetail = () => {
         }
 
         @media (max-width: 1100px) {
-          .pd-page { padding: 32px 28px 64px; }
+          .pd-page { padding: 20px 28px 64px; }
           .pd-main { gap: 40px; }
           .pd-c-card { flex: 0 0 calc((100% - 2 * 2px) / 3); }
         }
 
         @media (max-width: 860px) {
-          .pd-page { padding: 32px 20px 56px; }
+          .pd-page { padding: 20px 20px 56px; }
           .pd-main { grid-template-columns: 1fr; gap: 28px; }
           .pd-c-card { flex: 0 0 calc((100% - 2px) / 2); }
         }
