@@ -1,28 +1,112 @@
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context';
 
-const getCartItemId = (item) => item?.cartItemId || item?.variant_id || item?.product_id || item?._id || item?.id;
+const getCartItemId = (item) =>
+  item?.cartItemId || item?.variant_id || item?.product_id || item?._id || item?.id;
 
-const IconTrash     = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>;
-const IconBag       = () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>;
-const IconChevron   = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
-const IconImgFallback = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>;
+const getItemImage = (item) => item?.image || item?.primary_image || null;
+
+const IconTrash = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6M14 11v6" />
+  </svg>
+);
+
+const IconBag = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <path d="M16 10a4 4 0 01-8 0" />
+  </svg>
+);
+
+const IconChevron = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
+const IconImgFallback = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <circle cx="8.5" cy="8.5" r="1.5" />
+    <polyline points="21 15 16 10 5 21" />
+  </svg>
+);
+
+const Spin = ({ s = 14 }) => (
+  <span
+    style={{
+      display: 'inline-block',
+      width: s,
+      height: s,
+      borderRadius: '50%',
+      border: '2px solid rgba(212,175,55,.22)',
+      borderTopColor: 'var(--gold)',
+      animation: 'cr-spin .65s linear infinite',
+      flexShrink: 0,
+    }}
+  />
+);
 
 const Cart = () => {
   const navigate = useNavigate();
   const { cartItems, cartTotal, removeFromCart, updateQuantity, clearCart } = useCart();
+
+  const [busyId, setBusyId] = useState(null);
+  const [clearing, setClearing] = useState(false);
+
   const itemCount = cartItems.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
+
+  const handleUpdateQuantity = async (id, nextQty) => {
+    if (!id) return;
+    if (nextQty < 1) {
+      await handleRemove(id);
+      return;
+    }
+
+    setBusyId(id);
+    try {
+      await updateQuantity(id, nextQty);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleRemove = async (id) => {
+    if (!id) return;
+    setBusyId(id);
+    try {
+      await removeFromCart(id);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleClearCart = async () => {
+    setClearing(true);
+    try {
+      await clearCart();
+    } finally {
+      setClearing(false);
+    }
+  };
 
   return (
     <div className="cr-page">
-
       <div className="cr-head">
         <div>
           <p className="cr-eyebrow">Shopping</p>
           <h1 className="cr-title">Your Cart</h1>
         </div>
+
         {cartItems.length > 0 && (
-          <button className="cr-btn-ghost" onClick={clearCart}>Clear cart</button>
+          <button className="cr-btn-ghost" onClick={handleClearCart} disabled={clearing}>
+            {clearing ? <><Spin s={13} /> Clearing…</> : 'Clear cart'}
+          </button>
         )}
       </div>
 
@@ -35,58 +119,88 @@ const Cart = () => {
         </div>
       ) : (
         <div className="cr-layout">
-
-          {/* Items */}
           <div className="cr-items-card">
             <div className="cr-items-head">
               <span>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
             </div>
 
-            {cartItems.map(item => {
-              const id       = getCartItemId(item);
-              const price    = Number(item.price) || 0;
-              const subtotal = price * item.quantity;
+            {cartItems.map((item) => {
+              const id = getCartItemId(item);
+              const price = Number(item.price) || 0;
+              const qty = Number(item.quantity) || 0;
+              const subtotal = price * qty;
+              const stock = Number(item.stock ?? item.stock_quantity ?? 0);
+              const hasStockCap = Number.isFinite(stock) && stock > 0;
+              const image = getItemImage(item);
+              const rowBusy = busyId === id;
 
               return (
                 <div key={id} className="cr-item">
                   <div className="cr-item-img-wrap">
-                    {item.image && item.image !== '/placeholder-product.jpg'
-                      ? <img src={item.image} alt={item.name} className="cr-item-img" />
-                      : <div className="cr-item-img-ph"><IconImgFallback /></div>
-                    }
+                    {image && image !== '/placeholder-product.jpg' ? (
+                      <img src={image} alt={item.name} className="cr-item-img" />
+                    ) : (
+                      <div className="cr-item-img-ph"><IconImgFallback /></div>
+                    )}
                   </div>
 
                   <div className="cr-item-info">
                     <p className="cr-item-name">{item.name}</p>
                     {item.size && <p className="cr-item-meta">Size: {item.size}</p>}
-                    {item.sku  && <p className="cr-item-meta">SKU: {item.sku}</p>}
+                    {item.sku && <p className="cr-item-meta">SKU: {item.sku}</p>}
                     <p className="cr-item-unit">৳{price.toLocaleString('en-BD')} each</p>
+                    {hasStockCap && qty >= stock && (
+                      <p className="cr-item-stock-note">Max available quantity reached</p>
+                    )}
                   </div>
 
                   <div className="cr-qty">
-                    <button className="cr-qty-btn" onClick={() => updateQuantity(id, item.quantity - 1)} aria-label="Decrease">−</button>
-                    <span className="cr-qty-num">{item.quantity}</span>
-                    <button className="cr-qty-btn" onClick={() => updateQuantity(id, item.quantity + 1)} aria-label="Increase">+</button>
+                    <button
+                      className="cr-qty-btn"
+                      onClick={() => handleUpdateQuantity(id, qty - 1)}
+                      aria-label="Decrease"
+                      disabled={rowBusy}
+                    >
+                      −
+                    </button>
+
+                    <span className="cr-qty-num">
+                      {rowBusy ? <Spin s={12} /> : qty}
+                    </span>
+
+                    <button
+                      className="cr-qty-btn"
+                      onClick={() => handleUpdateQuantity(id, qty + 1)}
+                      aria-label="Increase"
+                      disabled={rowBusy || (hasStockCap && qty >= stock)}
+                    >
+                      +
+                    </button>
                   </div>
 
                   <p className="cr-item-subtotal">৳{subtotal.toLocaleString('en-BD')}</p>
 
-                  <button className="cr-remove-btn" onClick={() => removeFromCart(id)} aria-label="Remove" title="Remove">
-                    <IconTrash />
+                  <button
+                    className="cr-remove-btn"
+                    onClick={() => handleRemove(id)}
+                    aria-label="Remove"
+                    title="Remove"
+                    disabled={rowBusy}
+                  >
+                    {rowBusy ? <Spin s={12} /> : <IconTrash />}
                   </button>
                 </div>
               );
             })}
           </div>
 
-          {/* Summary */}
           <div className="cr-summary">
             <h2 className="cr-summary-title">Order Summary</h2>
 
             <div className="cr-summary-rows">
               <div className="cr-summary-row">
                 <span>Subtotal ({itemCount} item{itemCount !== 1 ? 's' : ''})</span>
-                <span>৳{cartTotal.toLocaleString('en-BD')}</span>
+                <span>৳{Number(cartTotal || 0).toLocaleString('en-BD')}</span>
               </div>
               <div className="cr-summary-row">
                 <span>Shipping</span>
@@ -96,7 +210,7 @@ const Cart = () => {
 
             <div className="cr-summary-total">
               <span>Total</span>
-              <span className="cr-total-val">৳{cartTotal.toLocaleString('en-BD')}</span>
+              <span className="cr-total-val">৳{Number(cartTotal || 0).toLocaleString('en-BD')}</span>
             </div>
 
             <button className="cr-btn-checkout" onClick={() => navigate('/checkout')}>
@@ -109,6 +223,8 @@ const Cart = () => {
       )}
 
       <style>{`
+        @keyframes cr-spin { to { transform: rotate(360deg); } }
+
         .cr-page {
           width: 100%; padding: 40px 48px 64px;
           display: flex; flex-direction: column; gap: 12px;
@@ -128,7 +244,6 @@ const Cart = () => {
           font-weight: 600; color: var(--dark); line-height: 1.1; margin: 0;
         }
 
-        /* Empty */
         .cr-empty {
           display: flex; flex-direction: column; align-items: center;
           gap: 10px; padding: 80px 24px; text-align: center;
@@ -146,10 +261,8 @@ const Cart = () => {
         }
         .cr-empty-sub { font-size: 13.5px; color: var(--muted); margin: 0 0 8px; max-width: 280px; }
 
-        /* Layout */
         .cr-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
 
-        /* Items card */
         .cr-items-card {
           background: var(--bg-card); border: 1px solid var(--border);
           border-radius: var(--r); overflow: hidden;
@@ -159,7 +272,6 @@ const Cart = () => {
           font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
         }
 
-        /* Item row */
         .cr-item {
           display: grid; grid-template-columns: 80px 1fr auto auto auto;
           gap: 18px; align-items: center;
@@ -187,8 +299,10 @@ const Cart = () => {
           font-family: 'Cormorant Garamond', serif;
           font-size: 14px; font-weight: 700; color: var(--gold); margin: 5px 0 0;
         }
+        .cr-item-stock-note {
+          font-size: 11px; color: #9f1239; margin: 4px 0 0;
+        }
 
-        /* Qty */
         .cr-qty {
           display: flex; align-items: center; gap: 0;
           border: 1px solid var(--border); border-radius: calc(var(--r) - 2px);
@@ -199,29 +313,31 @@ const Cart = () => {
           cursor: pointer; font-size: 15px; color: var(--dark); transition: background .15s;
           display: flex; align-items: center; justify-content: center;
         }
-        .cr-qty-btn:hover { background: var(--bg-alt); color: var(--gold); }
+        .cr-qty-btn:hover:not(:disabled) { background: var(--bg-alt); color: var(--gold); }
+        .cr-qty-btn:disabled { opacity: .45; cursor: not-allowed; }
         .cr-qty-num {
-          min-width: 32px; text-align: center; font-size: 13px; font-weight: 700; color: var(--dark);
-          border-left: 1px solid var(--border); border-right: 1px solid var(--border); line-height: 30px;
+          min-width: 32px; min-height: 30px;
+          text-align: center; font-size: 13px; font-weight: 700; color: var(--dark);
+          border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+          line-height: 30px;
+          display: flex; align-items: center; justify-content: center;
         }
 
-        /* Subtotal */
         .cr-item-subtotal {
           font-family: 'Cormorant Garamond', serif;
           font-size: 17px; font-weight: 700; color: var(--dark);
           white-space: nowrap; flex-shrink: 0; min-width: 76px; text-align: right; margin: 0;
         }
 
-        /* Remove */
         .cr-remove-btn {
           width: 30px; height: 30px; border-radius: calc(var(--r) - 2px);
           border: 1px solid var(--border); background: var(--bg-card);
           color: var(--muted); cursor: pointer; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center; transition: all .15s;
         }
-        .cr-remove-btn:hover { border-color: #f5c2c7; color: #9f1239; background: #fff2f3; }
+        .cr-remove-btn:hover:not(:disabled) { border-color: #f5c2c7; color: #9f1239; background: #fff2f3; }
+        .cr-remove-btn:disabled { opacity: .55; cursor: not-allowed; }
 
-        /* Summary */
         .cr-summary {
           background: var(--bg-card); border: 1px solid var(--border);
           border-radius: var(--r); padding: 28px 24px;
@@ -248,7 +364,6 @@ const Cart = () => {
           font-size: 26px; font-weight: 700; color: var(--dark);
         }
 
-        /* Buttons */
         .cr-btn-primary {
           display: inline-flex; align-items: center; gap: 7px;
           padding: 10px 22px; background: var(--dark); color: var(--gold);
@@ -264,7 +379,8 @@ const Cart = () => {
           font-size: 13px; font-weight: 600; color: var(--dark);
           cursor: pointer; transition: border-color .2s, color .2s;
         }
-        .cr-btn-ghost:hover { border-color: #f5c2c7; color: #9f1239; }
+        .cr-btn-ghost:hover:not(:disabled) { border-color: #f5c2c7; color: #9f1239; }
+        .cr-btn-ghost:disabled { opacity: .55; cursor: not-allowed; }
         .cr-btn-checkout {
           display: flex; align-items: center; justify-content: center; gap: 8px;
           width: 100%; padding: 14px 24px; background: var(--dark); color: var(--gold);
@@ -280,7 +396,6 @@ const Cart = () => {
         }
         .cr-continue-link:hover { color: var(--dark); }
 
-        /* Responsive */
         @media (max-width: 1100px) { .cr-page { padding: 32px 28px 56px; } }
         @media (max-width: 900px) {
           .cr-page { padding: 24px 20px 48px; }

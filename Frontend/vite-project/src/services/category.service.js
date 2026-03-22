@@ -1,15 +1,6 @@
 import apiClient from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
 
-/**
- * Category Service
- * Handles all category-related API calls
- * Maps to: category table
- * 
- * Category Structure:
- * - Root categories have parent_category = NULL
- * - Subcategories reference their parent via parent_category
- */
 const categoryService = {
   sortByOrder: (a, b) => {
     const orderA = Number.isFinite(Number(a?.sort_order)) ? Number(a.sort_order) : 0;
@@ -18,7 +9,6 @@ const categoryService = {
     return String(a?.name || '').localeCompare(String(b?.name || ''));
   },
 
-  // Get all categories (flat list)
   getAllCategories: async () => {
     try {
       const response = await apiClient.get(API_ENDPOINTS.CATEGORIES.BASE);
@@ -28,7 +18,6 @@ const categoryService = {
     }
   },
 
-  // Get categories as tree structure
   getCategoryTree: async () => {
     try {
       const response = await apiClient.get(API_ENDPOINTS.CATEGORIES.TREE);
@@ -38,7 +27,6 @@ const categoryService = {
     }
   },
 
-  // Get only root categories
   getRootCategories: async () => {
     try {
       const response = await apiClient.get(API_ENDPOINTS.CATEGORIES.ROOT);
@@ -48,7 +36,6 @@ const categoryService = {
     }
   },
 
-  // Get category by ID
   getCategoryById: async (id) => {
     try {
       const response = await apiClient.get(API_ENDPOINTS.CATEGORIES.BY_ID(id));
@@ -58,7 +45,6 @@ const categoryService = {
     }
   },
 
-  // Get subcategories of a category
   getSubcategories: async (categoryId) => {
     try {
       const response = await apiClient.get(API_ENDPOINTS.CATEGORIES.SUBCATEGORIES(categoryId));
@@ -68,7 +54,6 @@ const categoryService = {
     }
   },
 
-  // Get direct children with preview products (includes descendants per child)
   getChildrenWithProducts: async (categoryId, limit = 8) => {
     try {
       const response = await apiClient.get(API_ENDPOINTS.CATEGORIES.CHILDREN_WITH_PRODUCTS(categoryId), {
@@ -80,10 +65,8 @@ const categoryService = {
     }
   },
 
-  // Create category (admin only)
   createCategory: async (categoryData) => {
     try {
-      // categoryData: { name, parent_category? }
       const response = await apiClient.post(API_ENDPOINTS.CATEGORIES.BASE, categoryData);
       return response.data;
     } catch (error) {
@@ -91,17 +74,16 @@ const categoryService = {
     }
   },
 
-  // Update category (admin only)
+  // FIX: was PUT — backend only exposes PATCH /categories/:id
   updateCategory: async (id, categoryData) => {
     try {
-      const response = await apiClient.put(API_ENDPOINTS.CATEGORIES.BY_ID(id), categoryData);
+      const response = await apiClient.patch(API_ENDPOINTS.CATEGORIES.BY_ID(id), categoryData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
-  // Delete category (admin only)
   deleteCategory: async (id) => {
     try {
       const response = await apiClient.delete(API_ENDPOINTS.CATEGORIES.BY_ID(id));
@@ -111,20 +93,13 @@ const categoryService = {
     }
   },
 
-  // ==================== UTILITY FUNCTIONS ====================
-
-  // Build tree structure from flat list
   buildCategoryTree: (categories) => {
     const map = {};
     const roots = [];
     const sortedCategories = [...categories].sort(categoryService.sortByOrder);
-
-    // Create map
     sortedCategories.forEach(cat => {
       map[cat.category_id] = { ...cat, subcategories: [] };
     });
-
-    // Build tree
     sortedCategories.forEach(cat => {
       if (cat.parent_category) {
         if (map[cat.parent_category]) {
@@ -134,11 +109,9 @@ const categoryService = {
         roots.push(map[cat.category_id]);
       }
     });
-
     return roots;
   },
 
-  // Flatten tree to list
   flattenCategoryTree: (tree, depth = 0) => {
     const result = [];
     tree.forEach(category => {
@@ -150,11 +123,9 @@ const categoryService = {
     return result;
   },
 
-  // Get breadcrumb path for a category
   getCategoryBreadcrumb: (categories, categoryId) => {
     const path = [];
     let current = categories.find(c => c.category_id === categoryId);
-    
     while (current) {
       path.unshift(current);
       if (current.parent_category) {
@@ -163,27 +134,22 @@ const categoryService = {
         break;
       }
     }
-    
     return path;
   },
 
-  // Check if category has subcategories
   hasSubcategories: (categories, categoryId) => {
     return categories.some(c => c.parent_category === categoryId);
   },
 
-  // Get all descendant category IDs
   getDescendantIds: (categories, categoryId) => {
     const ids = [];
     const children = categories
       .filter(c => c.parent_category === categoryId)
       .sort(categoryService.sortByOrder);
-    
     children.forEach(child => {
       ids.push(child.category_id);
       ids.push(...categoryService.getDescendantIds(categories, child.category_id));
     });
-    
     return ids;
   },
 };

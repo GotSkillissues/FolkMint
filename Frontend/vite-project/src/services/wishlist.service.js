@@ -11,10 +11,12 @@ const wishlistService = {
     }
   },
 
-  addToWishlist: async (productId) => {
+  // FIX: schema wishlist.variant_id — must send variant_id, not product_id
+  // For unsized products, pass the product's default variant id (size = NULL)
+  addToWishlist: async (variantId) => {
     try {
       const response = await apiClient.post(API_ENDPOINTS.WISHLIST.BASE, {
-        product_id: productId,
+        variant_id: variantId,
       });
       return response.data;
     } catch (error) {
@@ -31,6 +33,15 @@ const wishlistService = {
     }
   },
 
+  removeFromWishlistByVariant: async (variantId) => {
+    try {
+      const response = await apiClient.delete(API_ENDPOINTS.WISHLIST.REMOVE_BY_VARIANT(variantId));
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   clearWishlist: async () => {
     try {
       const response = await apiClient.delete(API_ENDPOINTS.WISHLIST.CLEAR);
@@ -40,23 +51,19 @@ const wishlistService = {
     }
   },
 
-  checkWishlist: async (productId) => {
+  // variantId — matches GET /api/wishlist/check/:variantId
+  checkWishlist: async (variantId) => {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.WISHLIST.CHECK(productId));
+      const response = await apiClient.get(API_ENDPOINTS.WISHLIST.CHECK(variantId));
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
-  // POST /api/wishlist/:wishlistId/move-to-cart
-  // Moves a wishlisted out-of-stock item to cart when it comes back in stock.
-  // Backend verifies stock > 0 and removes from wishlist atomically.
   moveToCart: async (wishlistId) => {
     try {
-      const response = await apiClient.post(
-        API_ENDPOINTS.WISHLIST.MOVE_TO_CART(wishlistId)
-      );
+      const response = await apiClient.post(API_ENDPOINTS.WISHLIST.MOVE_TO_CART(wishlistId));
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

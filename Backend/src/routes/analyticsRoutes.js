@@ -9,13 +9,20 @@ const {
   getLowStockProducts,
   getCategoryPerformance,
   getRecentActivity,
-  getReviewStats
+  getReviewStats,
+  getAnalytics,           // ← new
 } = require('../controllers/analyticsController');
 
 const { authenticate, isAdmin } = require('../middleware/authMiddleware');
 
 // All analytics routes are admin only
 router.use(authenticate, isAdmin);
+
+// GET /api/analytics
+// General-purpose aggregate — combines revenue, orders, customers,
+// sales series, status breakdown, and top products in one call.
+// ?days=30&period=daily|weekly|monthly
+router.get('/', getAnalytics);
 
 // GET /api/analytics/dashboard
 router.get('/dashboard', getDashboardStats);

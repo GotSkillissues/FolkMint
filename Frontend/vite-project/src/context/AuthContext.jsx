@@ -5,111 +5,84 @@ const AuthContext = createContext(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user,            setUser]            = useState(null);
+  const [loading,         setLoading]         = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in
     const initAuth = async () => {
       const token = authService.getToken();
-
-      if (token) {
+      if (!token) { setLoading(false); return; }
+      try {
+        const response    = await authService.getProfile();
+        const profileUser = response?.user;
+        if (profileUser) {
+          setUser(profileUser);
+          setIsAuthenticated(true);
+          localStorage.setItem('user', JSON.stringify(profileUser));
+        } else {
+          authService.clearSession();
+        }
+      } catch {
         try {
-          const response = await authService.getProfile();
-          const profileUser = response?.user;
-
-          if (profileUser) {
-            setUser(profileUser);
+          await authService.refreshAccessToken();
+          const retry     = await authService.getProfile();
+          const retryUser = retry?.user;
+          if (retryUser) {
+            setUser(retryUser);
             setIsAuthenticated(true);
-            localStorage.setItem('user', JSON.stringify(profileUser));
+            localStorage.setItem('user', JSON.stringify(retryUser));
           } else {
             authService.clearSession();
-            setUser(null);
-            setIsAuthenticated(false);
           }
         } catch {
-          try {
-            await authService.refreshAccessToken();
-            const retryResponse = await authService.getProfile();
-            const retryUser = retryResponse?.user;
-
-            if (retryUser) {
-              setUser(retryUser);
-              setIsAuthenticated(true);
-              localStorage.setItem('user', JSON.stringify(retryUser));
-            } else {
-              authService.clearSession();
-              setUser(null);
-              setIsAuthenticated(false);
-            }
-          } catch {
-            authService.clearSession();
-            setUser(null);
-            setIsAuthenticated(false);
-          }
+          authService.clearSession();
         }
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
-
     initAuth();
   }, []);
 
+  // Returns the logged-in user so the caller can trigger cart sync
   const login = async (email, password) => {
     const response = await authService.login(email, password);
-    setUser(response.user);
-    setIsAuthenticated(true);
+    if (response?.user) {
+      setUser(response.user);
+      setIsAuthenticated(true);
+    }
     return response;
   };
 
   const register = async (userData) => {
     const response = await authService.register(userData);
-    setUser(response.user);
-    setIsAuthenticated(true);
+    if (response?.user) {
+      setUser(response.user);
+      setIsAuthenticated(true);
+    }
     return response;
   };
 
   const logout = async () => {
-    try {
-      await authService.logout();
-      setUser(null);
-      setIsAuthenticated(false);
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Clear local state even if API call fails
-      setUser(null);
-      setIsAuthenticated(false);
-    }
+    await authService.logout();
+    setUser(null);
+    setIsAuthenticated(false);
   };
 
-  const updateUser = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const updateUser = (updatedUser) => {
+    setUser(prev => ({ ...prev, ...updatedUser }));
+    localStorage.setItem('user', JSON.stringify({ ...user, ...updatedUser }));
   };
 
-  const value = {
-    user,
-    isAuthenticated,
-    loading,
-    login,
-    register,
-    logout,
-    updateUser,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, loading, isAuthenticated, login, register, logout, updateUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
-
-export default AuthContext;

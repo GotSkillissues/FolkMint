@@ -1,34 +1,35 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { orderService, userService, wishlistService } from '../services';
-import { useAddresses } from '../hooks';
+import { useAddresses, usePaymentMethods } from '../hooks';
 import { useAuth } from '../context';
 
 const STORAGE_KEY = 'folkmint_account_section';
-const SECTIONS    = ['details', 'orders', 'addresses', 'wishlist'];
-const getSaved    = () => { try { const s = localStorage.getItem(STORAGE_KEY); return SECTIONS.includes(s) ? s : 'details'; } catch { return 'details'; } };
+const SECTIONS = ['details', 'orders', 'addresses', 'payment_methods', 'wishlist'];
+const getSaved = () => { try { const s = localStorage.getItem(STORAGE_KEY); return SECTIONS.includes(s) ? s : 'details'; } catch { return 'details'; } };
 
 /* ── Icons ── */
 const I = {
-  User:    () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
-  Orders:  () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>,
-  Pin:     () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>,
-  Heart:   () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
-  Lock:    () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-  Logout:  () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
-  Shield:  () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-  Edit:    () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>,
-  Trash:   () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>,
-  Plus:    () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-  Star:    () => <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>,
-  X:       () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-  Check:   () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-  Chevron: () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
-  Eye:     () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-  EyeOff:  () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
-  EmptyBox:   () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
-  EmptyPin:   () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>,
-  EmptyHeart: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+  User: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>,
+  Orders: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /><path d="M9 12h6M9 16h4" /></svg>,
+  Pin: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /><circle cx="12" cy="9" r="2.5" /></svg>,
+  Heart: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>,
+  Lock: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>,
+  Logout: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>,
+  Shield: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
+  Edit: () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z" /></svg>,
+  Trash: () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /></svg>,
+  Plus: () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>,
+  Star: () => <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" /></svg>,
+  X: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>,
+  Check: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
+  Chevron: () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>,
+  Eye: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>,
+  EyeOff: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></svg>,
+  EmptyBox: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>,
+  EmptyPin: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /><circle cx="12" cy="9" r="2.5" /></svg>,
+  EmptyHeart: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>,
+  Card: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>,
 };
 
 const Spin = ({ s = 16 }) => <span className="ac-spin" style={{ width: s, height: s }} />;
@@ -42,12 +43,12 @@ const Toast = ({ msg, type, onClose }) => (
 );
 
 const STATUS_META = {
-  pending:    { label: 'Pending',    color: '#d97706', bg: '#fff7e6', border: '#fcd9a0' },
-  confirmed:  { label: 'Confirmed',  color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+  pending: { label: 'Pending', color: '#d97706', bg: '#fff7e6', border: '#fcd9a0' },
+  confirmed: { label: 'Confirmed', color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
   processing: { label: 'Processing', color: '#0891b2', bg: '#f0f9ff', border: '#bae6fd' },
-  shipped:    { label: 'Shipped',    color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
-  delivered:  { label: 'Delivered',  color: '#15803d', bg: '#f0faf3', border: '#bbe5c8' },
-  cancelled:  { label: 'Cancelled',  color: '#9f1239', bg: '#fff2f3', border: '#f5c2c7' },
+  shipped: { label: 'Shipped', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+  delivered: { label: 'Delivered', color: '#15803d', bg: '#f0faf3', border: '#bbe5c8' },
+  cancelled: { label: 'Cancelled', color: '#9f1239', bg: '#fff2f3', border: '#f5c2c7' },
 };
 const StatusBadge = ({ status }) => {
   const m = STATUS_META[status] || { label: status, color: '#64748b', bg: '#f8fafc', border: '#e2e8f0' };
@@ -63,9 +64,9 @@ const StatusBadge = ({ status }) => {
 };
 
 const PW_RULES = [
-  { id: 'len',   label: 'At least 6 characters',    test: v => v.length >= 6 },
-  { id: 'upper', label: 'One uppercase letter',      test: v => /[A-Z]/.test(v) },
-  { id: 'num',   label: 'One number',                test: v => /[0-9]/.test(v) },
+  { id: 'len', label: 'At least 6 characters', test: v => v.length >= 6 },
+  { id: 'upper', label: 'One uppercase letter', test: v => /[A-Z]/.test(v) },
+  { id: 'num', label: 'One number', test: v => /[0-9]/.test(v) },
 ];
 
 const ADDR_BLANK = { street: '', city: '', postal_code: '', country: 'Bangladesh' };
@@ -113,13 +114,18 @@ const AddressForm = ({ vals, onChange, onSubmit, busy, submitLabel, onCancel, sh
 ══════════════════════════════════════════════════════ */
 export default function Account() {
   const location = useLocation();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   const { user, updateUser, logout } = useAuth();
   const {
     addresses, loading: addrLoading,
     addAddress, updateAddress, setDefaultAddress, deleteAddress,
     refetch: refetchAddresses,
   } = useAddresses();
+
+  const {
+    paymentMethods, loading: pmLoading, addPaymentMethod,
+    setDefault: setPmDefault, deletePaymentMethod, getLabel: getPmLabel,
+  } = usePaymentMethods();
 
   const [section, setSection] = useState(getSaved);
   useEffect(() => { localStorage.setItem(STORAGE_KEY, section); }, [section]);
@@ -136,9 +142,11 @@ export default function Account() {
     setTimeout(() => setToast(null), 3500);
   }, []);
 
+
+
   const [profileLoading, setProfileLoading] = useState(true);
-  const [form, setForm]       = useState({ first_name: '', last_name: '' });
-  const [formSnap, setSnap]   = useState(null);
+  const [form, setForm] = useState({ first_name: '', last_name: '' });
+  const [formSnap, setSnap] = useState(null);
   const [editingPro, setEditPro] = useState(false);
   const [savingPro, setSavingPro] = useState(false);
 
@@ -147,7 +155,7 @@ export default function Account() {
       setProfileLoading(true);
       try {
         const res = await userService.getProfile();
-        const p   = res?.user || user || {};
+        const p = res?.user || user || {};
         const snap = { first_name: p.first_name || '', last_name: p.last_name || '' };
         setForm(snap); setSnap(snap);
       } catch { showToast('Failed to load profile.', 'error'); }
@@ -155,12 +163,12 @@ export default function Account() {
     })();
   }, []);
 
-  const [pwForm, setPwForm]     = useState({ password: '', confirm: '' });
-  const [showPw, setShowPw]     = useState({ password: false, confirm: false });
+  const [pwForm, setPwForm] = useState({ password: '', confirm: '' });
+  const [showPw, setShowPw] = useState({ password: false, confirm: false });
   const [savingPw, setSavingPw] = useState(false);
   const [pwSection, setPwSection] = useState(false);
 
-  const [orders, setOrders]         = useState([]);
+  const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdLoad] = useState(false);
   const [ordersLoaded, setOrdLoaded] = useState(false);
 
@@ -177,8 +185,8 @@ export default function Account() {
     })();
   }, [section, ordersLoaded]);
 
-  const [wish, setWish]             = useState([]);
-  const [wishLoading, setWishLoad]  = useState(false);
+  const [wish, setWish] = useState([]);
+  const [wishLoading, setWishLoad] = useState(false);
   const [wishLoaded, setWishLoaded] = useState(false);
 
   useEffect(() => {
@@ -194,13 +202,19 @@ export default function Account() {
     })();
   }, [section, wishLoaded]);
 
-  const [newAddr, setNewAddr]       = useState({ ...ADDR_BLANK });
+  const [newAddr, setNewAddr] = useState({ ...ADDR_BLANK });
   const [newAddrDefault, setNewAddrDefault] = useState(false);
-  const [addrDrafts, setDrafts]     = useState({});
-  const [editAddrId, setEditAddr]   = useState(null);
-  const [addrBusy, setAddrBusy]     = useState(null);
+  const [addrDrafts, setDrafts] = useState({});
+  const [editAddrId, setEditAddr] = useState(null);
+  const [addrBusy, setAddrBusy] = useState(null);
   const [addingAddr, setAddingAddr] = useState(false);
-  const [showModal, setShowModal]   = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  const [pmBusy, setPmBusy] = useState(null);
+  const [pmLoaded, setPmLoaded] = useState(false);
+  const [showAddPm, setShowAddPm] = useState(false);
+  const [newPmType, setNewPmType] = useState('cod');
+  const [addingPm, setAddingPm] = useState(false);
 
   useEffect(() => {
     const d = {};
@@ -247,7 +261,7 @@ export default function Account() {
   const handleAddAddr = async e => {
     e.preventDefault();
     if (!newAddr.street?.trim()) { showToast('Street address is required.', 'error'); return; }
-    if (!newAddr.city?.trim())   { showToast('City is required.', 'error'); return; }
+    if (!newAddr.city?.trim()) { showToast('City is required.', 'error'); return; }
     setAddingAddr(true);
     try {
       const result = await addAddress({ ...newAddr, is_default: newAddrDefault });
@@ -260,7 +274,7 @@ export default function Account() {
   const handleUpdateAddr = async (id) => {
     const d = addrDrafts[id];
     if (!d?.street?.trim()) { showToast('Street address is required.', 'error'); return; }
-    if (!d?.city?.trim())   { showToast('City is required.', 'error'); return; }
+    if (!d?.city?.trim()) { showToast('City is required.', 'error'); return; }
     setAddrBusy(id);
     try {
       const result = await updateAddress(id, d);
@@ -292,15 +306,50 @@ export default function Account() {
     finally { setAddrBusy(null); }
   };
 
+  const handleAddPm = async (e) => {
+    e.preventDefault();
+    setAddingPm(true);
+    try {
+      const result = await addPaymentMethod({ type: newPmType, is_default: paymentMethods.length === 0 });
+      if (!result.success) throw new Error(result.error);
+      showToast('Payment method added.');
+      setShowAddPm(false);
+      setNewPmType('cod');
+    } catch (err) { showToast(err?.message || 'Failed to add payment method.', 'error'); }
+    finally { setAddingPm(false); }
+  };
+
+  const handleSetPmDefault = async (id) => {
+    setPmBusy(id);
+    try {
+      const result = await setPmDefault(id);
+      if (!result.success) throw new Error(result.error);
+      showToast('Default payment method updated.');
+    } catch (err) { showToast(err?.message || 'Failed to update default.', 'error'); }
+    finally { setPmBusy(null); }
+  };
+
+  const handleDeletePm = async (id) => {
+    if (!window.confirm('Remove this payment method?')) return;
+    setPmBusy(id);
+    try {
+      const result = await deletePaymentMethod(id);
+      if (!result.success) throw new Error(result.error);
+      showToast('Payment method removed.');
+    } catch (err) { showToast(err?.message || 'Failed to remove payment method.', 'error'); }
+    finally { setPmBusy(null); }
+  };
+
   const initials = `${form.first_name?.[0] || user?.first_name?.[0] || ''}${form.last_name?.[0] || user?.last_name?.[0] || ''}`.toUpperCase() || 'U';
   const displayName = `${form.first_name} ${form.last_name}`.trim() || user?.email || 'My Account';
   const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-BD', { year: 'numeric', month: 'long' }) : null;
 
   const NAV = [
-    { key: 'details',   label: 'Account Details', Icon: I.User },
-    { key: 'orders',    label: 'My Orders',        Icon: I.Orders },
-    { key: 'addresses', label: 'Addresses',        Icon: I.Pin },
-    { key: 'wishlist',  label: 'Wishlist',         Icon: I.Heart },
+    { key: 'details', label: 'Account Details', Icon: I.User },
+    { key: 'orders', label: 'My Orders', Icon: I.Orders },
+    { key: 'addresses', label: 'Addresses', Icon: I.Pin },
+    { key: 'payment_methods', label: 'Payment Methods', Icon: I.Card },
+    { key: 'wishlist', label: 'Wishlist', Icon: I.Heart },
   ];
 
   if (profileLoading) return (
@@ -430,9 +479,9 @@ export default function Account() {
                   <div className="ac-detail-table">
                     {[
                       { label: 'First name', value: form.first_name || user?.first_name },
-                      { label: 'Last name',  value: form.last_name  || user?.last_name },
-                      { label: 'Email',      value: user?.email },
-                      { label: 'Role',       value: user?.role === 'admin' ? 'Administrator' : 'Customer' },
+                      { label: 'Last name', value: form.last_name || user?.last_name },
+                      { label: 'Email', value: user?.email },
+                      { label: 'Role', value: user?.role === 'admin' ? 'Administrator' : 'Customer' },
                     ].map(r => (
                       <div key={r.label} className="ac-detail-row">
                         <span className="ac-detail-lbl">{r.label}</span>
@@ -584,8 +633,8 @@ export default function Account() {
                 <div className="ac-addr-list">
                   {addresses.map(addr => {
                     const isEditing = editAddrId === addr.address_id;
-                    const isBusy    = addrBusy   === addr.address_id;
-                    const draft     = addrDrafts[addr.address_id] || {};
+                    const isBusy = addrBusy === addr.address_id;
+                    const draft = addrDrafts[addr.address_id] || {};
 
                     return (
                       <div key={addr.address_id} className={`ac-addr-card${addr.is_default ? ' is-default' : ''}${isEditing ? ' is-editing' : ''}`}>
@@ -651,6 +700,80 @@ export default function Account() {
                       onCancel={() => { if (!addingAddr) setShowModal(false); }}
                       showDefault={true} isDefault={newAddrDefault} onDefaultChange={setNewAddrDefault} />
                   </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {section === 'payment_methods' && (
+            <div className="ac-section">
+              <div className="ac-section-head">
+                <h2 className="ac-section-title">Payment Methods</h2>
+                <button className="ac-btn-outline" onClick={() => setShowAddPm(v => !v)}>
+                  {showAddPm ? 'Cancel' : <><I.Plus /> Add Method</>}
+                </button>
+              </div>
+
+              {showAddPm && (
+                <form className="ac-pm-add-form" onSubmit={handleAddPm}>
+                  <p className="ac-label">Select type</p>
+                  <div className="ac-pm-type-grid">
+                    {[
+                      { value: 'cod', label: 'Cash on Delivery' },
+                      { value: 'bkash', label: 'bKash' },
+                      { value: 'visa', label: 'Visa' },
+                      { value: 'mastercard', label: 'Mastercard' },
+                      { value: 'amex', label: 'American Express' },
+                    ].map(pt => (
+                      <label key={pt.value} className={`ac-pm-type-opt${newPmType === pt.value ? ' selected' : ''}`}>
+                        <input type="radio" name="pmtype" checked={newPmType === pt.value}
+                          onChange={() => setNewPmType(pt.value)} style={{ display: 'none' }} />
+                        {pt.label}
+                      </label>
+                    ))}
+                  </div>
+                  <button className="ac-btn-primary" type="submit" disabled={addingPm}>
+                    {addingPm ? <Spin /> : 'Save Method'}
+                  </button>
+                </form>
+              )}
+
+              {pmLoading ? (
+                <div className="ac-loader"><Spin /> Loading…</div>
+              ) : paymentMethods.length === 0 ? (
+                <div className="ac-empty-state">
+                  <I.Card />
+                  <p className="ac-empty-title">No payment methods saved</p>
+                  <p className="ac-empty-sub">Add a method for faster checkout.</p>
+                </div>
+              ) : (
+                <div className="ac-pm-list">
+                  {paymentMethods.map(pm => (
+                    <div key={pm.payment_method_id} className="ac-pm-row">
+                      <div className="ac-pm-info">
+                        <span className="ac-pm-name">{getPmLabel(pm.type)}</span>
+                        {pm.is_default && <span className="ac-default-chip">Default</span>}
+                      </div>
+                      <div className="ac-pm-actions">
+                        {!pm.is_default && (
+                          <button
+                            className="ac-action-btn"
+                            disabled={pmBusy === pm.payment_method_id}
+                            onClick={() => handleSetPmDefault(pm.payment_method_id)}
+                          >
+                            {pmBusy === pm.payment_method_id ? <Spin /> : 'Set Default'}
+                          </button>
+                        )}
+                        <button
+                          className="ac-action-btn ac-action-danger"
+                          disabled={pmBusy === pm.payment_method_id}
+                          onClick={() => handleDeletePm(pm.payment_method_id)}
+                        >
+                          {pmBusy === pm.payment_method_id ? <Spin /> : <I.Trash />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -775,8 +898,12 @@ export default function Account() {
 
         /* ── Sidebar ── */
         .ac-sidebar {
-          position: sticky; top: 88px;
+          position: sticky; top: 104px;
           display: flex; flex-direction: column; gap: 12px;
+          align-self: start;
+          max-height: calc(100vh - 120px);
+          overflow: auto;
+          padding-right: 2px;
         }
 
         /* Profile card */
@@ -1125,7 +1252,7 @@ export default function Account() {
         @media (max-width: 860px) {
           .ac-page { padding: 24px 20px 48px; }
           .ac-layout { grid-template-columns: 1fr; }
-          .ac-sidebar { position: static; }
+          .ac-sidebar { position: static; max-height: none; overflow: visible; }
           .ac-profile-card { flex-direction: row; text-align: left; padding: 16px 20px; }
           .ac-avatar-wrap { flex-shrink: 0; }
           .ac-avatar { width: 52px; height: 52px; font-size: 1.1rem; }
@@ -1137,14 +1264,90 @@ export default function Account() {
         }
         @media (max-width: 600px) {
           .ac-card { padding: 20px; }
+          .ac-section { padding: 20px; }
           .ac-form-grid { grid-template-columns: 1fr; }
           .ac-addr-grid  { grid-template-columns: 1fr; }
           .ac-wish-grid  { grid-template-columns: repeat(2, 1fr); }
           .ac-nav { grid-template-columns: 1fr 1fr; }
+          .ac-pm-row { flex-direction: column; align-items: flex-start; }
+          .ac-pm-actions { width: 100%; flex-wrap: wrap; }
         }
         @media (max-width: 380px) {
           .ac-wish-grid { grid-template-columns: 1fr; }
         }
+        /* ── Payment methods ── */
+        .ac-section {
+          background: var(--bg-card); border: 1px solid var(--border);
+          border-radius: var(--r); padding: 28px 32px;
+          animation: ac-card-in .18s ease both;
+        }
+        .ac-section-head {
+          display: flex; align-items: flex-start;
+          justify-content: space-between; gap: 16px;
+          padding-bottom: 20px; margin-bottom: 24px;
+          border-bottom: 1px solid var(--border);
+        }
+        .ac-section-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 22px; font-weight: 600; color: var(--dark); margin: 0;
+        }
+        .ac-empty-state {
+          display: flex; flex-direction: column; align-items: center;
+          justify-content: center; gap: 8px; padding: 56px 24px; text-align: center;
+          color: var(--muted);
+        }
+        .ac-empty-state svg {
+          width: 40px; height: 40px;
+        }
+        .ac-default-chip {
+          font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+          padding: 2px 8px; border-radius: 999px; background: var(--gold); color: var(--dark);
+        }
+        .ac-action-btn {
+          display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+          min-height: 32px; padding: 7px 12px; background: var(--bg-card);
+          border: 1px solid var(--border); border-radius: calc(var(--r) - 2px);
+          font-size: 12px; font-weight: 600; color: var(--dark); cursor: pointer;
+          transition: border-color .2s, background .2s, color .2s;
+        }
+        .ac-action-btn:hover:not(:disabled) {
+          border-color: var(--dark); background: var(--bg);
+        }
+        .ac-action-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .ac-action-danger:hover:not(:disabled) {
+          border-color: #f5c2c7; color: #9f1239; background: #fff2f3;
+        }
+        .ac-pm-add-form {
+          background: var(--bg-alt); border: 1px solid var(--border);
+          border-radius: var(--r); padding: 20px 24px;
+          display: flex; flex-direction: column; gap: 12px;
+          margin-bottom: 16px;
+        }
+        .ac-pm-type-grid {
+          display: flex; flex-wrap: wrap; gap: 8px;
+        }
+        .ac-pm-type-opt {
+          padding: 8px 16px; border: 1px solid var(--border);
+          border-radius: var(--r); font-size: 13px; font-weight: 600;
+          cursor: pointer; transition: all .15s; color: var(--dark);
+          background: var(--bg-card);
+        }
+        .ac-pm-type-opt.selected {
+          border-color: var(--gold); background: var(--gold-muted); color: var(--dark);
+        }
+        .ac-pm-list {
+          display: flex; flex-direction: column; gap: 1px; background: var(--border);
+          border: 1px solid var(--border); border-radius: var(--r); overflow: hidden;
+        }
+        .ac-pm-row {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 12px; padding: 14px 18px; background: var(--bg-card);
+          transition: background .15s;
+        }
+        .ac-pm-row:hover { background: var(--bg); }
+        .ac-pm-info { display: flex; align-items: center; gap: 10px; }
+        .ac-pm-name { font-size: 14px; font-weight: 600; color: var(--dark); }
+        .ac-pm-actions { display: flex; align-items: center; gap: 8px; }
       `}</style>
     </div>
   );
