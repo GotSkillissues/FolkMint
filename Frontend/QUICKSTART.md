@@ -1,189 +1,103 @@
-# 🚀 Quick Start Guide
+# FolkMint Frontend Quickstart
 
-## Get Your Frontend Running in 3 Steps!
+This document is for a developer who wants to run the project and understand the first few things to test.
 
-### Step 1: Environment Setup
+---
+
+## 1. Prerequisites
+
+Install these first:
+
+- Node.js 18+
+- npm
+- PostgreSQL
+- a running backend environment for FolkMint
+
+---
+
+## 2. Run the backend first
+
+From `Backend/`:
+
 ```bash
-# Navigate to the frontend directory
-cd "d:\L2-T1 Project\FolkMint\Frontend\vite-project"
-
-# The .env file is already created with:
-# VITE_API_BASE_URL=http://localhost:5000/api
+npm install
+npm run db:schema
+npm run db:seed
+npm run start
 ```
 
-### Step 2: Install & Start
+Expected backend URL:
+- `http://localhost:5000`
+
+---
+
+## 3. Run the frontend
+
+From `Frontend/vite-project/`:
+
 ```bash
-# Dependencies are already installed, just run:
+npm install
 npm run dev
 ```
 
-### Step 3: Open Browser
-```
-http://localhost:5173
-```
+Expected frontend URL:
+- `http://localhost:5173`
 
 ---
 
-## 📂 What You Got
+## 4. How frontend-backend connection works in development
 
-### **Architecture**
-```
-✅ Config Layer     → API endpoints
-✅ Service Layer    → Backend communication
-✅ Context Layer    → State management
-✅ Component Layer  → Reusable UI
-✅ Page Layer       → Views/Routes
-✅ Utils Layer      → Helpers & constants
-```
+`vite.config.js` defines a proxy:
 
-### **Features**
-- ✅ Authentication (Login/Register)
-- ✅ Product Listing & Details
-- ✅ Shopping Cart
-- ✅ Protected Routes
-- ✅ Responsive Design
-- ✅ API Integration Ready
+- requests starting with `/api`
+- are forwarded to `http://localhost:5000`
 
-### **Pages Available**
-- `/` - Home page
-- `/login` - Login form
-- `/register` - Registration form
-- `/products/:id` - Product details
-- `/cart` - Shopping cart
+`src/config/api.config.js` uses:
+- `VITE_API_BASE_URL` if provided
+- otherwise `/api`
 
 ---
 
-## 🔌 Backend Connection
+## 5. First things to verify
 
-### Your backend needs these endpoints:
+Start with these pages in order:
 
-**Authentication:**
-- `POST /api/auth/login`
-- `POST /api/auth/register`
-- `GET /api/auth/me`
-
-**Products:**
-- `GET /api/products`
-- `GET /api/products/:id`
-- `POST /api/products`
-- `PUT /api/products/:id`
-- `DELETE /api/products/:id`
-
-**Categories:**
-- `GET /api/categories`
-- `POST /api/categories`
-
-**Orders:**
-- `GET /api/orders`
-- `POST /api/orders`
-
-**Users:**
-- `GET /api/users/profile`
-- `PUT /api/users/profile`
+1. `/`
+2. `/products`
+3. `/products/:id`
+4. `/register` and `/login`
+5. `/cart`
+6. `/checkout`
+7. `/account` and `/orders`
+8. `/wishlist` and `/notifications`
+9. `/admin/*`
 
 ---
 
-## 💡 Usage Examples
+## 6. Seed/admin setup
 
-### Import and Use Services
-```javascript
-import { productService, authService } from './services';
+Useful backend scripts:
 
-// Get products
-const products = await productService.getAllProducts();
-
-// Login user
-await authService.login(email, password);
+```bash
+npm run db:seed
+npm run db:create-admin
 ```
 
-### Use Context Hooks
-```javascript
-import { useAuth, useCart } from './context';
-
-function MyComponent() {
-  const { user, isAuthenticated } = useAuth();
-  const { cartCount, addToCart } = useCart();
-  
-  // Use them!
-}
-```
+Use them so you have:
+- sample catalog data
+- an admin account for testing admin screens
 
 ---
 
-## 📖 Documentation Files
+## 7. Recommended manual smoke test
 
-- `README.md` - Full project documentation
-- `STRUCTURE.md` - Architecture details
-- `IMPLEMENTATION.md` - What was built
-- `QUICKSTART.md` - This file
-
----
-
-## 🎯 Next Actions
-
-1. ✅ Frontend is ready
-2. ⏩ Start your backend server
-3. ⏩ Test the connection
-4. ⏩ Customize styles
-5. ⏩ Add more features
-
----
-
-## 🛠️ File Structure
-
-```
-src/
-├── config/           # API configuration
-├── services/         # API calls (7 services)
-├── context/          # State (Auth, Cart)
-├── components/       # UI components
-│   ├── Layout/       # Header, Footer
-│   ├── Product/      # ProductCard
-│   └── Common/       # Loading, ProtectedRoute
-├── pages/            # Views (5 pages)
-├── utils/            # Helpers & constants
-└── App.jsx           # Main app with routing
-```
-
----
-
-## 🎨 Styling
-
-- **Primary Color:** `#d4a574` (Gold)
-- **Responsive:** Mobile-first design
-- **Breakpoint:** 768px
-- **Modern:** Box shadows, transitions, rounded corners
-
----
-
-## 🔥 Cool Features
-
-### Auto Token Management
-The `api.service.js` automatically:
-- Adds auth token to requests
-- Handles 401 errors
-- Redirects to login when needed
-
-### Persistent Cart
-Cart data saved in localStorage:
-- Survives page refresh
-- Real-time count in header
-- Easy add/remove/update
-
-### Protected Routes
-Automatically redirects:
-- Unauthenticated users to login
-- Authenticated users away from login/register
-
----
-
-## 📞 Need Help?
-
-Check these files:
-- `README.md` - Comprehensive guide
-- `STRUCTURE.md` - Architecture details
-- Code comments in service files
-
----
-
-**Your modular frontend is ready to connect to your backend! 🎉**
+1. open `/products`
+2. open one product page
+3. add a variant to cart
+4. register or log in
+5. verify cart state
+6. create/select address
+7. create/select payment method
+8. place order
+9. open `/orders`
+10. log in as admin and open `/admin`

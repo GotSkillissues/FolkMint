@@ -1,109 +1,99 @@
-# FolkMint Frontend Update
+# Frontend Current-State Notes
 
-Date: March 14, 2026
+This file explains the current frontend conventions and the most important things a new developer should know before changing code.
 
-## Scope Completed
-The frontend implementation has been upgraded from basic placeholder routing/pages to a functional and styled experience across customer and admin areas.
+---
 
-## Completed Work
+## 1. Source of truth order
 
-### 1) Routing and page coverage
-- Added full route coverage for existing navigation links.
-- Added public pages for:
-  - Products listing
-  - About
-  - Terms
-  - Privacy
-  - Shipping
-  - Help
-- Added protected customer pages for:
-  - Checkout
-  - Account
-  - Orders
-  - Wishlist
-- Added protected admin pages for:
-  - Admin Dashboard
-  - Admin Users
-  - Admin Orders
-  - Admin Products
+When you are unsure how something works, use this order:
 
-### 2) Access control
-- Added role-based admin guard component to block non-admin access to admin routes.
-- Integrated admin route protection into main app routing.
-- Added Admin Dashboard link in header menu for admin users only.
+1. **Database schema** for data ownership and field names
+2. **Backend routes/controllers** for actual API behavior
+3. **`src/config/api.config.js`** for frontend endpoint mapping
+4. **frontend service file** for the request contract
+5. **page/component** for how the UI consumes it
 
-### 3) API contract alignment (Frontend ↔ Backend)
-- Updated endpoint config to match backend route structure for:
-  - Auth refresh endpoint
-  - Addresses
-  - Payment methods
-  - Cart operations
-  - Orders listing/details
-- Added wishlist endpoint config and dedicated wishlist service.
-- Updated user profile service behavior to use supported profile endpoints.
+---
 
-### 4) Cart and product data shape stability
-- Fixed cart item identity handling to support backend-compatible IDs.
-- Normalized product/cart fields (price/image/stock/id) to prevent runtime mismatches.
-- Updated cart page operations (update/remove) to use normalized item IDs.
+## 2. Frontend architecture rule
 
-### 5) Functional customer workflows
-- Products page now supports:
-  - Search
-  - Sort options
-  - URL-synced query behavior
-- Checkout page now supports:
-  - Address selection and creation
-  - Payment method selection and creation
-  - Cart sync before order placement
-  - Order creation flow and redirect to orders
-- Account page now supports:
-  - Profile load
-  - Profile update
-- Orders page now supports:
-  - Status filter chips
-  - Cancel action where allowed
-- Wishlist page now supports:
-  - Fetch list
-  - Remove single item
-  - Clear all items
+The intended architecture is:
 
-### 6) UI/UX modernization
-- Replaced default inline-style placeholder look with reusable stylesheet system.
-- Added shared page UI stylesheet for consistent components:
-  - Cards
-  - Buttons
-  - Chips
-  - Inputs/selects
-  - Status messages
-  - Responsive page shells
-- Applied unified styling across:
-  - Products
-  - Checkout
-  - Account
-  - Orders
-  - Wishlist
-  - Admin pages
-  - About/Terms/Privacy/Shipping/Help
+```text
+Page / Component / Context / Hook
+   ↓
+Service layer
+   ↓
+api.service.js
+   ↓
+Backend API
+```
 
-## Validation Status
-- Frontend build succeeds after updates.
-- Updated files in the new UI flow compile cleanly.
-- Legacy lint issues still exist in older pre-existing files (outside this update scope), mainly in:
-  - Auth context
-  - Cart context hooks/effects
-  - Home page hook usage patterns
+Why this is the preferred pattern:
+- endpoint paths stay centralized
+- auth header logic stays centralized
+- request/response behavior is easier to debug
+- components remain focused on UI
 
-## Current Completion Summary
-- Frontend routing coverage: Complete for currently linked navigation paths.
-- Customer core flow: Implemented and usable.
-- Admin entry flow: Implemented and usable.
-- UI consistency: Upgraded and standardized for newly completed pages.
+---
 
-## Recommended Next Step
-- Run a focused lint cleanup pass for pre-existing issues in legacy files, then add smoke tests for:
-  - Auth
-  - Cart
-  - Checkout
-  - Orders
-  - Admin route protection
+## 3. Auth/session conventions
+
+The frontend uses:
+- `AuthContext.jsx` for auth state
+- `auth.service.js` for auth requests
+- `api.service.js` interceptors for token handling
+- route guards for protected UI paths
+
+---
+
+## 4. Cart conventions
+
+The cart has two modes:
+
+### Guest mode
+- local storage based
+
+### Authenticated mode
+- backend `/api/cart` based
+
+On login, the app can sync local cart items into the server cart.
+
+---
+
+## 5. Product model conventions
+
+The current schema and backend are centered around:
+
+- **product**
+- **product_variant**
+- **product_image**
+
+Important reminders:
+- product images are product-level
+- stock is variant-level
+- cart and wishlist usually work with `variant_id`
+
+---
+
+## 6. Safe change strategy
+
+When changing any API-backed UI feature:
+
+1. confirm backend route actually exists
+2. confirm request method is correct
+3. confirm payload field names match backend/schema
+4. update `api.config.js`
+5. update the relevant service
+6. test the page flow manually
+
+---
+
+## 7. Final summary
+
+If you only remember three things, remember these:
+
+1. trust live code over stale comments
+2. keep API access inside services
+3. verify data shape against the schema when in doubt

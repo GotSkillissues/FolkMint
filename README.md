@@ -1,405 +1,284 @@
-# 🛍️ FolkMint - E-Commerce Platform
+# FolkMint
 
-> A full-stack e-commerce website for handcrafted Bangladeshi products (clothing, jewelry, home decor, etc.)
+FolkMint is a full-stack e-commerce application for handcrafted South Asian products. The project has three major layers:
 
----
+1. **PostgreSQL database** for persistent data
+2. **Express/Node.js backend** for REST APIs and business logic
+3. **React + Vite frontend** for the customer and admin interfaces
 
-## 📖 What is This Project?
+This repository is best understood by reading the project in this order:
 
-**FolkMint** is an online store (like Amazon, but smaller and for local artisan products). It has two main parts:
-
-1. **Backend** - The "brain" that stores data and handles business logic
-2. **Frontend** - The "face" that users see and interact with
-
----
-
-## 🏗️ Project Architecture (The Big Picture)
-
-```
-┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
-│                 │         │                 │         │                 │
-│    FRONTEND     │ ◄─────► │     BACKEND     │ ◄─────► │    DATABASE     │
-│   (React App)   │   API   │  (Express API)  │   SQL   │  (PostgreSQL)   │
-│                 │         │                 │         │                 │
-└─────────────────┘         └─────────────────┘         └─────────────────┘
-     Port 5173                  Port 3000                   Port 5432
-```
-
-**In simple terms:**
-- User clicks a button on the website (Frontend)
-- Frontend sends a request to the Backend
-- Backend fetches/saves data from the Database
-- Backend sends the data back to Frontend
-- Frontend displays it to the user
+1. `Backend/src/schema/FolkMint.schema.sql`
+2. `Backend/src/routes/*.js`
+3. `Backend/src/controllers/*.js`
+4. `Frontend/vite-project/src/config/api.config.js`
+5. `Frontend/vite-project/src/services/*.js`
+6. `Frontend/vite-project/src/context/*.jsx`
+7. `Frontend/vite-project/src/pages/*.jsx`
 
 ---
 
-## 🧰 Technologies Used (What Tools Are We Using?)
+## 1. What the project does
 
-### Backend (Server-Side)
-| Technology | What It Does |
-|------------|--------------|
-| **Node.js** | JavaScript runtime - lets you run JavaScript outside the browser |
-| **Express.js** | Web framework - makes building APIs easy |
-| **PostgreSQL** | Database - stores all your data (users, products, orders, etc.) |
-| **pg** | Node.js driver - lets JavaScript talk to PostgreSQL |
-| **dotenv** | Loads secret passwords from a `.env` file |
-| **cors** | Allows Frontend to talk to Backend (cross-origin requests) |
-| **nodemon** | Auto-restarts server when you change code |
+FolkMint supports the main workflows of a small online marketplace:
 
-### Frontend (Client-Side)
-| Technology | What It Does |
-|------------|--------------|
-| **React 19** | UI library - builds the user interface with components |
-| **Vite** | Build tool - super fast development server and bundler |
-| **React Router** | Navigation - handles page routing (Home, Login, Product pages) |
-| **Axios** | HTTP client - sends requests to the Backend API |
-| **Context API** | State management - shares data across components (Auth, Cart) |
+- user registration and login
+- product browsing by category
+- product detail, variants, stock and images
+- cart and wishlist
+- checkout from cart into an order
+- address management
+- payment method management
+- reviews for purchased products
+- notifications
+- admin tools for products, categories, orders, users, reviews, analytics and system notifications
+
+The platform is split into two experiences:
+
+- **Customer experience**: browse, buy, review, track orders
+- **Admin experience**: manage catalog and operations
 
 ---
 
-## 📁 Folder Structure Explained
+## 2. Big-picture architecture
 
-### Backend Structure
-```
-Backend/
-├── package.json          # 📦 Dependencies and scripts
-├── src/
-│   ├── app.js            # 🚀 Express app setup (middleware, routes)
-│   ├── server.js         # 🌐 Starts the server on port 3000
-│   ├── config/
-│   │   └── database.js   # 🗄️ PostgreSQL connection setup
-│   ├── controllers/      # 🎮 Business logic (what happens when you hit an API)
-│   │   ├── authController.js     # Login/Register logic
-│   │   ├── productController.js  # Product CRUD operations
-│   │   ├── orderController.js    # Order management
-│   │   └── ...
-│   ├── middleware/
-│   │   └── authMiddleware.js     # 🔒 Checks if user is logged in
-│   ├── routes/           # 🛣️ URL endpoints (API routes)
-│   │   ├── index.js      # Combines all routes
-│   │   ├── authRoutes.js # /api/auth/login, /api/auth/register
-│   │   ├── productRoutes.js # /api/products
-│   │   └── ...
-│   ├── schema/
-│   │   ├── seed.sql      # 🌱 Sample data for testing
-│   │   └── FolkMint.schema.sql # 📊 Database table definitions
-│   └── utils/
-│       └── helpers.js    # 🔧 Reusable helper functions
+```text
+React pages/components
+        │
+        ▼
+Frontend service layer
+        │
+        ▼
+Axios API client
+        │   HTTP / JSON
+        ▼
+Express routes
+        │
+        ▼
+Controllers
+        │
+        ▼
+PostgreSQL
 ```
 
-### Frontend Structure
-```
-Frontend/vite-project/
-├── package.json          # 📦 Dependencies and scripts
-├── index.html            # 📄 Entry HTML file
-├── vite.config.js        # ⚙️ Vite configuration
-├── src/
-│   ├── main.jsx          # 🚪 Entry point - renders React app
-│   ├── App.jsx           # 🏠 Root component - defines routes
-│   ├── App.css           # 🎨 Global styles
-│   ├── components/       # 🧩 Reusable UI pieces
-│   │   ├── Common/       # Shared components
-│   │   │   ├── Loading.jsx       # Loading spinner
-│   │   │   └── ProtectedRoute.jsx # Auth guard
-│   │   ├── Layout/       # Page layout
-│   │   │   ├── Header.jsx        # Navigation bar
-│   │   │   ├── Footer.jsx        # Footer
-│   │   │   └── Layout.jsx        # Page wrapper
-│   │   └── Product/
-│   │       └── ProductCard.jsx   # Product display card
-│   ├── pages/            # 📑 Full pages (routes)
-│   │   ├── Home.jsx      # Home page
-│   │   ├── Login.jsx     # Login page
-│   │   ├── Register.jsx  # Registration page
-│   │   ├── ProductDetail.jsx # Single product page
-│   │   └── Cart.jsx      # Shopping cart page
-│   ├── context/          # 🧠 Global state management
-│   │   ├── AuthContext.jsx   # User authentication state
-│   │   └── CartContext.jsx   # Shopping cart state
-│   ├── services/         # 📡 API calls to Backend
-│   │   ├── api.service.js    # Base Axios config
-│   │   ├── auth.service.js   # Login/Register API calls
-│   │   ├── product.service.js # Product API calls
-│   │   ├── cart.service.js   # Cart API calls
-│   │   └── ...
-│   ├── hooks/            # 🪝 Custom React hooks
-│   │   ├── useProducts.js    # Fetch products hook
-│   │   ├── useOrders.js      # Fetch orders hook
-│   │   └── ...
-│   └── config/
-│       └── api.config.js     # API URL configuration
+### Frontend side
+The frontend is designed around this flow:
+
+**Page / Component → Service → `api.service.js` → Backend API**
+
+This is the main pattern throughout the app. It keeps API details centralized and reduces duplicated request logic.
+
+### Backend side
+The backend is organized like this:
+
+**Route → Middleware → Controller → Database queries**
+
+The backend does not currently use a separate repository/service layer; most business logic and SQL access live in controllers.
+
+---
+
+## 3. Repository structure
+
+```text
+FolkMint/
+├── README.md
+├── Backend/
+│   ├── package.json
+│   ├── BACKEND.md
+│   └── src/
+│       ├── app.js
+│       ├── server.js
+│       ├── config/
+│       ├── controllers/
+│       ├── middleware/
+│       ├── routes/
+│       ├── schema/
+│       └── utils/
+└── Frontend/
+    ├── STRUCTURE.md
+    ├── QUICKSTART.md
+    ├── IMPLEMENTATION.md
+    ├── FRONTEND_UPDATE.md
+    └── vite-project/
+        ├── package.json
+        ├── vite.config.js
+        └── src/
+            ├── config/
+            ├── context/
+            ├── components/
+            ├── hooks/
+            ├── pages/
+            ├── services/
+            └── utils/
 ```
 
 ---
 
-## 🔄 How Data Flows (Step-by-Step Example)
+## 4. Core domain model
 
-### Example: User Views Products on Home Page
+The main business entities are:
 
-```
-1️⃣ User opens http://localhost:5173 (Frontend)
-   └── App.jsx renders Home.jsx
+- **users**: customers and admins
+- **categories**: hierarchical catalog structure
+- **product**: master product record
+- **product_variant**: size/stock records for a product
+- **product_image**: product-level images
+- **cart**: current authenticated user's cart
+- **orders** and **order_item**
+- **payment_method**
+- **payment**
+- **review**
+- **wishlist**
+- **notification**
 
-2️⃣ Home.jsx component mounts
-   └── useEffect() runs
-   └── Calls productService.getAllProducts()
+A key design choice in this project is that:
 
-3️⃣ productService.js makes HTTP GET request
-   └── axios.get('http://localhost:3000/api/products')
-
-4️⃣ Backend receives request at /api/products
-   └── productRoutes.js → productController.js
-
-5️⃣ productController.js queries PostgreSQL database
-   └── SELECT * FROM product JOIN product_variant...
-
-6️⃣ Database returns product data
-
-7️⃣ Backend sends JSON response to Frontend
-   └── { products: [...], total: 18 }
-
-8️⃣ Frontend receives data
-   └── setProducts(data.products)
-
-9️⃣ React re-renders with product data
-   └── ProductCard components display products
-```
+- images are stored at the **product** level
+- stock is tracked at the **variant** level
+- categories support tree structure through both `parent_category` and a closure table
 
 ---
 
-## 🗄️ Database Schema (What Data We Store)
+## 5. Request lifecycle example
 
-```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│    users     │     │   product    │     │    orders    │
-├──────────────┤     ├──────────────┤     ├──────────────┤
-│ id           │     │ id           │     │ id           │
-│ username     │     │ name         │     │ user_id (FK) │
-│ email        │     │ description  │     │ total_amount │
-│ password_hash│     │ base_price   │     │ status       │
-│ first_name   │     │ category_id  │     │ created_at   │
-│ last_name    │     └──────────────┘     └──────────────┘
-│ role         │            │
-└──────────────┘            ▼
-                   ┌────────────────┐
-                   │ product_variant│
-                   ├────────────────┤
-                   │ id             │
-                   │ product_id(FK) │
-                   │ size           │
-                   │ color          │
-                   │ stock_quantity │
-                   │ price          │
-                   └────────────────┘
-```
+### Example: customer opens a product page
 
-**Other tables:** `category`, `cart`, `cart_item`, `order_item`, `review`, `address`, `payment_method`
+1. React route `/products/:id` renders `ProductDetail.jsx`
+2. The page uses frontend services and hooks to fetch:
+   - product detail
+   - variants
+   - images
+   - reviews
+   - related products
+3. `product.service.js` calls the centralized axios client in `api.service.js`
+4. Axios sends requests to `/api/products/:id` and related endpoints
+5. Express routes map the request to `productController.js`
+6. The controller queries PostgreSQL and builds the response payload
+7. The frontend receives JSON and renders product information
 
 ---
 
-## 🚀 How to Run This Project
+## 6. API groups
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [PostgreSQL](https://www.postgresql.org/download/) (v14 or higher)
-- A code editor (VS Code recommended)
+The backend mounts these route groups under `/api`:
 
-### Step 1: Set Up the Database
+- `/auth`
+- `/users`
+- `/addresses`
+- `/categories`
+- `/products`
+- `/cart`
+- `/orders`
+- `/payment-methods`
+- `/payments`
+- `/reviews`
+- `/wishlist`
+- `/notifications`
+- `/analytics`
+- `/upload`
 
-```bash
-# 1. Open PostgreSQL and create the database
-CREATE DATABASE folkmint;
-
-# 2. Run the schema to create tables
-cd Backend
-npm run db:schema
-
-# 3. Seed sample data
-npm run db:seed
-```
-
-### Step 2: Set Up the Backend
-
-```bash
-# 1. Navigate to Backend folder
-cd Backend
-
-# 2. Install dependencies
-npm install
-
-# 3. Create a .env file with your database credentials
-# (Create a file named ".env" in Backend folder)
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=folkmint
-DB_USER=postgres
-DB_PASSWORD=your_password_here
-
-# 4. Start the server
-npm start
-
-# ✅ You should see: "Server running on port 3000"
-```
-
-### Step 3: Set Up the Frontend
-
-```bash
-# 1. Navigate to Frontend folder
-cd Frontend/vite-project
-
-# 2. Install dependencies
-npm install
-
-# 3. Start the development server
-npm run dev
-
-# ✅ Open http://localhost:5173 in your browser
-```
+Each group is documented in `Backend/BACKEND.md`.
 
 ---
 
-## 🔗 API Endpoints (Backend URLs)
+## 7. Authentication model
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/register` | Create new user account |
-| `POST` | `/api/auth/login` | Login and get token |
-| `GET` | `/api/products` | Get all products |
-| `GET` | `/api/products/:id` | Get single product |
-| `GET` | `/api/categories` | Get all categories |
-| `GET` | `/api/users/:id` | Get user profile |
-| `POST` | `/api/orders` | Create new order |
-| `GET` | `/api/orders/:id` | Get order details |
-
----
-
-## 🧩 Key Concepts Explained
-
-### 1. What is an API?
-An **API** (Application Programming Interface) is like a waiter in a restaurant:
-- You (Frontend) tell the waiter (API) what you want
-- The waiter goes to the kitchen (Database)
-- The waiter brings back your food (Data)
-
-### 2. What is a Component?
-A **component** is a reusable piece of UI. Think of it like LEGO blocks:
-- `Header` component = Navigation bar
-- `ProductCard` component = One product display
-- `Button` component = A clickable button
-
-You can use the same component multiple times with different data!
-
-### 3. What is State?
-**State** is data that can change over time:
-- `products` = list of products (changes when you filter)
-- `user` = logged in user (changes when you login/logout)
-- `cart` = items in cart (changes when you add/remove)
-
-### 4. What is Context?
-**Context** is a way to share state across many components without passing props down manually:
-- `AuthContext` = Shares user login state everywhere
-- `CartContext` = Shares shopping cart everywhere
-
-### 5. What is a Route?
-A **route** maps a URL to a page:
-- `/` → Home page
-- `/login` → Login page
-- `/products/5` → Product with ID 5
-
-### 6. What is Middleware?
-**Middleware** is code that runs BEFORE your main logic:
-- `authMiddleware` checks if user is logged in before allowing access
-- Like a security guard checking your ID before entering a club
-
----
-
-## 🐛 Common Issues & Fixes
-
-### "CORS Error"
-```
-Access-Control-Allow-Origin error
-```
-**Fix:** Make sure Backend is running and CORS is configured in `app.js`
-
-### "Connection Refused"
-```
-Error: connect ECONNREFUSED 127.0.0.1:3000
-```
-**Fix:** Start the Backend server (`npm start` in Backend folder)
-
-### "Database Connection Failed"
-```
-Error: password authentication failed
-```
-**Fix:** Check your `.env` file has correct database password
-
-### "Module Not Found"
-```
-Cannot find module 'express'
-```
-**Fix:** Run `npm install` in the folder that shows the error
-
----
-
-## 📝 Available Scripts
+The app uses JWT-based authentication.
 
 ### Backend
-```bash
-npm start        # Start server with nodemon (auto-restart)
-npm run dev      # Same as start
-npm run db:schema # Create database tables
-npm run db:seed   # Add sample data
-npm run db:reset  # Reset database (schema + seed)
-```
+- login issues an access token and refresh token
+- protected routes use `authenticate`
+- admin-only routes also use `isAdmin`
 
 ### Frontend
+- `AuthContext.jsx` stores the current user session
+- `api.service.js` injects the access token into requests
+- the response interceptor attempts token refresh on `401`
+- protected frontend routes are enforced with `ProtectedRoute` and `RequireAdmin`
+
+---
+
+## 8. How checkout works
+
+Checkout is centered around the current cart.
+
+1. User adds variants to cart
+2. User selects or creates an address
+3. User selects or creates a payment method
+4. Frontend calls `POST /api/orders`
+5. Backend creates an order from the cart
+6. Order items and payment records are generated
+7. Cart is cleared after successful order creation
+8. Customer can view the new order in `/orders`
+
+---
+
+## 9. How to run the project
+
+### Backend
+From `Backend/`:
+
 ```bash
-npm run dev      # Start development server
-npm run build    # Build for production
-npm run preview  # Preview production build
-npm run lint     # Check code for errors
+npm install
+npm run db:schema
+npm run db:seed
+npm run start
 ```
 
----
+The API starts on `http://localhost:5000`.
 
-## 🎯 What's Currently Working?
+### Frontend
+From `Frontend/vite-project/`:
 
-- ✅ Home page with products
-- ✅ Product detail page
-- ✅ User registration
-- ✅ User login/logout
-- ✅ Shopping cart (add/remove items)
-- ✅ Product categories
-- ✅ Responsive design
+```bash
+npm install
+npm run dev
+```
 
-## 🚧 What Needs Work?
+The Vite dev server starts on `http://localhost:5173`.
 
-- ⬜ Checkout process
-- ⬜ Order history
-- ⬜ Admin dashboard
-- ⬜ Search functionality
-- ⬜ User profile page
-- ⬜ Payment integration
+During development, requests to `/api` are proxied to `http://localhost:5000`.
 
 ---
 
-## 📚 Learning Resources
+## 10. Environment and external services
 
-- [React Docs](https://react.dev/) - Learn React basics
-- [Express.js Guide](https://expressjs.com/en/guide/routing.html) - Backend routing
-- [PostgreSQL Tutorial](https://www.postgresqltutorial.com/) - SQL basics
-- [Axios Docs](https://axios-http.com/docs/intro) - HTTP requests
-- [Vite Guide](https://vitejs.dev/guide/) - Build tool docs
+### Backend
+The backend expects environment variables for:
+
+- database connection
+- JWT secrets
+- Cloudinary upload credentials
+
+### Frontend
+The frontend can use:
+
+- `VITE_API_BASE_URL`
+
+If not set, it defaults to `/api`, which works with the Vite proxy in development.
 
 ---
 
-## 🤝 Contributing
+## 11. Where to read next
 
-1. Make your changes
-2. Test that everything works
-3. Commit with a clear message
+- `Backend/BACKEND.md` — backend architecture, endpoints and responsibilities
+- `Backend/src/schema/FolkMint_Schema_Guide.md` — database explanation
+- `Backend/src/schema/Admin_add_product_guide.md` — product creation workflow
+- `Frontend/STRUCTURE.md` — frontend folder layout and data flow
+- `Frontend/QUICKSTART.md` — practical setup and first test flow
+- `Frontend/IMPLEMENTATION.md` — what is implemented and how it behaves
+- `Frontend/FRONTEND_UPDATE.md` — current frontend notes, conventions and cleanup items
 
 ---
 
-Made with ❤️ for L2-T1 Project
+## 12. New developer summary
+
+If you are new to this project, the most important things to remember are:
+
+- the **database schema is the source of truth for data shape**
+- the **backend routes/controllers are the source of truth for API behavior**
+- the **frontend should usually talk to the backend through services, not direct fetch calls**
+- categories are hierarchical, products have variants, and orders are created from the cart
+- admin functionality is built into the same frontend app under `/admin/*`
+
+That mental model is enough to start reading the code with confidence.
