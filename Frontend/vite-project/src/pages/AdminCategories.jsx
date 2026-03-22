@@ -36,11 +36,13 @@ const flattenTree = (nodes, depth = 0) => {
 /* Recursive category row */
 const CategoryRow = ({ node, depth, flatList, onSave, onDelete }) => {
   const [editing, setEditing]   = useState(false);
+  // FIX: initialise is_active in draft state so the toggle has a value to read/write
   const [draft, setDraft]       = useState({
     name:            node.name || '',
     description:     node.description || '',
     parent_category: node.parent_category != null ? String(node.parent_category) : '',
     sort_order:      node.sort_order != null ? String(node.sort_order) : '',
+    is_active:       node.is_active !== false,
   });
   const [saving, setSaving]     = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -102,6 +104,16 @@ const CategoryRow = ({ node, depth, flatList, onSave, onDelete }) => {
               value={draft.sort_order}
               onChange={e => setDraft(p => ({ ...p, sort_order: e.target.value }))}
             />
+            {/* FIX: is_active toggle — sends is_active in the PATCH payload */}
+            <label className="ac-active-toggle">
+              <input
+                type="checkbox"
+                checked={draft.is_active !== false}
+                onChange={e => setDraft(p => ({ ...p, is_active: e.target.checked }))}
+                className="ac-active-checkbox"
+              />
+              <span>Active (visible to customers)</span>
+            </label>
             <div className="ac-cat-edit-actions">
               <button className="ac-btn-save" disabled={saving} onClick={handleSave}>
                 {saving ? <span className="ac-spinner" /> : 'Save'}
@@ -121,6 +133,10 @@ const CategoryRow = ({ node, depth, flatList, onSave, onDelete }) => {
               <span className="ac-cat-slug">{node.category_slug}</span>
               {node.sort_order != null && (
                 <span className="ac-cat-order">order {node.sort_order}</span>
+              )}
+              {/* FIX: show inactive badge in read mode so admin can see status at a glance */}
+              {node.is_active === false && (
+                <span className="ac-cat-inactive-badge">Inactive</span>
               )}
             </div>
             {node.description && <p className="ac-cat-desc">{node.description}</p>}
@@ -214,6 +230,7 @@ const AdminCategories = () => {
     }
   };
 
+  // FIX: now forwards is_active from draft to the PATCH call
   const handleSave = async (categoryId, draft) => {
     try {
       await categoryService.updateCategory(categoryId, {
@@ -221,6 +238,7 @@ const AdminCategories = () => {
         description:     draft.description.trim() || undefined,
         parent_category: draft.parent_category ? Number(draft.parent_category) : null,
         sort_order:      draft.sort_order !== '' ? Number(draft.sort_order) : undefined,
+        is_active:       draft.is_active !== false,
       });
       showToast('Category updated.');
       await loadTree();
@@ -464,6 +482,27 @@ const AdminCategories = () => {
           cursor: pointer; box-sizing: border-box; width: 100%;
         }
         .ac-select:focus { outline: none; border-color: var(--gold); }
+
+        /* is_active toggle */
+        .ac-active-toggle {
+          display: flex; align-items: center; gap: 8px;
+          font-size: 13px; color: var(--color-text-secondary, var(--muted));
+          cursor: pointer; white-space: nowrap; flex-basis: 100%;
+          padding: 4px 0;
+        }
+        .ac-active-checkbox {
+          width: 15px; height: 15px;
+          accent-color: var(--gold);
+          cursor: pointer; flex-shrink: 0;
+        }
+
+        /* inactive badge shown in read mode */
+        .ac-cat-inactive-badge {
+          font-size: 10px; font-weight: 700; letter-spacing: .06em;
+          text-transform: uppercase; color: #9f1239;
+          background: #fff2f3; border: 1px solid #f5c2c7;
+          padding: 1px 7px; border-radius: 999px;
+        }
 
         /* tree card */
         .ac-tree-card {

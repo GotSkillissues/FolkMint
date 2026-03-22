@@ -319,6 +319,32 @@ const productService = {
     }
     return images;
   },
+  getSimilarProducts: async (productId, params = {}) => {
+    try {
+      const response = await apiClient.get(`/products/${productId}/similar`, { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  getYouMayAlsoLike: async (productId, params = {}) => {
+    try {
+      const response = await apiClient.get(`/products/${productId}/you-may-also-like`, { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  canReview: async (productId) => {
+    try {
+      const response = await apiClient.get(`/products/${productId}/can-review`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
+
 
 export default productService;

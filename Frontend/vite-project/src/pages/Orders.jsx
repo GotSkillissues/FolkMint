@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { orderService } from '../services';
 
@@ -49,29 +49,39 @@ const Orders = () => {
   const [orders, setOrders]         = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading]       = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedId, setExpandedId] = useState(null);
   const [detailsMap, setDetailsMap] = useState({});
   const [detailLoading, setDetailLoading] = useState(null);
   const [cancellingId, setCancellingId]   = useState(null);
   const [toast, setToast] = useState({ msg: '', type: 'success' });
+  const loadMoreRef = useRef(null);
 
   const showToast  = useCallback((msg, type = 'success') => setToast({ msg, type }), []);
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
 
-  const load = useCallback(async (page = 1, status = statusFilter) => {
-    setLoading(true);
+  const load = useCallback(async (page = 1, status = statusFilter, append = false) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     try {
       const res = await orderService.getUserOrders({
         page, limit: 10,
         status: status === 'all' ? undefined : status,
       });
-      setOrders(Array.isArray(res?.orders) ? res.orders : []);
+      const fetched = Array.isArray(res?.orders) ? res.orders : [];
+      setOrders((prev) => {
+        if (!append) return fetched;
+        const seen = new Set(prev.map((o) => o.order_id));
+        const next = fetched.filter((o) => !seen.has(o.order_id));
+        return [...prev, ...next];
+      });
       setPagination(res?.pagination || { page, pages: 1, total: 0 });
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to load orders.', 'error');
     } finally {
-      setLoading(false);
+      if (append) setLoadingMore(false);
+      else setLoading(false);
     }
   }, [statusFilter, showToast]);
 
@@ -85,8 +95,27 @@ const Orders = () => {
 
   const applyFilter = (status) => {
     setStatusFilter(status);
+    setExpandedId(null);
+    setDetailsMap({});
     load(1, status);
   };
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+        if (loading || loadingMore) return;
+        if (pagination.page >= pagination.pages) return;
+        load(pagination.page + 1, statusFilter, true);
+      },
+      { rootMargin: '320px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [load, loading, loadingMore, pagination.page, pagination.pages, statusFilter]);
 
   const toggleExpand = async (orderId) => {
     if (expandedId === orderId) { setExpandedId(null); return; }
@@ -108,7 +137,7 @@ const Orders = () => {
     setCancellingId(orderId);
     try {
       await orderService.cancelOrder(orderId);
-      showToast(`Order #${orderId} cancelled.`);
+      showToast('Order cancelled.');
       setOrders(prev => prev.map(o => o.order_id === orderId ? { ...o, status: 'cancelled' } : o));
       setDetailsMap(prev => { const n = { ...prev }; delete n[orderId]; return n; });
     } catch (err) {
@@ -120,6 +149,14 @@ const Orders = () => {
 
   const fmtDate = d => new Date(d).toLocaleDateString('en-BD', { year: 'numeric', month: 'short', day: 'numeric' });
   const fmtTime = d => new Date(d).toLocaleTimeString('en-BD', { hour: '2-digit', minute: '2-digit' });
+
+  const getDisplayOrderNumber = (idx) => {
+    const total = Number(pagination?.total || orders.length || 0);
+    const page = Number(pagination?.page || 1);
+    const limit = Number(pagination?.limit || 10);
+    const value = total - ((page - 1) * limit) - idx;
+    return value > 0 ? value : (orders.length - idx);
+  };
 
   return (
     <div className="or-page">
@@ -176,7 +213,7 @@ const Orders = () => {
           </div>
         ) : (
           <>
-            {orders.map(order => {
+            {orders.map((order, idx) => {
               const isExpanded  = expandedId === order.order_id;
               const detail      = detailsMap[order.order_id];
               const canCancel   = order.status === 'pending';
@@ -187,7 +224,7 @@ const Orders = () => {
                   {/* Order header row */}
                   <div className="or-order-row" onClick={() => toggleExpand(order.order_id)}>
                     <div className="or-order-left">
-                      <p className="or-order-id">Order #{order.order_id}</p>
+                      <p className="or-order-id">Order #{getDisplayOrderNumber(idx)}</p>
                       <p className="or-order-date">{fmtDate(order.created_at)} at {fmtTime(order.created_at)}</p>
                     </div>
                     <div className="or-order-center">
@@ -283,16 +320,8 @@ const Orders = () => {
               );
             })}
 
-            {/* Pagination */}
-            {pagination.pages > 1 && (
-              <div className="or-pagination">
-                <p className="or-muted">Page {pagination.page} of {pagination.pages}</p>
-                <div className="or-pag-btns">
-                  <button className="or-pag-btn" disabled={pagination.page <= 1 || loading} onClick={() => load(pagination.page - 1, statusFilter)}>← Previous</button>
-                  <button className="or-pag-btn" disabled={pagination.page >= pagination.pages || loading} onClick={() => load(pagination.page + 1, statusFilter)}>Next →</button>
-                </div>
-              </div>
-            )}
+            <div ref={loadMoreRef} className="or-load-more" aria-hidden="true" />
+            {loadingMore && <p className="or-muted">Loading more orders…</p>}
           </>
         )}
       </div>

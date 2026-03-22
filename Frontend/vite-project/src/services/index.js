@@ -12,9 +12,9 @@ export { default as authService } from './auth.service';
 // User & Profile
 export { default as userService } from './user.service';
 
-// Products & Variants
+// Products
 export { default as productService } from './product.service';
-export { default as variantService } from './variant.service';
+
 
 // Categories
 export { default as categoryService } from './category.service';

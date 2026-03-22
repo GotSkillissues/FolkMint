@@ -11,7 +11,7 @@
 .hero {
   background: radial-gradient(circle at center 20%, #fdfdfc 0%, var(--bg-alt) 100%);
   border-bottom: 1px solid var(--border);
-  padding: 100px 40px 80px;
+  padding: 20px 40px 80px;
 }
 
 .hero-inner {

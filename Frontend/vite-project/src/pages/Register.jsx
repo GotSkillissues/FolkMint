@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context';
+import { useCart } from '../context';
 import './Login.css';
 
 /* ── helpers ── */
@@ -56,6 +57,7 @@ const XIcon = () => (
 const Register = () => {
   const navigate  = useNavigate();
   const { register } = useAuth();
+  const { syncGuestCartAndLoad } = useCart();
 
   const [firstName,   setFirstName]   = useState('');
   const [lastName,    setLastName]    = useState('');
@@ -117,6 +119,7 @@ const Register = () => {
         email:      email.trim(),
         password,
       });
+      await syncGuestCartAndLoad();
       setSuccess('Account created! Redirecting…');
       setTimeout(() => navigate('/'), 1200);
     } catch (err) {
@@ -128,7 +131,7 @@ const Register = () => {
     } finally {
       setLoading(false);
     }
-  }, [firstName, lastName, email, password, confirm, register, navigate]);
+  }, [firstName, lastName, email, password, confirm, register, navigate, syncGuestCartAndLoad]);
 
   return (
     <div className="auth-page">

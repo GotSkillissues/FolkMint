@@ -109,6 +109,7 @@ const fireRestockNotifications = async (variantId) => {
 // Public. Paginated with optional filters.
 // category can be either a category_id or a category_slug.
 // If category is present but invalid, returns an empty list rather than all products.
+// Admin users may pass ?include_inactive=true to see draft products.
 const getProducts = async (req, res) => {
   try {
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
@@ -116,6 +117,11 @@ const getProducts = async (req, res) => {
     const offset = (page - 1) * limit;
     const search = normalizeText(req.query.search);
     const sort = req.query.sort;
+
+    // Admins can request drafts by sending ?include_inactive=true with their JWT.
+    // req.user is populated by optionalAuth on this route.
+    const isAdmin = req.user?.role === 'admin';
+    const includeInactive = isAdmin && req.query.include_inactive === 'true';
 
     let categoryId = null;
     let categoryRequested = false;
@@ -167,7 +173,8 @@ const getProducts = async (req, res) => {
       });
     }
 
-    const conditions = ['p.is_active = true'];
+    // Only filter by is_active when NOT an admin requesting drafts
+    const conditions = includeInactive ? [] : ['p.is_active = true'];
     const params = [];
     let idx = 1;
 
@@ -191,7 +198,9 @@ const getProducts = async (req, res) => {
       idx++;
     }
 
-    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+    const whereClause = conditions.length > 0
+      ? `WHERE ${conditions.join(' AND ')}`
+      : '';
 
     const SORT_MAP = {
       price_asc: 'p.price ASC',

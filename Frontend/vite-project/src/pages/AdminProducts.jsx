@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { categoryService, productService } from '../services';
 
 /* ─────────────────────────────────────────
@@ -514,6 +514,7 @@ const AdminProducts = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [filters, setFilters] = useState({ search: '', category: '', sort: 'newest' });
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const [showCreate, setShowCreate] = useState(false);
   const [newProduct, setNewProduct] = useState(EMPTY_PRODUCT);
@@ -530,6 +531,7 @@ const AdminProducts = () => {
   const [toast, setToast] = useState({ msg: '', type: 'success' });
   const showToast = useCallback((msg, type = 'success') => setToast({ msg, type }), []);
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
+  const loadMoreRef = useRef(null);
 
   useEffect(() => {
     categoryService
@@ -539,40 +541,69 @@ const AdminProducts = () => {
   }, []);
 
   const loadProducts = useCallback(
-    async (page = 1, f = filters) => {
-      setLoading(true);
+    async (page = 1, f = filters, append = false) => {
+      if (append) setLoadingMore(true);
+      else setLoading(true);
       try {
+        // FIX: pass include_inactive=true so the backend returns both live and
+        // draft products when called with an admin JWT. The backend's GET /products
+        // route now uses optionalAuth, and the controller checks
+        // req.user?.role === 'admin' before honouring this flag.
         const res = await productService.getAllProducts({
           page,
           limit: 12,
           search: f.search.trim() || undefined,
           category: f.category || undefined,
           sort: f.sort,
+          include_inactive: 'true',
         });
 
         const { products: fetched, pagination: pg } = normalizeProductsResponse(res);
 
-        setProducts(fetched);
+        setProducts((prev) => {
+          if (!append) return fetched;
+          const seen = new Set(prev.map((p) => p.product_id));
+          const next = fetched.filter((p) => !seen.has(p.product_id));
+          return [...prev, ...next];
+        });
         setPagination({
           page: Number(pg.page) || page,
           pages: Number(pg.pages || pg.totalPages) || 1,
           total: Number(pg.total) || fetched.length,
         });
 
-        const d = {};
-        fetched.forEach((p) => {
-          d[p.product_id] = {
-            name: p.name || '',
-            description: p.description || '',
-            price: p.price || '',
-            category_id: String(p.category_id || ''),
-          };
+        setEditDrafts((prev) => {
+          if (append) {
+            const nextDrafts = { ...prev };
+            fetched.forEach((p) => {
+              if (!nextDrafts[p.product_id]) {
+                nextDrafts[p.product_id] = {
+                  name: p.name || '',
+                  description: p.description || '',
+                  price: p.price || '',
+                  category_id: String(p.category_id || ''),
+                };
+              }
+            });
+            return nextDrafts;
+          }
+
+          const d = {};
+          fetched.forEach((p) => {
+            d[p.product_id] = {
+              name: p.name || '',
+              description: p.description || '',
+              price: p.price || '',
+              category_id: String(p.category_id || ''),
+            };
+          });
+          return d;
         });
-        setEditDrafts(d);
       } catch (err) {
         showToast(err?.error || err?.message || 'Failed to load products.', 'error');
       } finally {
-        setLoading(false);
+        if (append) setLoadingMore(false);
+        else setLoading(false);
       }
     },
     [filters, showToast]
@@ -581,6 +612,23 @@ const AdminProducts = () => {
   useEffect(() => {
     loadProducts();
   }, []); // eslint-disable-line
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+        if (loading || loadingMore) return;
+        if (pagination.page >= pagination.pages) return;
+        loadProducts(pagination.page + 1, filters, true);
+      },
+      { rootMargin: '320px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [filters, loadProducts, loading, loadingMore, pagination.page, pagination.pages]);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -647,7 +695,7 @@ const AdminProducts = () => {
         category_id: Number(d.category_id),
       });
       showToast('Product saved.');
-      await loadProducts(pagination.page, filters);
+      await loadProducts(1, filters);
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to save product.', 'error');
     } finally {
@@ -662,7 +710,7 @@ const AdminProducts = () => {
         is_active: !product.is_active,
       });
       showToast(product.is_active ? 'Product unpublished.' : 'Product published.');
-      await loadProducts(pagination.page, filters);
+      await loadProducts(1, filters);
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to update visibility.', 'error');
     } finally {
@@ -679,8 +727,7 @@ const AdminProducts = () => {
     try {
       await productService.deleteProduct(productId);
       showToast('Product deleted.');
-      const nextPage = products.length === 1 && pagination.page > 1 ? pagination.page - 1 : pagination.page;
-      await loadProducts(nextPage, filters);
+      await loadProducts(1, filters);
       if (expandedId === productId) {
         setExpandedId(null);
         setExpandedPanel(null);
@@ -693,13 +740,23 @@ const AdminProducts = () => {
   };
 
   const togglePanel = (productId, panel) => {
-    if (expandedId === productId && expandedPanel === panel) {
-      setExpandedId(null);
-      setExpandedPanel(null);
-    } else {
+    if (expandedId !== productId) {
       setExpandedId(productId);
       setExpandedPanel(panel);
+      return;
     }
+
+    if (panel === 'detail') {
+      if (expandedPanel === 'detail') {
+        setExpandedId(null);
+        setExpandedPanel(null);
+      } else {
+        setExpandedPanel('detail');
+      }
+      return;
+    }
+
+    setExpandedPanel((prev) => (prev === panel ? 'detail' : panel));
   };
 
   const setDraftField = (productId, field, value) =>
@@ -912,6 +969,7 @@ const AdminProducts = () => {
             const d = editDrafts[product.product_id] || {};
             const isExpandedVariants = expandedId === product.product_id && expandedPanel === 'variants';
             const isExpandedImages = expandedId === product.product_id && expandedPanel === 'images';
+            const isExpandedDetail = expandedId === product.product_id;
 
             const primaryImage = product.primary_image || product.image_url || null;
 
@@ -920,121 +978,112 @@ const AdminProducts = () => {
                 key={product.product_id}
                 className={`ap-product-card${!product.is_active ? ' ap-product-inactive' : ''}`}
               >
-                <div className="ap-product-row">
-                  <div className="ap-product-thumb">
-                    {primaryImage ? (
-                      <img src={primaryImage} alt={product.name} />
-                    ) : (
-                      <div className="ap-thumb-placeholder">
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        >
-                          <rect x="3" y="3" width="18" height="18" rx="2" />
-                          <circle cx="8.5" cy="8.5" r="1.5" />
-                          <polyline points="21 15 16 10 5 21" />
-                        </svg>
+                <div className="ap-list-row">
+                  <div className="ap-col ap-col-name">
+                    <div className="ap-list-name-wrap">
+                      <div className="ap-product-thumb ap-product-thumb-sm">
+                        {primaryImage ? (
+                          <img src={primaryImage} alt={product.name} />
+                        ) : (
+                          <div className="ap-thumb-placeholder">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                              <rect x="3" y="3" width="18" height="18" rx="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-
-                  <div className="ap-product-fields">
-                    <div className="ap-product-fields-top">
-                      <div className="ap-field ap-field-grow">
-                        <label className="ap-label">Name</label>
-                        <input
-                          className="ap-input"
-                          value={d.name || ''}
-                          onChange={(e) => setDraftField(product.product_id, 'name', e.target.value)}
-                        />
-                      </div>
-
-                      <div className="ap-field ap-field-price">
-                        <label className="ap-label">Price (৳)</label>
-                        <input
-                          className="ap-input"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={d.price || ''}
-                          onChange={(e) => setDraftField(product.product_id, 'price', e.target.value)}
-                        />
-                      </div>
-
-                      <div className="ap-field ap-field-cat">
-                        <label className="ap-label">Category</label>
-                        <select
-                          className="ap-select"
-                          value={d.category_id || ''}
-                          onChange={(e) => setDraftField(product.product_id, 'category_id', e.target.value)}
-                        >
-                          <option value="">Select…</option>
-                          {categories.map((c) => (
-                            <option key={c.category_id} value={c.category_id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="ap-field">
-                      <label className="ap-label">Description</label>
-                      <textarea
-                        className="ap-textarea ap-textarea-sm"
-                        rows={2}
-                        value={d.description || ''}
-                        onChange={(e) => setDraftField(product.product_id, 'description', e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="ap-product-meta">
-                    <div className="ap-product-meta-top">
-                      <div className="ap-product-sku">
-                        <span className="ap-meta-label">SKU</span>
-                        <span className="ap-sku-val">{product.sku || '—'}</span>
-                      </div>
-
-                      <div className="ap-product-stock">
-                        <span className="ap-meta-label">Stock</span>
-                        <span
-                          className={`ap-stock-val${(product.total_stock || 0) === 0 ? ' ap-stock-zero' : ''}`}
-                        >
-                          {product.total_stock ?? 0}
-                        </span>
-                      </div>
-
                       <div>
-                        <span className="ap-meta-label">Added</span>
-                        <span className="ap-meta-val">{fmtDate(product.created_at)}</span>
+                        <p className="ap-list-name">{product.name}</p>
+                        <p className="ap-list-sub">{product.sku || 'No SKU'} · Added {fmtDate(product.created_at)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="ap-col ap-col-category">{product.category_name || 'Uncategorized'}</div>
+
+                  <div className="ap-col ap-col-stock">
+                    <span className={`ap-stock-val${(product.total_stock || 0) === 0 ? ' ap-stock-zero' : ''}`}>
+                      {product.total_stock ?? 0}
+                    </span>
+                  </div>
+
+                  <div className="ap-col ap-col-price">৳{Number(product.price || 0).toLocaleString('en-BD')}</div>
+
+                  <div className="ap-col ap-col-actions">
+                    <button
+                      className={`ap-action-btn ap-action-panel${isExpandedDetail ? ' active' : ''}`}
+                      type="button"
+                      onClick={() => togglePanel(product.product_id, 'detail')}
+                    >
+                      {isExpandedDetail ? 'Close' : 'View & Edit'}
+                    </button>
+                  </div>
+                </div>
+
+                {isExpandedDetail && (
+                  <div className="ap-detail-panel">
+                    <div className="ap-product-fields">
+                      <div className="ap-product-fields-top">
+                        <div className="ap-field ap-field-grow">
+                          <label className="ap-label">Name</label>
+                          <input
+                            className="ap-input"
+                            value={d.name || ''}
+                            onChange={(e) => setDraftField(product.product_id, 'name', e.target.value)}
+                          />
+                        </div>
+
+                        <div className="ap-field ap-field-price">
+                          <label className="ap-label">Price (৳)</label>
+                          <input
+                            className="ap-input"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={d.price || ''}
+                            onChange={(e) => setDraftField(product.product_id, 'price', e.target.value)}
+                          />
+                        </div>
+
+                        <div className="ap-field ap-field-cat">
+                          <label className="ap-label">Category</label>
+                          <select
+                            className="ap-select"
+                            value={d.category_id || ''}
+                            onChange={(e) => setDraftField(product.product_id, 'category_id', e.target.value)}
+                          >
+                            <option value="">Select…</option>
+                            {categories.map((c) => (
+                              <option key={c.category_id} value={c.category_id}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="ap-field">
+                        <label className="ap-label">Description</label>
+                        <textarea
+                          className="ap-textarea ap-textarea-sm"
+                          rows={2}
+                          value={d.description || ''}
+                          onChange={(e) => setDraftField(product.product_id, 'description', e.target.value)}
+                        />
                       </div>
                     </div>
 
-                    <div className="ap-product-actions">
+                    <div className="ap-product-actions ap-product-actions-inline">
                       <button
                         className={`ap-publish-btn${product.is_active ? ' ap-publish-active' : ''}`}
                         type="button"
                         disabled={publishingId === product.product_id}
                         onClick={() => handleTogglePublish(product)}
-                        title={
-                          product.is_active
-                            ? 'Click to unpublish'
-                            : 'Click to publish (requires at least one variant and one image)'
-                        }
+                        title={product.is_active ? 'Click to unpublish' : 'Click to publish (requires at least one variant and one image)'}
                       >
-                        {publishingId === product.product_id ? (
-                          <span className="ap-spinner" />
-                        ) : product.is_active ? (
-                          'Live'
-                        ) : (
-                          'Draft'
-                        )}
+                        {publishingId === product.product_id ? <span className="ap-spinner" /> : (product.is_active ? 'Live' : 'Draft')}
                       </button>
 
                       <button
@@ -1043,7 +1092,7 @@ const AdminProducts = () => {
                         disabled={savingId === product.product_id}
                         onClick={() => handleSave(product.product_id)}
                       >
-                        {savingId === product.product_id ? <span className="ap-spinner" /> : 'Save'}
+                        {savingId === product.product_id ? <span className="ap-spinner" /> : 'Save Changes'}
                       </button>
 
                       <button
@@ -1072,7 +1121,7 @@ const AdminProducts = () => {
                       </button>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {isExpandedVariants && (
                   <VariantPanel productId={product.product_id} onToast={showToast} />
@@ -1087,30 +1136,11 @@ const AdminProducts = () => {
         </div>
       )}
 
-      {pagination.pages > 1 && (
-        <div className="ap-pagination">
-          <p className="ap-muted">
-            Page {pagination.page} of {pagination.pages}
-          </p>
-
-          <div className="ap-pag-btns">
-            <button
-              className="ap-pag-btn"
-              disabled={pagination.page <= 1 || loading}
-              onClick={() => loadProducts(pagination.page - 1, filters)}
-            >
-              ← Previous
-            </button>
-
-            <button
-              className="ap-pag-btn"
-              disabled={pagination.page >= pagination.pages || loading}
-              onClick={() => loadProducts(pagination.page + 1, filters)}
-            >
-              Next →
-            </button>
-          </div>
-        </div>
+      {!loading && products.length > 0 && (
+        <>
+          <div ref={loadMoreRef} className="ap-load-more" aria-hidden="true" />
+          {loadingMore && <p className="ap-muted">Loading more products…</p>}
+        </>
       )}
 
       <style>{`
@@ -1330,6 +1360,72 @@ const AdminProducts = () => {
           display: flex;
           flex-direction: column;
           gap: 12px;
+        }
+
+        .ap-list-row {
+          display: grid;
+          grid-template-columns: minmax(280px, 2.4fr) minmax(140px, 1.2fr) 90px 120px 140px;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 16px;
+        }
+        .ap-col { min-width: 0; }
+        .ap-col-category,
+        .ap-col-stock,
+        .ap-col-price {
+          font-size: 13.5px;
+          color: var(--dark);
+          font-weight: 500;
+        }
+        .ap-col-stock { text-align: center; }
+        .ap-col-price { white-space: nowrap; }
+        .ap-col-actions {
+          display: flex;
+          justify-content: flex-end;
+        }
+
+        .ap-list-name-wrap {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+        }
+        .ap-product-thumb-sm {
+          width: 54px;
+          height: 54px;
+          border-right: none;
+          border: 1px solid var(--border);
+          border-radius: calc(var(--r) - 2px);
+          overflow: hidden;
+        }
+        .ap-list-name {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--dark);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .ap-list-sub {
+          margin: 2px 0 0;
+          font-size: 11.5px;
+          color: var(--muted);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .ap-detail-panel {
+          border-top: 1px solid var(--border);
+          padding: 16px;
+          background: #fffbf0;
+          animation: ap-fade .2s ease;
+        }
+        .ap-product-actions-inline {
+          margin-top: 12px;
+          flex-direction: row;
+          flex-wrap: wrap;
         }
 
         .ap-product-card {
@@ -1794,6 +1890,11 @@ const AdminProducts = () => {
         @media (max-width: 860px) {
           .ap-page { padding: 24px 20px 48px; }
           .ap-head { flex-direction: column; align-items: flex-start; }
+          .ap-list-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+          .ap-col-actions { justify-content: flex-start; }
           .ap-product-row { flex-direction: column; }
           .ap-product-thumb {
             width: 100%;

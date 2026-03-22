@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { adminService, orderService } from '../services';
 
 const fmt = (n) => '৳' + Number(n || 0).toLocaleString('en-BD');
 const fmtNum = (n) => Number(n || 0).toLocaleString('en-BD');
+const unwrap = (res) => res?.data ?? res ?? {};
 
 const KPI = ({ label, value, sub, accent }) => (
   <div className="adash-kpi">
@@ -29,39 +30,64 @@ const Badge = ({ status }) => {
   );
 };
 
+const normalizeDashboardStats = (res) => {
+  const payload = unwrap(res);
+  return {
+    revenue: payload?.revenue || {},
+    orders: payload?.orders || {},
+    customers: payload?.customers || {},
+    products: payload?.products || {},
+    alerts: payload?.alerts || {},
+  };
+};
+
+const normalizeRecentActivity = (res) => {
+  const payload = unwrap(res);
+  return {
+    recent_orders: Array.isArray(payload?.recent_orders) ? payload.recent_orders : [],
+    recent_users: Array.isArray(payload?.recent_users) ? payload.recent_users : [],
+  };
+};
+
 const AdminDashboard = () => {
-  const [stats, setStats]     = useState(null);
+  const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
   const [activity, setActivity] = useState({ recent_orders: [], recent_users: [] });
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     let active = true;
+
     const load = async () => {
       setLoading(true);
       setError('');
+
       try {
         const [statsRes, activityRes] = await Promise.all([
           adminService.getDashboardStats(),
           adminService.getRecentActivity(8),
         ]);
+
         if (!active) return;
-        setStats(statsRes);
-        setActivity(activityRes);
+
+        setStats(normalizeDashboardStats(statsRes));
+        setActivity(normalizeRecentActivity(activityRes));
       } catch (err) {
-        if (active) setError(err?.error || err?.message || 'Failed to load dashboard.');
+        if (active) {
+          setError(err?.response?.data?.error || err?.error || err?.message || 'Failed to load dashboard.');
+        }
       } finally {
         if (active) setLoading(false);
       }
     };
+
     load();
     return () => { active = false; };
   }, []);
 
   return (
     <div className="adash-page">
-
-      {/* ── PAGE HEAD ── */}
       <div className="adash-head">
         <div>
           <p className="adash-eyebrow">Admin</p>
@@ -69,15 +95,18 @@ const AdminDashboard = () => {
         </div>
         <div className="adash-head-actions">
           <Link to="/admin/products" className="adash-nav-btn">Products</Link>
-          <Link to="/admin/orders"   className="adash-nav-btn">Orders</Link>
-          <Link to="/admin/users"    className="adash-nav-btn">Users</Link>
+          <Link to="/admin/orders" className="adash-nav-btn">Orders</Link>
+          <Link to="/admin/users" className="adash-nav-btn">Users</Link>
+          <Link to="/admin/analytics" className="adash-nav-btn">Analytics</Link>
         </div>
       </div>
 
       {error && (
         <div className="adash-alert adash-alert-error">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           {error}
         </div>
@@ -90,43 +119,41 @@ const AdminDashboard = () => {
         </div>
       ) : stats && (
         <>
-          {/* ── REVENUE ROW ── */}
           <div className="adash-row-label">Revenue</div>
           <div className="adash-kpi-grid adash-kpi-grid-3">
-            <KPI label="All Time Revenue"    value={fmt(stats.revenue?.total)}          sub="Excluding cancelled orders" />
-            <KPI label="Last 30 Days"        value={fmt(stats.revenue?.last_30_days)}   sub={`${fmtNum(stats.orders?.last_30_days)} orders`} />
-            <KPI label="Last 7 Days"         value={fmt(stats.revenue?.last_7_days)}    sub={`${fmtNum(stats.orders?.last_7_days)} orders`} />
+            <KPI label="All Time Revenue" value={fmt(stats.revenue?.total)} sub="Excluding cancelled orders" />
+            <KPI label="Last 30 Days" value={fmt(stats.revenue?.last_30_days)} sub={`${fmtNum(stats.orders?.last_30_days)} orders`} />
+            <KPI label="Last 7 Days" value={fmt(stats.revenue?.last_7_days)} sub={`${fmtNum(stats.orders?.last_7_days)} orders`} />
           </div>
 
-          {/* ── OPERATIONS ROW ── */}
           <div className="adash-row-label">Operations</div>
           <div className="adash-kpi-grid adash-kpi-grid-4">
-            <KPI label="Total Orders"        value={fmtNum(stats.orders?.total)} />
-            <KPI label="Pending Orders"      value={fmtNum(stats.alerts?.pending_orders)}    accent="#d97706" />
-            <KPI label="Active Products"     value={fmtNum(stats.products?.active)}     sub={`${fmtNum(stats.products?.inactive)} inactive`} />
-            <KPI label="Low Stock Variants"  value={fmtNum(stats.alerts?.low_stock_variants)} accent={stats.alerts?.low_stock_variants > 0 ? '#dc2626' : undefined} />
+            <KPI label="Total Orders" value={fmtNum(stats.orders?.total)} />
+            <KPI label="Pending Orders" value={fmtNum(stats.alerts?.pending_orders)} accent="#d97706" />
+            <KPI label="Active Products" value={fmtNum(stats.products?.active)} sub={`${fmtNum(stats.products?.inactive)} inactive`} />
+            <KPI
+              label="Low Stock Variants"
+              value={fmtNum(stats.alerts?.low_stock_variants)}
+              accent={Number(stats.alerts?.low_stock_variants || 0) > 0 ? '#dc2626' : undefined}
+            />
           </div>
 
-          {/* ── CUSTOMERS ROW ── */}
           <div className="adash-row-label">Customers</div>
           <div className="adash-kpi-grid adash-kpi-grid-3">
-            <KPI label="Total Customers"     value={fmtNum(stats.customers?.total)} />
-            <KPI label="New This Month"      value={fmtNum(stats.customers?.new_last_30_days)} />
-            <KPI label="New This Week"       value={fmtNum(stats.customers?.new_last_7_days)} />
+            <KPI label="Total Customers" value={fmtNum(stats.customers?.total)} />
+            <KPI label="New This Month" value={fmtNum(stats.customers?.new_last_30_days)} />
+            <KPI label="New This Week" value={fmtNum(stats.customers?.new_last_7_days)} />
           </div>
 
-          {/* ── RECENT ACTIVITY ── */}
           <div className="adash-two-col">
-
-            {/* Recent orders */}
             <div className="adash-card">
               <SectionHead title="Recent Orders" to="/admin/orders" linkLabel="All orders" />
               {!activity.recent_orders?.length ? (
                 <p className="adash-empty">No orders yet.</p>
               ) : (
                 <div className="adash-activity-list">
-                  {activity.recent_orders.map(order => (
-                    <div key={order.order_id} className="adash-activity-row">
+                  {activity.recent_orders.map((order) => (
+                    <div key={order.order_id} className="adash-activity-row adash-activity-row-link" onClick={() => navigate('/admin/orders')}>
                       <div className="adash-activity-main">
                         <span className="adash-order-id">#{order.order_id}</span>
                         <span className="adash-activity-name">
@@ -145,18 +172,17 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            {/* Recent users */}
             <div className="adash-card">
               <SectionHead title="New Members" to="/admin/users" linkLabel="All users" />
               {!activity.recent_users?.length ? (
                 <p className="adash-empty">No users yet.</p>
               ) : (
                 <div className="adash-activity-list">
-                  {activity.recent_users.map(u => (
-                    <div key={u.user_id} className="adash-activity-row">
+                  {activity.recent_users.map((u) => (
+                    <div key={u.user_id} className="adash-activity-row adash-activity-row-link" onClick={() => navigate('/admin/users')}>
                       <div className="adash-activity-main">
                         <div className="adash-avatar">
-                          {((u.first_name?.[0] || '') + (u.last_name?.[0] || '')).toUpperCase() || u.email[0].toUpperCase()}
+                          {((u.first_name?.[0] || '') + (u.last_name?.[0] || '')).toUpperCase() || u.email?.[0]?.toUpperCase() || '?'}
                         </div>
                         <div>
                           <p className="adash-activity-name">
@@ -180,7 +206,6 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
-
           </div>
         </>
       )}
@@ -196,7 +221,6 @@ const AdminDashboard = () => {
           min-height: 100vh;
         }
 
-        /* ── HEAD ── */
         .adash-head {
           display: flex;
           align-items: flex-end;
@@ -244,7 +268,6 @@ const AdminDashboard = () => {
           box-shadow: var(--sh-sm);
         }
 
-        /* ── ALERT ── */
         .adash-alert {
           display: flex;
           align-items: center;
@@ -259,7 +282,6 @@ const AdminDashboard = () => {
           color: #9f1239;
         }
 
-        /* ── LOADING ── */
         .adash-loading {
           display: flex;
           flex-direction: column;
@@ -279,7 +301,6 @@ const AdminDashboard = () => {
           animation: adash-spin .7s linear infinite;
         }
 
-        /* ── ROW LABEL ── */
         .adash-row-label {
           font-size: 10px;
           font-weight: 700;
@@ -289,7 +310,6 @@ const AdminDashboard = () => {
           margin-top: 8px;
         }
 
-        /* ── KPI GRIDS ── */
         .adash-kpi-grid {
           display: grid;
           gap: 1px;
@@ -330,7 +350,6 @@ const AdminDashboard = () => {
           margin: 0;
         }
 
-        /* ── TWO COL ── */
         .adash-two-col {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -338,7 +357,6 @@ const AdminDashboard = () => {
           margin-top: 8px;
         }
 
-        /* ── CARD ── */
         .adash-card {
           background: var(--bg-card);
           border: 1px solid var(--border);
@@ -368,7 +386,6 @@ const AdminDashboard = () => {
         }
         .adash-sec-link:hover { color: var(--dark); }
 
-        /* ── ACTIVITY LIST ── */
         .adash-activity-list {
           display: flex;
           flex-direction: column;
@@ -388,6 +405,7 @@ const AdminDashboard = () => {
           transition: background .2s;
         }
         .adash-activity-row:hover { background: var(--bg); }
+        .adash-activity-row-link { cursor: pointer; }
         .adash-activity-main {
           display: flex;
           align-items: center;
@@ -415,6 +433,7 @@ const AdminDashboard = () => {
           overflow: hidden;
           text-overflow: ellipsis;
           max-width: 180px;
+          margin: 0;
         }
         .adash-activity-sub {
           font-size: 12px;
@@ -428,7 +447,6 @@ const AdminDashboard = () => {
           white-space: nowrap;
         }
 
-        /* ── AVATAR ── */
         .adash-avatar {
           width: 32px;
           height: 32px;
@@ -443,7 +461,6 @@ const AdminDashboard = () => {
           flex-shrink: 0;
         }
 
-        /* ── BADGE ── */
         .adash-badge {
           display: inline-flex;
           align-items: center;
@@ -456,7 +473,6 @@ const AdminDashboard = () => {
           white-space: nowrap;
         }
 
-        /* ── ROLE CHIPS ── */
         .adash-role-chip {
           display: inline-flex;
           align-items: center;
@@ -485,7 +501,6 @@ const AdminDashboard = () => {
           padding: 24px;
         }
 
-        /* ── RESPONSIVE ── */
         @media (max-width: 1100px) {
           .adash-page { padding: 32px 28px 56px; }
           .adash-kpi-grid-4 { grid-template-columns: repeat(2, 1fr); }

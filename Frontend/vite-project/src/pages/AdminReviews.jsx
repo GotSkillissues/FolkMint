@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { reviewService } from '../services';
 
@@ -43,14 +43,17 @@ const AdminReviews = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [ratingFilter, setRatingFilter] = useState('all');
   const [loading, setLoading]       = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [toast, setToast]           = useState({ msg: '', type: 'success' });
+  const loadMoreRef = useRef(null);
 
   const showToast  = (msg, type = 'success') => setToast({ msg, type });
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
 
-  const loadReviews = useCallback(async (page = 1, rating = ratingFilter) => {
-    setLoading(true);
+  const loadReviews = useCallback(async (page = 1, rating = ratingFilter, append = false) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     try {
       const res = await reviewService.getAllReviews({
         page,
@@ -58,12 +61,18 @@ const AdminReviews = () => {
         rating: rating === 'all' ? undefined : rating,
       });
       const fetched = Array.isArray(res?.reviews) ? res.reviews : [];
-      setReviews(fetched);
+      setReviews((prev) => {
+        if (!append) return fetched;
+        const seen = new Set(prev.map((r) => r.review_id));
+        const next = fetched.filter((r) => !seen.has(r.review_id));
+        return [...prev, ...next];
+      });
       setPagination(res?.pagination || { page, pages: 1, total: fetched.length });
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to load reviews.', 'error');
     } finally {
-      setLoading(false);
+      if (append) setLoadingMore(false);
+      else setLoading(false);
     }
   }, [ratingFilter]);
 
@@ -74,15 +83,30 @@ const AdminReviews = () => {
     loadReviews(1, rating);
   };
 
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+        if (loading || loadingMore) return;
+        if (pagination.page >= pagination.pages) return;
+        loadReviews(pagination.page + 1, ratingFilter, true);
+      },
+      { rootMargin: '320px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [loadReviews, loading, loadingMore, pagination.page, pagination.pages, ratingFilter]);
+
   const handleDelete = async (reviewId) => {
     if (!window.confirm('Delete this review? This cannot be undone.')) return;
     setDeletingId(reviewId);
     try {
       await reviewService.deleteReview(reviewId);
       showToast('Review deleted.');
-      const nextPage = reviews.length === 1 && pagination.page > 1
-        ? pagination.page - 1 : pagination.page;
-      await loadReviews(nextPage, ratingFilter);
+      await loadReviews(1, ratingFilter);
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to delete review.', 'error');
     } finally {
@@ -228,23 +252,8 @@ const AdminReviews = () => {
               </table>
             </div>
 
-            {pagination.pages > 1 && (
-              <div className="ar-pagination">
-                <p className="ar-muted">Page {pagination.page} of {pagination.pages}</p>
-                <div className="ar-pag-btns">
-                  <button
-                    className="ar-pag-btn"
-                    disabled={pagination.page <= 1 || loading}
-                    onClick={() => loadReviews(pagination.page - 1, ratingFilter)}
-                  >← Previous</button>
-                  <button
-                    className="ar-pag-btn"
-                    disabled={pagination.page >= pagination.pages || loading}
-                    onClick={() => loadReviews(pagination.page + 1, ratingFilter)}
-                  >Next →</button>
-                </div>
-              </div>
-            )}
+            <div ref={loadMoreRef} className="ar-load-more" aria-hidden="true" />
+            {loadingMore && <p className="ar-muted">Loading more reviews…</p>}
           </>
         )}
       </div>

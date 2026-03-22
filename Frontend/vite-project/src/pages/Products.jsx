@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { categoryService, productService } from '../services';
 import { useCategoryTree } from '../hooks/useCategories';
@@ -78,8 +78,11 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [page, setPage] = useState(1);
+  const loadMoreRef = useRef(null);
 
   const query = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
@@ -87,8 +90,6 @@ const Products = () => {
   const parentId = searchParams.get('parent_id') || '';
   const legacyCatId = /^\d+$/.test(category) ? category : '';
   const selectedCatId = categoryId || parentId || legacyCatId;
-  const currentPage = Math.max(1, Number(searchParams.get('page') || '1'));
-
   const activeCategoryPath = (() => {
     if (selectedCatId) {
       return findCategoryPath(
@@ -113,11 +114,22 @@ const Products = () => {
   }, [query]);
 
   useEffect(() => {
+    setProducts([]);
+    setPagination({ page: 1, totalPages: 1, total: 0 });
+    setPage(1);
+  }, [query, category, selectedCatId]);
+
+  useEffect(() => {
     let mounted = true;
+    const isFirstPage = page === 1;
 
     const fetchProducts = async () => {
-      setLoading(true);
-      setError('');
+      if (isFirstPage) {
+        setLoading(true);
+        setError('');
+      } else {
+        setLoadingMore(true);
+      }
 
       try {
         if (selectedCatId && Array.isArray(categoryTree) && categoryTree.length > 0) {
@@ -128,8 +140,10 @@ const Products = () => {
 
           if (!exists) {
             if (!mounted) return;
-            setProducts([]);
-            setPagination({ page: currentPage, totalPages: 0, total: 0 });
+            if (isFirstPage) {
+              setProducts([]);
+              setPagination({ page: 1, totalPages: 0, total: 0 });
+            }
             return;
           }
         }
@@ -177,8 +191,10 @@ const Products = () => {
 
           if (!resolvedCategoryParam) {
             if (!mounted) return;
-            setProducts([]);
-            setPagination({ page: currentPage, totalPages: 0, total: 0 });
+            if (isFirstPage) {
+              setProducts([]);
+              setPagination({ page: 1, totalPages: 0, total: 0 });
+            }
             return;
           }
         }
@@ -186,7 +202,7 @@ const Products = () => {
         const res = await productService.getAllProducts({
           search: query || undefined,
           category: resolvedCategoryParam,
-          page: currentPage,
+          page,
           limit: PAGE_SIZE,
         });
 
@@ -194,19 +210,28 @@ const Products = () => {
 
         if (!mounted) return;
 
-        setProducts(items);
+        setProducts((prev) => {
+          if (isFirstPage) return items;
+          const seen = new Set(prev.map((p) => p?.product_id || p?.id));
+          const next = items.filter((p) => !seen.has(p?.product_id || p?.id));
+          return [...prev, ...next];
+        });
         setPagination({
-          page: pg.page || currentPage,
+          page: pg.page || page,
           totalPages: pg.totalPages,
           total: pg.total,
         });
       } catch (err) {
         if (!mounted) return;
         setError(err?.error || err?.message || 'Failed to load products.');
-        setProducts([]);
-        setPagination({ page: currentPage, totalPages: 1, total: 0 });
+        if (isFirstPage) {
+          setProducts([]);
+          setPagination({ page: 1, totalPages: 1, total: 0 });
+        }
       } finally {
-        if (mounted) setLoading(false);
+        if (!mounted) return;
+        if (isFirstPage) setLoading(false);
+        else setLoadingMore(false);
       }
     };
 
@@ -215,13 +240,26 @@ const Products = () => {
     return () => {
       mounted = false;
     };
-  }, [query, category, selectedCatId, currentPage, categoryTree]);
+  }, [query, category, selectedCatId, page, categoryTree]);
 
-  const goToPage = (p) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('page', String(Math.max(1, p)));
-    navigate(`/products?${params.toString()}`);
-  };
+  const loadNextPage = useCallback(() => {
+    if (loading || loadingMore) return;
+    if (pagination.page >= pagination.totalPages) return;
+    setPage((prev) => prev + 1);
+  }, [loading, loadingMore, pagination.page, pagination.totalPages]);
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) loadNextPage();
+      },
+      { rootMargin: '320px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [loadNextPage]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -371,28 +409,11 @@ const Products = () => {
         </div>
       )}
 
-      {pagination.totalPages > 1 && (
-        <div className="pr-pagination">
-          <button
-            className="pr-pag-btn"
-            disabled={currentPage <= 1 || loading}
-            onClick={() => goToPage(currentPage - 1)}
-          >
-            ← Previous
-          </button>
-
-          <span className="pr-pag-info">
-            Page {currentPage} of {pagination.totalPages}
-          </span>
-
-          <button
-            className="pr-pag-btn"
-            disabled={currentPage >= pagination.totalPages || loading}
-            onClick={() => goToPage(currentPage + 1)}
-          >
-            Next →
-          </button>
-        </div>
+      {!loading && products.length > 0 && (
+        <>
+          <div ref={loadMoreRef} className="pr-load-more" aria-hidden="true" />
+          {loadingMore && <p className="pr-pag-info">Loading more products…</p>}
+        </>
       )}
 
       <style>{`

@@ -588,7 +588,7 @@ export default function Account() {
                   {orders.slice(0, 8).map(o => (
                     <div key={o.order_id} className="ac-order-row">
                       <div className="ac-order-left">
-                        <p className="ac-order-id">Order <strong>#{o.order_id}</strong></p>
+                        <p className="ac-order-id">Order</p>
                         <p className="ac-order-date">{orderService.formatOrderDate(o.created_at)}</p>
                       </div>
                       <div className="ac-order-right">
@@ -787,6 +787,7 @@ export default function Account() {
                   <h2 className="ac-card-title">Wishlist</h2>
                   <p className="ac-card-sub">Products you've saved</p>
                 </div>
+                {wish.length > 0 && <Link to="/wishlist" className="ac-btn-outline">View all</Link>}
               </div>
 
               {wishLoading ? (

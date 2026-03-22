@@ -9,7 +9,9 @@ const {
   markAllAsRead,
   deleteNotification,
   deleteReadNotifications,
-  sendSystemNotification
+  sendSystemNotification,
+  createNotificationInternal,
+  getSentLog,
 } = require('../controllers/notificationController');
 
 const { authenticate, isAdmin } = require('../middleware/authMiddleware');
@@ -36,6 +38,10 @@ router.delete('/read', deleteReadNotifications);
 // Admin only. Single user or broadcast.
 // Must come before /:id — otherwise 'system' is matched as a notification ID
 router.post('/system', isAdmin, sendSystemNotification);
+
+// GET /api/notifications/sent-log
+// Admin only. Distinct system notifications sent, grouped to avoid duplication.
+router.get('/sent-log', isAdmin, getSentLog);
 
 // GET /api/notifications/:id
 router.get('/:id', getNotificationById);

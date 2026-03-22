@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { wishlistService } from '../services';
 import { useAuth } from '../context';
@@ -36,27 +36,57 @@ const Wishlist = () => {
   const navigate = useNavigate();
 
   const [items, setItems]       = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading]   = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [toast, setToast]       = useState({ msg: '', type: 'success' });
   const [busyId, setBusyId]     = useState(null);
   const [movingId, setMovingId] = useState(null);
+  const loadMoreRef = useRef(null);
 
   const showToast = useCallback((msg, type = 'success') => setToast({ msg, type }), []);
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (page = 1, append = false) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     try {
-      const res = await wishlistService.getWishlist();
-      setItems(Array.isArray(res?.wishlist) ? res.wishlist : []);
+      const res = await wishlistService.getWishlist({ page, limit: 16 });
+      const fetched = Array.isArray(res?.wishlist) ? res.wishlist : [];
+      setItems((prev) => {
+        if (!append) return fetched;
+        const seen = new Set(prev.map((i) => i.wishlist_id));
+        const next = fetched.filter((i) => !seen.has(i.wishlist_id));
+        return [...prev, ...next];
+      });
+      setPagination(res?.pagination || { page, pages: 1, total: fetched.length });
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to load wishlist.', 'error');
     } finally {
-      setLoading(false);
+      if (append) setLoadingMore(false);
+      else setLoading(false);
     }
   }, [showToast]);
 
   useEffect(() => { if (isAuthenticated) load(); }, [isAuthenticated, load]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+        if (loading || loadingMore) return;
+        if (pagination.page >= pagination.pages) return;
+        load(pagination.page + 1, true);
+      },
+      { rootMargin: '320px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isAuthenticated, load, loading, loadingMore, pagination.page, pagination.pages]);
 
   const handleRemove = async (wishlistId) => {
     setBusyId(wishlistId);
@@ -195,6 +225,9 @@ const Wishlist = () => {
               );
             })}
           </div>
+
+          <div ref={loadMoreRef} className="wl-load-more" aria-hidden="true" />
+          {loadingMore && <p className="wl-loading-more">Loading more wishlist items…</p>}
         </>
       )}
 

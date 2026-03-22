@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services';
 
+
 const AuthContext = createContext(null);
 
 export const useAuth = () => {
@@ -76,8 +77,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (updatedUser) => {
-    setUser(prev => ({ ...prev, ...updatedUser }));
-    localStorage.setItem('user', JSON.stringify({ ...user, ...updatedUser }));
+    setUser(prev => {
+      const merged = { ...prev, ...updatedUser };
+      localStorage.setItem('user', JSON.stringify(merged));
+      return merged;
+    });
   };
 
   return (

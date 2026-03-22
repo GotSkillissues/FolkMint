@@ -5,11 +5,11 @@ import { useAddresses, usePaymentMethods } from '../hooks';
 import { orderService } from '../services';
 
 const PAYMENT_TYPES = [
-  { value: 'cod',        label: 'Cash on Delivery',  desc: 'Pay when your order arrives' },
-  { value: 'bkash',      label: 'bKash',              desc: 'Pay via bKash mobile banking' },
-  { value: 'visa',       label: 'Visa',               desc: 'Pay with Visa card' },
-  { value: 'mastercard', label: 'Mastercard',         desc: 'Pay with Mastercard' },
-  { value: 'amex',       label: 'Amex',               desc: 'Pay with American Express' },
+  { value: 'cod', label: 'Cash on Delivery', desc: 'Pay when your order arrives' },
+  { value: 'bkash', label: 'bKash', desc: 'Pay via bKash mobile banking' },
+  { value: 'visa', label: 'Visa', desc: 'Pay with Visa card' },
+  { value: 'mastercard', label: 'Mastercard', desc: 'Pay with Mastercard' },
+  { value: 'amex', label: 'Amex', desc: 'Pay with American Express' },
 ];
 
 const ADDR_BLANK = { street: '', city: '', postal_code: '', country: 'Bangladesh' };
@@ -29,17 +29,17 @@ const Checkout = () => {
   const [selectedPaymentType, setSelectedPaymentType] = useState('cod');
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(null);
 
-  const [showNewAddr, setShowNewAddr]   = useState(false);
-  const [newAddr, setNewAddr]           = useState({ ...ADDR_BLANK });
-  const [addingAddr, setAddingAddr]     = useState(false);
+  const [showNewAddr, setShowNewAddr] = useState(false);
+  const [newAddr, setNewAddr] = useState({ ...ADDR_BLANK });
+  const [addingAddr, setAddingAddr] = useState(false);
 
-  const [showNewPm, setShowNewPm]       = useState(false);
-  const [newPmType, setNewPmType]       = useState('bkash');
-  const [addingPm, setAddingPm]         = useState(false);
+  const [showNewPm, setShowNewPm] = useState(false);
+  const [newPmType, setNewPmType] = useState('bkash');
+  const [addingPm, setAddingPm] = useState(false);
 
-  const [submitting, setSubmitting]     = useState(false);
-  const [error, setError]               = useState('');
-  const [success, setSuccess]           = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const validAddresses = addresses.filter(a => a?.address_id && !a.is_deleted);
 
@@ -58,10 +58,17 @@ const Checkout = () => {
     if (def) setSelectedPaymentMethodId(def.payment_method_id);
   }, [pmLoading, paymentMethods]);
 
+  // ADD this new useEffect right after the existing pm auto-select useEffect
+useEffect(() => {
+    if (selectedPaymentMethodId) return;
+    const first = paymentMethods[0];
+    if (first) setSelectedPaymentMethodId(first.payment_method_id);
+  }, [paymentMethods]);
+  
   const handleAddAddress = async (e) => {
     e.preventDefault();
     if (!newAddr.street.trim()) { setError('Street address is required.'); return; }
-    if (!newAddr.city.trim())   { setError('City is required.'); return; }
+    if (!newAddr.city.trim()) { setError('City is required.'); return; }
     setAddingAddr(true); setError('');
     try {
       const result = await addAddress({ ...newAddr, is_default: validAddresses.length === 0 });
@@ -76,13 +83,18 @@ const Checkout = () => {
     }
   };
 
+
   const handleAddPaymentMethod = async (e) => {
     e.preventDefault();
     setAddingPm(true); setError('');
     try {
       const result = await addPaymentMethod({ type: newPmType, is_default: paymentMethods.length === 0 });
       if (!result.success) throw new Error(result.error);
-      setSelectedPaymentMethodId(result.method?.payment_method_id);
+      const newId = result.method?.payment_method_id;
+      if (newId) {
+        setSelectedPaymentMethodId(newId);
+        setSelectedPaymentType(newPmType);
+      }
       setShowNewPm(false);
     } catch (err) {
       setError(err?.message || 'Failed to add payment method.');
@@ -95,6 +107,7 @@ const Checkout = () => {
     setError(''); setSuccess('');
     if (!cartItems.length) { setError('Your cart is empty.'); return; }
     if (!selectedAddressId) { setError('Please select a shipping address.'); return; }
+    if (!selectedPaymentMethodId) { setError('Please select or add a payment method before placing your order.'); return; }
 
     setSubmitting(true);
     try {
@@ -114,7 +127,7 @@ const Checkout = () => {
   };
 
   const selectedAddr = validAddresses.find(a => a.address_id === selectedAddressId);
-  const itemCount    = cartItems.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
+  const itemCount = cartItems.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
 
   return (
     <div className="ck-page">
@@ -128,7 +141,7 @@ const Checkout = () => {
         <Link to="/cart" className="ck-btn-ghost">← Back to Cart</Link>
       </div>
 
-      {error   && <div className="ck-alert ck-alert-error">{error}</div>}
+      {error && <div className="ck-alert ck-alert-error">{error}</div>}
       {success && <div className="ck-alert ck-alert-success">{success}</div>}
 
       {!cartItems.length ? (
@@ -285,8 +298,8 @@ const Checkout = () => {
               {/* Items */}
               <div className="ck-items-list">
                 {cartItems.map((item, i) => {
-                  const id       = item?.cartItemId || item?.variant_id || item?.product_id || i;
-                  const price    = Number(item?.price || 0);
+                  const id = item?.cartItemId || item?.variant_id || item?.product_id || i;
+                  const price = Number(item?.price || 0);
                   const subtotal = price * Number(item?.quantity || 0);
                   return (
                     <div key={id} className="ck-item-row">
@@ -341,7 +354,7 @@ const Checkout = () => {
               </button>
 
               <p className="ck-secure-note">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                 Secure checkout. Your data is protected.
               </p>
             </div>

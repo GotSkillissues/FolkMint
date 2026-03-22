@@ -1,89 +1,80 @@
 import { useState, useEffect, useCallback } from 'react';
 import { reviewService } from '../services';
 
-/**
- * Hook for fetching user's reviews
- */
+// Backend response for user reviews: { reviews: [...], pagination: { page, limit, total, pages } }
+// Backend response for product reviews: { summary: { total_reviews, avg_rating, distribution }, reviews: [...], pagination }
+// Backend response for canReview: { can_review: bool, reason: string|null }
+
 export const useReviews = () => {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [reviews,    setReviews]    = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await reviewService.getUserReviews();
-      setReviews(response.data || response || []);
+      const res = await reviewService.getUserReviews();
+      setReviews(Array.isArray(res?.reviews) ? res.reviews : []);
+      if (res?.pagination) {
+        setPagination(prev => ({ ...prev, ...res.pagination }));
+      }
     } catch (err) {
-      setError(err.message || 'Failed to fetch reviews');
+      setError(err?.error || err?.message || 'Failed to fetch reviews');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+  useEffect(() => { fetchReviews(); }, [fetchReviews]);
 
-  // Update a review
   const updateReview = async (reviewId, reviewData) => {
     try {
-      const response = await reviewService.updateReview(reviewId, reviewData);
-      const updatedReview = response.data || response;
-      setReviews(prev => 
-        prev.map(r => r.review_id === reviewId ? updatedReview : r)
-      );
-      return { success: true, review: updatedReview };
+      const res = await reviewService.updateReview(reviewId, reviewData);
+      const updated = res?.review ?? null;
+      if (updated) {
+        setReviews(prev => prev.map(r => r.review_id === reviewId ? { ...r, ...updated } : r));
+      }
+      return { success: true, review: updated };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { success: false, error: err?.error || err?.message || 'Failed to update review' };
     }
   };
 
-  // Delete a review
   const deleteReview = async (reviewId) => {
     try {
       await reviewService.deleteReview(reviewId);
       setReviews(prev => prev.filter(r => r.review_id !== reviewId));
       return { success: true };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { success: false, error: err?.error || err?.message || 'Failed to delete review' };
     }
   };
 
-  return {
-    reviews,
-    loading,
-    error,
-    updateReview,
-    deleteReview,
-    refetch: fetchReviews,
-  };
+  return { reviews, loading, error, pagination, updateReview, deleteReview, refetch: fetchReviews };
 };
 
-/**
- * Hook for fetching reviews for a specific product
- */
+// Hook for a product's public reviews — used on ProductDetail
 export const useProductReviews = (productId) => {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [canReview, setCanReview] = useState(false);
-  const [reviewableOrderItems, setReviewableOrderItems] = useState([]);
+  const [reviews,    setReviews]    = useState([]);
+  const [summary,    setSummary]    = useState(null);   // { total_reviews, avg_rating, distribution }
+  const [canReview,  setCanReview]  = useState(false);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
 
   const fetchReviews = useCallback(async () => {
-    if (!productId) {
-      setLoading(false);
-      return;
-    }
-
+    if (!productId) { setLoading(false); return; }
     setLoading(true);
     setError(null);
     try {
-      const response = await reviewService.getProductReviews(productId);
-      setReviews(response.data || response || []);
+      const res = await reviewService.getProductReviews(productId);
+      setReviews(Array.isArray(res?.reviews) ? res.reviews : []);
+      if (res?.summary) setSummary(res.summary);
+      if (res?.pagination) setPagination(prev => ({ ...prev, ...res.pagination }));
     } catch (err) {
-      setError(err.message || 'Failed to fetch reviews');
+      setError(err?.error || err?.message || 'Failed to fetch reviews');
     } finally {
       setLoading(false);
     }
@@ -92,9 +83,8 @@ export const useProductReviews = (productId) => {
   const checkCanReview = useCallback(async () => {
     if (!productId) return;
     try {
-      const response = await reviewService.canReviewProduct(productId);
-      setCanReview(response.can_review || false);
-      setReviewableOrderItems(response.order_items || []);
+      const res = await reviewService.canReviewProduct(productId);
+      setCanReview(res?.can_review === true);
     } catch {
       setCanReview(false);
     }
@@ -105,37 +95,33 @@ export const useProductReviews = (productId) => {
     checkCanReview();
   }, [fetchReviews, checkCanReview]);
 
-  // Create a new review
   const createReview = async (reviewData) => {
     try {
-      const response = await reviewService.createReview({
-        ...reviewData,
-        product_id: productId,
-      });
-      const newReview = response.data || response;
-      setReviews(prev => [newReview, ...prev]);
-      setCanReview(false);
-      return { success: true, review: newReview };
+      const res = await reviewService.createReview({ ...reviewData, product_id: productId });
+      const created = res?.review ?? null;
+      if (created) {
+        setReviews(prev => [created, ...prev]);
+        setCanReview(false);
+        // Optimistically bump summary count
+        setSummary(prev => prev
+          ? { ...prev, total_reviews: (prev.total_reviews || 0) + 1 }
+          : prev
+        );
+      }
+      return { success: true, review: created };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { success: false, error: err?.error || err?.message || 'Failed to submit review' };
     }
   };
 
-  // Calculate statistics
-  const averageRating = reviewService.calculateAverageRating(reviews);
-  const ratingDistribution = reviewService.getRatingDistribution(reviews);
-  const totalReviews = reviews.length;
-
   return {
     reviews,
+    summary,
+    canReview,
     loading,
     error,
-    canReview,
-    reviewableOrderItems,
+    pagination,
     createReview,
-    averageRating,
-    ratingDistribution,
-    totalReviews,
     refetch: fetchReviews,
   };
 };

@@ -90,6 +90,14 @@ const notificationService = {
       throw error.response?.data || error;
     }
   },
+  getSentLog: async (params = {}) => {
+    try {
+      const response = await apiClient.get('/notifications/sent-log', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
 
 export default notificationService;

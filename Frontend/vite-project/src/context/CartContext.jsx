@@ -66,6 +66,13 @@ export const CartProvider = ({ children }) => {
       localStorage.setItem('cart', JSON.stringify(cartItems));
     }
   }, [cartItems, serverSynced]);
+  // ── On mount: if already authenticated, load server cart ────────────
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+    if (token) {
+      loadServerCart();
+    }
+  }, []); // eslint-disable-line
 
   // ── Load server cart ─────────────────────────────────────────────────
   const loadServerCart = useCallback(async () => {

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { userService } from '../services';
 import { useAuth } from '../context';
 
@@ -47,6 +47,7 @@ const AdminUsers = () => {
   const [appliedSearch, setAppliedSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [loading, setLoading]       = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const [showCreate, setShowCreate] = useState(false);
   const [newUser, setNewUser]       = useState(EMPTY_NEW_USER);
@@ -58,13 +59,15 @@ const AdminUsers = () => {
   const [deletingId, setDeletingId] = useState(null);
 
   const [toast, setToast] = useState({ msg: '', type: 'success' });
+  const loadMoreRef = useRef(null);
 
   const showToast = (msg, type = 'success') => setToast({ msg, type });
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
 
   /* ── fetch ── */
-  const loadUsers = useCallback(async (page = 1, sq = appliedSearch, role = roleFilter) => {
-    setLoading(true);
+  const loadUsers = useCallback(async (page = 1, sq = appliedSearch, role = roleFilter, append = false) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     try {
       const res = await userService.getAllUsers({
         page,
@@ -73,16 +76,39 @@ const AdminUsers = () => {
         role: role === 'all' ? undefined : role,
       });
       const fetched = Array.isArray(res?.users) ? res.users : [];
-      setUsers(fetched);
+      setUsers((prev) => {
+        if (!append) return fetched;
+        const seen = new Set(prev.map((u) => u.user_id));
+        const next = fetched.filter((u) => !seen.has(u.user_id));
+        return [...prev, ...next];
+      });
       setPagination(res?.pagination || { page, pages: 1, total: fetched.length });
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to load users.', 'error');
     } finally {
-      setLoading(false);
+      if (append) setLoadingMore(false);
+      else setLoading(false);
     }
   }, [appliedSearch, roleFilter]);
 
   useEffect(() => { loadUsers(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+        if (loading || loadingMore) return;
+        if (pagination.page >= pagination.pages) return;
+        loadUsers(pagination.page + 1, appliedSearch, roleFilter, true);
+      },
+      { rootMargin: '320px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [appliedSearch, loadUsers, loading, loadingMore, pagination.page, pagination.pages, roleFilter]);
 
   /* ── search / filter ── */
   const handleSearch = (e) => {
@@ -167,9 +193,7 @@ const AdminUsers = () => {
     try {
       await userService.deleteUser(userId);
       showToast('User deleted.');
-      const nextPage = users.length === 1 && pagination.page > 1
-        ? pagination.page - 1 : pagination.page;
-      await loadUsers(nextPage, appliedSearch, roleFilter);
+      await loadUsers(1, appliedSearch, roleFilter);
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to delete user.', 'error');
     } finally {
@@ -409,28 +433,8 @@ const AdminUsers = () => {
           </div>
         )}
 
-        {/* ── PAGINATION ── */}
-        {pagination.pages > 1 && (
-          <div className="au-pagination">
-            <p className="au-muted">Page {pagination.page} of {pagination.pages}</p>
-            <div className="au-pag-btns">
-              <button
-                className="au-pag-btn"
-                disabled={pagination.page <= 1 || loading}
-                onClick={() => loadUsers(pagination.page - 1, appliedSearch, roleFilter)}
-              >
-                ← Previous
-              </button>
-              <button
-                className="au-pag-btn"
-                disabled={pagination.page >= pagination.pages || loading}
-                onClick={() => loadUsers(pagination.page + 1, appliedSearch, roleFilter)}
-              >
-                Next →
-              </button>
-            </div>
-          </div>
-        )}
+        <div ref={loadMoreRef} className="au-load-more" aria-hidden="true" />
+        {loadingMore && <p className="au-muted">Loading more users…</p>}
       </div>
 
       <style>{`

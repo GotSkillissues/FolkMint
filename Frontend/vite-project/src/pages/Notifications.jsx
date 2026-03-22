@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { notificationService } from '../services';
 import { useAuth } from '../context';
@@ -61,28 +61,38 @@ const Notifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading]       = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filter, setFilter]         = useState('all'); // 'all' | 'unread'
   const [toast, setToast]           = useState({ msg: '', type: 'success' });
   const [busyId, setBusyId]         = useState(null);
   const [markingAll, setMarkingAll] = useState(false);
   const [clearingRead, setClearingRead] = useState(false);
+  const loadMoreRef = useRef(null);
 
   const showToast  = useCallback((msg, type = 'success') => setToast({ msg, type }), []);
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
 
-  const load = useCallback(async (page = 1, f = filter) => {
-    setLoading(true);
+  const load = useCallback(async (page = 1, f = filter, append = false) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     try {
       const params = { page, limit: 15 };
       if (f === 'unread') params.is_read = false;
       const res = await notificationService.getNotifications(params);
-      setItems(Array.isArray(res?.notifications) ? res.notifications : []);
+      const fetched = Array.isArray(res?.notifications) ? res.notifications : [];
+      setItems((prev) => {
+        if (!append) return fetched;
+        const seen = new Set(prev.map((n) => n.notification_id));
+        const next = fetched.filter((n) => !seen.has(n.notification_id));
+        return [...prev, ...next];
+      });
       setUnreadCount(res?.unread_count || 0);
       setPagination(res?.pagination || { page, pages: 1, total: 0 });
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to load notifications.', 'error');
     } finally {
-      setLoading(false);
+      if (append) setLoadingMore(false);
+      else setLoading(false);
     }
   }, [filter, showToast]);
 
@@ -92,6 +102,24 @@ const Notifications = () => {
     setFilter(f);
     load(1, f);
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+        if (loading || loadingMore) return;
+        if (pagination.page >= pagination.pages) return;
+        load(pagination.page + 1, filter, true);
+      },
+      { rootMargin: '320px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [filter, isAuthenticated, load, loading, loadingMore, pagination.page, pagination.pages]);
 
   const handleMarkRead = async (notificationId) => {
     setBusyId(notificationId);
@@ -250,7 +278,7 @@ const Notifications = () => {
                       {/* Related link */}
                       {n.related_type === 'order' && n.related_id && (
                         <Link to={`/orders`} className="notif-related-link">
-                          View Order #{n.related_id} →
+                          View order details →
                         </Link>
                       )}
                     </div>
@@ -281,23 +309,8 @@ const Notifications = () => {
               })}
             </div>
 
-            {pagination.pages > 1 && (
-              <div className="notif-pagination">
-                <p className="notif-muted">Page {pagination.page} of {pagination.pages}</p>
-                <div className="notif-pag-btns">
-                  <button
-                    className="notif-pag-btn"
-                    disabled={pagination.page <= 1 || loading}
-                    onClick={() => load(pagination.page - 1, filter)}
-                  >← Previous</button>
-                  <button
-                    className="notif-pag-btn"
-                    disabled={pagination.page >= pagination.pages || loading}
-                    onClick={() => load(pagination.page + 1, filter)}
-                  >Next →</button>
-                </div>
-              </div>
-            )}
+            <div ref={loadMoreRef} className="notif-load-more" aria-hidden="true" />
+            {loadingMore && <p className="notif-muted">Loading more notifications…</p>}
           </>
         )}
       </div>

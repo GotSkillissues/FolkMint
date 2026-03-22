@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { userService, notificationService } from '../services';
 
 const Toast = ({ msg, type, onDismiss }) => {
@@ -28,8 +28,10 @@ const AdminNotifications = () => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [history, setHistory] = useState([]);
   const [histLoading, setHistLoading] = useState(true);
+  const [histLoadingMore, setHistLoadingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [toast, setToast]     = useState({ msg: '', type: 'success' });
+  const loadMoreRef = useRef(null);
 
   const showToast  = (msg, type = 'success') => setToast({ msg, type });
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
@@ -46,20 +48,45 @@ const AdminNotifications = () => {
   }, [form.target, users.length]);
 
   /* load recent system notifications */
-  const loadHistory = useCallback(async (page = 1) => {
-    setHistLoading(true);
+  const loadHistory = useCallback(async (page = 1, append = false) => {
+    if (append) setHistLoadingMore(true);
+    else setHistLoading(true);
     try {
-      const res = await notificationService.getNotifications({ page, limit: 15 });
-      setHistory(Array.isArray(res?.notifications) ? res.notifications : []);
+      const res = await notificationService.getSentLog({ page, limit: 15 });
+      const fetched = Array.isArray(res?.notifications) ? res.notifications : [];
+      setHistory((prev) => {
+        if (!append) return fetched;
+        const seen = new Set(prev.map((n) => n.notification_id));
+        const next = fetched.filter((n) => !seen.has(n.notification_id));
+        return [...prev, ...next];
+      });
       setPagination(res?.pagination || { page, pages: 1, total: 0 });
     } catch {
-      setHistory([]);
+      if (!append) setHistory([]);
     } finally {
-      setHistLoading(false);
+      if (append) setHistLoadingMore(false);
+      else setHistLoading(false);
     }
   }, []);
 
   useEffect(() => { loadHistory(); }, [loadHistory]);
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+        if (histLoading || histLoadingMore) return;
+        if (pagination.page >= pagination.pages) return;
+        loadHistory(pagination.page + 1, true);
+      },
+      { rootMargin: '320px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [histLoading, histLoadingMore, loadHistory, pagination.page, pagination.pages]);
 
   /* send */
   const handleSend = async (e) => {
@@ -280,7 +307,7 @@ const AdminNotifications = () => {
         {/* ── HISTORY ── */}
         <div className="ano-history-card">
           <div className="ano-history-head">
-            <h2 className="ano-card-title">Recent Notifications</h2>
+            <h2 className="ano-card-title">Sent Log</h2>
             <p className="ano-hint">{pagination.total} total</p>
           </div>
 
@@ -299,7 +326,7 @@ const AdminNotifications = () => {
               <div className="ano-notif-list">
                 {history.map(n => (
                   <div key={n.notification_id} className="ano-notif-row">
-                    <div className={`ano-notif-dot ${n.is_read ? 'ano-dot-read' : 'ano-dot-unread'}`} />
+                    <div className="ano-notif-dot ano-dot-read" />
                     <div className="ano-notif-body">
                       <div className="ano-notif-top">
                         <p className="ano-notif-title">{n.title}</p>
@@ -307,49 +334,16 @@ const AdminNotifications = () => {
                       </div>
                       <p className="ano-notif-msg">{n.message}</p>
                       <div className="ano-notif-meta">
-                        <span className="ano-type-chip">{n.type}</span>
-                        {n.user_id && <span className="ano-user-chip">User #{n.user_id}</span>}
-                        {n.is_read
-                          ? <span className="ano-read-chip">Read</span>
-                          : <span className="ano-unread-chip">Unread</span>
-                        }
-                        {!n.is_read && (
-                          <button
-                            className="ano-action-btn ano-btn-read"
-                            onClick={() => handleMarkRead(n.notification_id)}
-                          >
-                            Mark Read
-                          </button>
-                        )}
-                        <button
-                          className="ano-action-btn ano-btn-delete"
-                          onClick={() => handleDelete(n.notification_id)}
-                        >
-                          Delete
-                        </button>
+                        <span className="ano-type-chip">system</span>
+                        <span className="ano-user-chip">Sent to {n.sent_to} user{n.sent_to !== 1 ? 's' : ''}</span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {pagination.pages > 1 && (
-                <div className="ano-pagination">
-                  <p className="ano-muted">Page {pagination.page} of {pagination.pages}</p>
-                  <div className="ano-pag-btns">
-                    <button
-                      className="ano-pag-btn"
-                      disabled={pagination.page <= 1 || histLoading}
-                      onClick={() => loadHistory(pagination.page - 1)}
-                    >← Prev</button>
-                    <button
-                      className="ano-pag-btn"
-                      disabled={pagination.page >= pagination.pages || histLoading}
-                      onClick={() => loadHistory(pagination.page + 1)}
-                    >Next →</button>
-                  </div>
-                </div>
-              )}
+              <div ref={loadMoreRef} className="ano-load-more" aria-hidden="true" />
+              {histLoadingMore && <p className="ano-muted">Loading more notifications…</p>}
             </>
           )}
         </div>

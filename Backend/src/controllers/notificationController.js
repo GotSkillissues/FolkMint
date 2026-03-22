@@ -346,6 +346,55 @@ const createNotificationInternal = async (
   }
 };
 
+// GET /api/notifications/sent-log
+// Admin only. Returns distinct system notifications that were sent,
+// grouped by title + message + created_at to avoid per-user duplication.
+const getSentLog = async (req, res) => {
+  try {
+    const page  = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 15));
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(
+      `SELECT
+         MIN(notification_id) AS notification_id,
+         title,
+         message,
+         COUNT(*)::int        AS sent_to,
+         MIN(created_at)      AS created_at
+       FROM notification
+       WHERE type = 'system'
+       GROUP BY title, message, DATE_TRUNC('second', created_at)
+       ORDER BY MIN(created_at) DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM (
+         SELECT 1 FROM notification
+         WHERE type = 'system'
+         GROUP BY title, message, DATE_TRUNC('second', created_at)
+       ) sub`
+    );
+
+    const total = parseInt(countResult.rows[0].count, 10);
+
+    return res.status(200).json({
+      notifications: result.rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Get sent log error:', error);
+    return res.status(500).json({ error: 'Failed to fetch sent log' });
+  }
+};
+
 module.exports = {
   getNotifications,
   getUnreadCount,
@@ -355,5 +404,6 @@ module.exports = {
   deleteNotification,
   deleteReadNotifications,
   sendSystemNotification,
-  createNotificationInternal
+  createNotificationInternal,
+  getSentLog,
 };

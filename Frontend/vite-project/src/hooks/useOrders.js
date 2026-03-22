@@ -1,79 +1,67 @@
 import { useState, useEffect, useCallback } from 'react';
 import { orderService } from '../services';
 
-/**
- * Hook for fetching user's orders
- */
-export const useOrders = (initialParams = {}) => {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-  });
-  const [params, setParams] = useState(initialParams);
+// Backend response shape: { orders: [...], pagination: { page, limit, total, pages } }
+// Backend response shape for single: { order: { ...order, items: [...], payment: {} } }
 
-  const fetchOrders = useCallback(async () => {
+export const useOrders = (initialParams = {}) => {
+  const [orders,     setOrders]     = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, pages: 1 });
+  const [params,     setParams]     = useState(initialParams);
+
+  const fetchOrders = useCallback(async (page = pagination.page) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await orderService.getUserOrders({
+      const res = await orderService.getUserOrders({
         ...params,
-        page: pagination.page,
+        page,
         limit: pagination.limit,
       });
-      
-      if (response.orders) {
-        setOrders(response.orders);
-        if (response.pagination) {
-          setPagination(prev => ({
-            ...prev,
-            total: response.pagination.total,
-            totalPages: response.pagination.totalPages || response.pagination.pages || 0,
-          }));
-        }
-      } else if (response.data) {
-        setOrders(response.data);
-      } else if (Array.isArray(response)) {
-        setOrders(response);
+      setOrders(Array.isArray(res?.orders) ? res.orders : []);
+      if (res?.pagination) {
+        setPagination(prev => ({
+          ...prev,
+          page:  res.pagination.page  ?? prev.page,
+          total: res.pagination.total ?? 0,
+          pages: res.pagination.pages ?? 1,
+        }));
       }
     } catch (err) {
-      setError(err.message || 'Failed to fetch orders');
+      setError(err?.error || err?.message || 'Failed to fetch orders');
     } finally {
       setLoading(false);
     }
-  }, [params, pagination.page, pagination.limit]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, pagination.limit]);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+  useEffect(() => { fetchOrders(pagination.page); }, [fetchOrders, pagination.page]);
 
   const setPage = (page) => {
     setPagination(prev => ({ ...prev, page }));
   };
 
   const filterByStatus = (status) => {
-    setParams(prev => ({ ...prev, status }));
+    setParams(prev => {
+      const next = { ...prev };
+      if (status && status !== 'all') next.status = status;
+      else delete next.status;
+      return next;
+    });
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
   const cancelOrder = async (orderId) => {
     try {
       await orderService.cancelOrder(orderId);
-      // Update local state
-      setOrders(prev => 
-        prev.map(order => 
-          order.order_id === orderId 
-            ? { ...order, status: 'cancelled' }
-            : order
-        )
+      setOrders(prev =>
+        prev.map(o => o.order_id === orderId ? { ...o, status: 'cancelled' } : o)
       );
       return { success: true };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { success: false, error: err?.error || err?.message || 'Failed to cancel order' };
     }
   };
 
@@ -85,50 +73,42 @@ export const useOrders = (initialParams = {}) => {
     setPage,
     filterByStatus,
     cancelOrder,
-    refetch: fetchOrders,
+    refetch: () => fetchOrders(pagination.page),
   };
 };
 
-/**
- * Hook for fetching a single order by ID
- */
+// Hook for a single order — used on order detail views
 export const useOrder = (orderId) => {
-  const [order, setOrder] = useState(null);
+  const [order,   setOrder]   = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error,   setError]   = useState(null);
 
   const fetchOrder = useCallback(async () => {
-    if (!orderId) {
-      setLoading(false);
-      return;
-    }
-
+    if (!orderId) { setLoading(false); return; }
     setLoading(true);
     setError(null);
     try {
-      const response = await orderService.getOrderById(orderId);
-      setOrder(response.data || response);
+      const res = await orderService.getOrderById(orderId);
+      // Backend returns { order: { ...fields, items: [], payment: {} } }
+      setOrder(res?.order ?? null);
     } catch (err) {
-      setError(err.message || 'Failed to fetch order');
+      setError(err?.error || err?.message || 'Failed to fetch order');
     } finally {
       setLoading(false);
     }
   }, [orderId]);
 
-  useEffect(() => {
-    fetchOrder();
-  }, [fetchOrder]);
+  useEffect(() => { fetchOrder(); }, [fetchOrder]);
 
   const cancelOrder = async () => {
-    if (!order || !orderService.canCancelOrder(order)) {
-      return { success: false, error: 'Cannot cancel this order' };
-    }
+    if (!order) return { success: false, error: 'Order not loaded' };
+    if (!orderService.canCancelOrder(order)) return { success: false, error: 'Cannot cancel this order' };
     try {
       await orderService.cancelOrder(orderId);
       setOrder(prev => ({ ...prev, status: 'cancelled' }));
       return { success: true };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { success: false, error: err?.error || err?.message || 'Failed to cancel order' };
     }
   };
 
@@ -139,6 +119,6 @@ export const useOrder = (orderId) => {
     cancelOrder,
     canCancel: order ? orderService.canCancelOrder(order) : false,
     canReview: order ? orderService.canReviewOrder(order) : false,
-    refetch: fetchOrder,
+    refetch:   fetchOrder,
   };
 };

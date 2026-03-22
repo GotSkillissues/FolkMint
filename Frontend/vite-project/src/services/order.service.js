@@ -78,7 +78,7 @@ const orderService = {
   },
 
   canCancelOrder: (order) => {
-    return ['pending', 'confirmed'].includes(order.status);
+    return order.status === 'pending';
   },
 
   canReviewOrder: (order) => {
@@ -87,24 +87,24 @@ const orderService = {
 
   getStatusColor: (status) => {
     const colors = {
-      pending:    '#f59e0b',
-      confirmed:  '#3b82f6',
+      pending: '#f59e0b',
+      confirmed: '#3b82f6',
       processing: '#0ea5e9',
-      shipped:    '#8b5cf6',
-      delivered:  '#10b981',
-      cancelled:  '#ef4444',
+      shipped: '#8b5cf6',
+      delivered: '#10b981',
+      cancelled: '#ef4444',
     };
     return colors[status] || '#6b7280';
   },
 
   getStatusLabel: (status) => {
     const labels = {
-      pending:    'Pending',
-      confirmed:  'Confirmed',
+      pending: 'Pending',
+      confirmed: 'Confirmed',
       processing: 'Processing',
-      shipped:    'Shipped',
-      delivered:  'Delivered',
-      cancelled:  'Cancelled',
+      shipped: 'Shipped',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled',
     };
     return labels[status] || status;
   },

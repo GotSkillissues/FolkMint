@@ -1,53 +1,43 @@
 import { useState, useEffect, useCallback } from 'react';
 import { productService } from '../services';
 
-/**
- * Hook for fetching products with pagination and filters
- */
-export const useProducts = (initialParams = {}) => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 12,
-    total: 0,
-    totalPages: 0,
-  });
-  const [params, setParams] = useState(initialParams);
+// Backend response shape: { products: [...], pagination: { page, limit, total, pages } }
+// Backend response shape for single: { product: { ...fields, variants: [], images: [] } }
 
-  const fetchProducts = useCallback(async () => {
+export const useProducts = (initialParams = {}) => {
+  const [products,   setProducts]   = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, pages: 1 });
+  const [params,     setParams]     = useState(initialParams);
+
+  const fetchProducts = useCallback(async (page = pagination.page) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await productService.getAllProducts({
+      const res = await productService.getAllProducts({
         ...params,
-        page: pagination.page,
+        page,
         limit: pagination.limit,
       });
-      
-      if (response.data) {
-        setProducts(response.data);
-        if (response.pagination) {
-          setPagination(prev => ({
-            ...prev,
-            total: response.pagination.total,
-            totalPages: response.pagination.totalPages,
-          }));
-        }
-      } else if (Array.isArray(response)) {
-        setProducts(response);
+      setProducts(Array.isArray(res?.products) ? res.products : []);
+      if (res?.pagination) {
+        setPagination(prev => ({
+          ...prev,
+          page:  res.pagination.page  ?? prev.page,
+          total: res.pagination.total ?? 0,
+          pages: res.pagination.pages ?? 1,
+        }));
       }
     } catch (err) {
-      setError(err.message || 'Failed to fetch products');
+      setError(err?.error || err?.message || 'Failed to fetch products');
     } finally {
       setLoading(false);
     }
-  }, [params, pagination.page, pagination.limit]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, pagination.limit]);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  useEffect(() => { fetchProducts(pagination.page); }, [fetchProducts, pagination.page]);
 
   const setPage = (page) => {
     setPagination(prev => ({ ...prev, page }));
@@ -70,85 +60,61 @@ export const useProducts = (initialParams = {}) => {
     setPage,
     setLimit,
     updateParams,
-    refetch: fetchProducts,
+    refetch: () => fetchProducts(pagination.page),
   };
 };
 
-/**
- * Hook for fetching a single product by ID
- */
+// Hook for a single product by ID — includes variants and images
 export const useProduct = (productId) => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error,   setError]   = useState(null);
 
   const fetchProduct = useCallback(async () => {
-    if (!productId) {
-      setLoading(false);
-      return;
-    }
-
+    if (!productId) { setLoading(false); return; }
     setLoading(true);
     setError(null);
     try {
-      const response = await productService.getProductById(productId);
-      setProduct(response.data || response);
+      const res = await productService.getProductById(productId);
+      // Backend returns { product: { ...fields, variants: [], images: [] } }
+      setProduct(res?.product ?? null);
     } catch (err) {
-      setError(err.message || 'Failed to fetch product');
+      setError(err?.error || err?.message || 'Failed to fetch product');
     } finally {
       setLoading(false);
     }
   }, [productId]);
 
-  useEffect(() => {
-    fetchProduct();
-  }, [fetchProduct]);
+  useEffect(() => { fetchProduct(); }, [fetchProduct]);
 
-  return {
-    product,
-    loading,
-    error,
-    refetch: fetchProduct,
-  };
+  return { product, loading, error, refetch: fetchProduct };
 };
 
-/**
- * Hook for product search with debounce
- */
+// Debounced search hook
 export const useProductSearch = (debounceMs = 300) => {
-  const [query, setQuery] = useState('');
+  const [query,   setQuery]   = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error,   setError]   = useState(null);
 
   useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
+    if (!query.trim()) { setResults([]); return; }
 
-    const timeoutId = setTimeout(async () => {
+    const id = setTimeout(async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await productService.searchProducts(query);
-        setResults(response.data || response || []);
+        const res = await productService.searchProducts(query);
+        setResults(Array.isArray(res?.products) ? res.products : []);
       } catch (err) {
-        setError(err.message || 'Search failed');
+        setError(err?.error || err?.message || 'Search failed');
       } finally {
         setLoading(false);
       }
     }, debounceMs);
 
-    return () => clearTimeout(timeoutId);
+    return () => clearTimeout(id);
   }, [query, debounceMs]);
 
-  return {
-    query,
-    setQuery,
-    results,
-    loading,
-    error,
-    clearResults: () => setResults([]),
-  };
+  return { query, setQuery, results, loading, error, clearResults: () => setResults([]) };
 };

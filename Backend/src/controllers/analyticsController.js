@@ -3,6 +3,16 @@ const { pool } = require('../config/database');
 // All endpoints in this controller are admin only.
 // Route middleware should enforce this before reaching these handlers.
 
+const LOW_STOCK_THRESHOLD_DEFAULT = 5;
+
+// Use one consistent definition everywhere:
+// "low stock" = stock_quantity between 1 and threshold for active products.
+const LOW_STOCK_WHERE_SQL = `
+  pv.stock_quantity > 0
+  AND pv.stock_quantity <= $1
+  AND p.is_active = true
+`;
+
 // GET /api/analytics/dashboard
 // Overview stats for the admin dashboard.
 const getDashboardStats = async (req, res) => {
@@ -77,15 +87,16 @@ const getDashboardStats = async (req, res) => {
         WHERE status = 'pending'
       `),
 
-      // Low stock variants for active products only — stock between 1 and 5
-      pool.query(`
-        SELECT COUNT(*)::int AS count
-        FROM product_variant pv
-        JOIN product p ON p.product_id = pv.product_id
-        WHERE pv.stock_quantity > 0
-          AND pv.stock_quantity <= 5
-          AND p.is_active = true
-      `)
+      // Low stock variants for active products only — stock between 1 and threshold
+      pool.query(
+        `
+          SELECT COUNT(*)::int AS count
+          FROM product_variant pv
+          JOIN product p ON p.product_id = pv.product_id
+          WHERE ${LOW_STOCK_WHERE_SQL}
+        `,
+        [LOW_STOCK_THRESHOLD_DEFAULT]
+      )
     ]);
 
     return res.status(200).json({
@@ -214,15 +225,15 @@ const getTopProducts = async (req, res) => {
            WHERE pi.product_id = p.product_id
              AND pi.is_primary = true
            LIMIT 1
-         ) AS primary_image
+         ) AS primary_image,
+         p.is_active
        FROM product p
        LEFT JOIN order_item oi ON oi.product_id = p.product_id
        LEFT JOIN orders o
          ON o.order_id = oi.order_id
         AND o.status != 'cancelled'
        LEFT JOIN category c ON c.category_id = p.category_id
-       WHERE p.is_active = true
-       GROUP BY p.product_id, p.name, p.sku, p.price, c.name
+       GROUP BY p.product_id, p.name, p.sku, p.price, c.name, p.is_active
        ORDER BY ${SORT_MAP[sort_by]}, p.name ASC
        LIMIT $1`,
       [limit]
@@ -278,44 +289,46 @@ const getOrderStatusBreakdown = async (req, res) => {
 // Query params: ?threshold=5&page=1&limit=20
 const getLowStockProducts = async (req, res) => {
   try {
-    const threshold = Math.max(0, Number.parseInt(req.query.threshold, 10) || 5);
+    const threshold = Math.max(1, Number.parseInt(req.query.threshold, 10) || LOW_STOCK_THRESHOLD_DEFAULT);
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
     const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
     const offset = (page - 1) * limit;
 
     const countResult = await pool.query(
-      `SELECT COUNT(*)::int AS count
-       FROM product_variant pv
-       JOIN product p ON p.product_id = pv.product_id
-       WHERE pv.stock_quantity <= $1
-         AND p.is_active = true`,
+      `
+        SELECT COUNT(*)::int AS count
+        FROM product_variant pv
+        JOIN product p ON p.product_id = pv.product_id
+        WHERE ${LOW_STOCK_WHERE_SQL}
+      `,
       [threshold]
     );
     const total = countResult.rows[0].count;
 
     const result = await pool.query(
-      `SELECT
-         pv.variant_id,
-         pv.size,
-         pv.stock_quantity,
-         p.product_id,
-         p.name AS product_name,
-         p.sku AS product_sku,
-         c.name AS category_name,
-         (
-           SELECT pi.image_url
-           FROM product_image pi
-           WHERE pi.product_id = p.product_id
-             AND pi.is_primary = true
-           LIMIT 1
-         ) AS primary_image
-       FROM product_variant pv
-       JOIN product p ON p.product_id = pv.product_id
-       LEFT JOIN category c ON c.category_id = p.category_id
-       WHERE pv.stock_quantity <= $1
-         AND p.is_active = true
-       ORDER BY pv.stock_quantity ASC, p.name ASC
-       LIMIT $2 OFFSET $3`,
+      `
+        SELECT
+          pv.variant_id,
+          pv.size,
+          pv.stock_quantity,
+          p.product_id,
+          p.name AS product_name,
+          p.sku AS product_sku,
+          c.name AS category_name,
+          (
+            SELECT pi.image_url
+            FROM product_image pi
+            WHERE pi.product_id = p.product_id
+              AND pi.is_primary = true
+            LIMIT 1
+          ) AS primary_image
+        FROM product_variant pv
+        JOIN product p ON p.product_id = pv.product_id
+        LEFT JOIN category c ON c.category_id = p.category_id
+        WHERE ${LOW_STOCK_WHERE_SQL}
+        ORDER BY pv.stock_quantity ASC, p.name ASC
+        LIMIT $2 OFFSET $3
+      `,
       [threshold, limit, offset]
     );
 
@@ -378,7 +391,7 @@ const getCategoryPerformance = async (req, res) => {
 };
 
 // GET /api/analytics/recent-activity
-// Recent orders and new users for the admin dashboard feed.
+// Recent orders and new customers for the admin dashboard feed.
 // Query params: ?limit=10
 const getRecentActivity = async (req, res) => {
   try {
@@ -405,6 +418,7 @@ const getRecentActivity = async (req, res) => {
         `SELECT
            user_id, email, first_name, last_name, role, created_at
          FROM users
+         WHERE role = 'customer'
          ORDER BY created_at DESC
          LIMIT $1`,
         [limit]
@@ -475,85 +489,94 @@ const getReviewStats = async (req, res) => {
     console.error('Get review stats error:', error);
     return res.status(500).json({ error: 'Failed to fetch review stats' });
   }
-
 };
 
- // GET /api/analytics
-  // General-purpose analytics aggregate.
-  // Combines revenue, orders, customers, products, and top-line sales
-  // into a single response. Accepts optional query params to scope the data:
-  //   ?days=30       — lookback window for time-series data (default 30, max 365)
-  //   ?period=daily|weekly|monthly  — grouping for the sales series (default daily)
-  const getAnalytics = async (req, res) => {
-    try {
-      const days = Math.min(365, Math.max(1, Number.parseInt(req.query.days, 10) || 30));
-      const period = ['daily', 'weekly', 'monthly'].includes(req.query.period)
-        ? req.query.period
-        : 'daily';
+// GET /api/analytics
+// General-purpose analytics aggregate.
+// Combines revenue, orders, customers, products, and top-line sales
+// into a single response. Accepts optional query params to scope the data:
+//   ?days=30       — lookback window for time-series data (default 30, max 365)
+//   ?period=daily|weekly|monthly  — grouping for the sales series (default daily)
+const getAnalytics = async (req, res) => {
+  try {
+    const days = Math.min(365, Math.max(1, Number.parseInt(req.query.days, 10) || 30));
+    const period = ['daily', 'weekly', 'monthly'].includes(req.query.period)
+      ? req.query.period
+      : 'daily';
 
-      const PERIOD_MAP = { daily: 'day', weekly: 'week', monthly: 'month' };
-      const dateTrunc = PERIOD_MAP[period];
+    const PERIOD_MAP = { daily: 'day', weekly: 'week', monthly: 'month' };
+    const dateTrunc = PERIOD_MAP[period];
 
-      const [
-        revenueResult,
-        ordersResult,
-        usersResult,
-        productsResult,
-        salesSeriesResult,
-        statusResult,
-        topProductsResult
-      ] = await Promise.all([
-
-        // Revenue totals — exclude cancelled
-        pool.query(`
+    const [
+      revenueResult,
+      ordersResult,
+      usersResult,
+      productsResult,
+      salesSeriesResult,
+      statusResult,
+      topProductsResult
+    ] = await Promise.all([
+      // Revenue totals — exclude cancelled
+      pool.query(`
         SELECT
-          COALESCE(SUM(total_amount), 0)::text                                        AS total_revenue,
-          COALESCE(SUM(total_amount) FILTER (
-            WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL), 0)::text          AS period_revenue,
-          COALESCE(AVG(total_amount) FILTER (
-            WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL), 0)::text          AS avg_order_value
+          COALESCE(SUM(total_amount), 0)::text AS total_revenue,
+          COALESCE(
+            SUM(total_amount) FILTER (
+              WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+            ),
+            0
+          )::text AS period_revenue,
+          COALESCE(
+            AVG(total_amount) FILTER (
+              WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+            ),
+            0
+          )::text AS avg_order_value
         FROM orders
         WHERE status != 'cancelled'
       `, [days]),
 
-        // Order counts
-        pool.query(`
+      // Order counts
+      pool.query(`
         SELECT
-          COUNT(*)::int                                                                 AS total_orders,
+          COUNT(*)::int AS total_orders,
           COUNT(*) FILTER (WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL)::int AS period_orders,
-          COUNT(*) FILTER (WHERE status = 'pending')::int                              AS pending_orders,
-          COUNT(*) FILTER (WHERE status = 'cancelled')::int                            AS cancelled_orders
+          COUNT(*) FILTER (WHERE status = 'pending')::int AS pending_orders,
+          COUNT(*) FILTER (WHERE status = 'cancelled')::int AS cancelled_orders
         FROM orders
       `, [days]),
 
-        // Customer counts
-        pool.query(`
+      // Customer counts
+      pool.query(`
         SELECT
-          COUNT(*)::int                                                                 AS total_customers,
+          COUNT(*)::int AS total_customers,
           COUNT(*) FILTER (WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL)::int AS new_customers
         FROM users
         WHERE role = 'customer'
       `, [days]),
 
-        // Product counts + low stock alert count
-        pool.query(`
-        SELECT
-          COUNT(*)::int                                               AS total_products,
-          COUNT(*) FILTER (WHERE is_active = true)::int              AS active_products,
-          (
-            SELECT COUNT(*)::int
-            FROM product_variant pv
-            JOIN product p2 ON p2.product_id = pv.product_id
-            WHERE pv.stock_quantity <= 5 AND p2.is_active = true
-          )                                                           AS low_stock_count
-        FROM product
-      `),
+      // Product counts + low stock alert count
+      pool.query(
+        `
+          SELECT
+            COUNT(*)::int AS total_products,
+            COUNT(*) FILTER (WHERE is_active = true)::int AS active_products,
+            (
+              SELECT COUNT(*)::int
+              FROM product_variant pv
+              JOIN product p ON p.product_id = pv.product_id
+              WHERE ${LOW_STOCK_WHERE_SQL}
+            ) AS low_stock_count
+          FROM product
+        `,
+        [LOW_STOCK_THRESHOLD_DEFAULT]
+      ),
 
-        // Sales time series grouped by period
-        pool.query(`
+      // Sales time series grouped by period
+      pool.query(`
         SELECT
-          DATE_TRUNC($1, created_at)         AS period_start,
-          COUNT(*)::int                      AS order_count,
+          DATE_TRUNC($1, created_at) AS period_start,
+          COUNT(*)::int AS order_count,
           COALESCE(SUM(total_amount), 0)::text AS revenue
         FROM orders
         WHERE status != 'cancelled'
@@ -562,67 +585,68 @@ const getReviewStats = async (req, res) => {
         ORDER BY period_start ASC
       `, [dateTrunc, days]),
 
-        // Order status breakdown
-        pool.query(`
+      // Order status breakdown
+      pool.query(`
         SELECT
           status,
-          COUNT(*)::int                        AS count,
+          COUNT(*)::int AS count,
           COALESCE(SUM(total_amount), 0)::text AS total_value
         FROM orders
         GROUP BY status
         ORDER BY count DESC
       `),
 
-        // Top 5 products by revenue in the window
-        pool.query(`
+      // Top 5 products by revenue in the window
+      pool.query(`
         SELECT
           p.product_id,
           p.name,
           COALESCE(SUM(oi.quantity * oi.unit_price), 0)::text AS revenue,
-          COALESCE(SUM(oi.quantity), 0)::int                  AS units_sold
+          COALESCE(SUM(oi.quantity), 0)::int AS units_sold,
+          p.is_active
         FROM product p
         JOIN order_item oi ON oi.product_id = p.product_id
-        JOIN orders o      ON o.order_id = oi.order_id
+        JOIN orders o ON o.order_id = oi.order_id
           AND o.status != 'cancelled'
           AND o.created_at >= NOW() - ($1 || ' days')::INTERVAL
-        GROUP BY p.product_id, p.name
+        GROUP BY p.product_id, p.name, p.is_active
         ORDER BY SUM(oi.quantity * oi.unit_price) DESC
         LIMIT 5
       `, [days])
-      ]);
+    ]);
 
-      return res.status(200).json({
-        period,
-        days,
-        revenue: {
-          total: revenueResult.rows[0].total_revenue,
-          period_total: revenueResult.rows[0].period_revenue,
-          avg_order_value: revenueResult.rows[0].avg_order_value,
-        },
-        orders: {
-          total: ordersResult.rows[0].total_orders,
-          period: ordersResult.rows[0].period_orders,
-          pending: ordersResult.rows[0].pending_orders,
-          cancelled: ordersResult.rows[0].cancelled_orders,
-        },
-        customers: {
-          total: usersResult.rows[0].total_customers,
-          new: usersResult.rows[0].new_customers,
-        },
-        products: {
-          total: productsResult.rows[0].total_products,
-          active: productsResult.rows[0].active_products,
-          low_stock_count: productsResult.rows[0].low_stock_count,
-        },
-        sales_series: salesSeriesResult.rows,
-        order_status: statusResult.rows,
-        top_products: topProductsResult.rows,
-      });
-    } catch (error) {
-      console.error('Get analytics error:', error);
-      return res.status(500).json({ error: 'Failed to fetch analytics' });
-    }
+    return res.status(200).json({
+      period,
+      days,
+      revenue: {
+        total: revenueResult.rows[0].total_revenue,
+        period_total: revenueResult.rows[0].period_revenue,
+        avg_order_value: revenueResult.rows[0].avg_order_value,
+      },
+      orders: {
+        total: ordersResult.rows[0].total_orders,
+        period: ordersResult.rows[0].period_orders,
+        pending: ordersResult.rows[0].pending_orders,
+        cancelled: ordersResult.rows[0].cancelled_orders,
+      },
+      customers: {
+        total: usersResult.rows[0].total_customers,
+        new: usersResult.rows[0].new_customers,
+      },
+      products: {
+        total: productsResult.rows[0].total_products,
+        active: productsResult.rows[0].active_products,
+        low_stock_count: productsResult.rows[0].low_stock_count,
+      },
+      sales_series: salesSeriesResult.rows,
+      order_status: statusResult.rows,
+      top_products: topProductsResult.rows,
+    });
+  } catch (error) {
+    console.error('Get analytics error:', error);
+    return res.status(500).json({ error: 'Failed to fetch analytics' });
   }
+};
 
 module.exports = {
   getDashboardStats,

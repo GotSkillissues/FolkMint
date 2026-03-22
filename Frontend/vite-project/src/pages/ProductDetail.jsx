@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { productService, reviewService } from '../services';
+import { productService, reviewService, wishlistService } from '../services';
 import { useCategoryTree } from '../hooks/useCategories';
+import { useAuth } from '../context';
 import { useCart } from '../context';
 import { getCardImageUrl, getCategoryUrl } from '../utils';
 
@@ -259,6 +260,7 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user, isAuthenticated } = useAuth();
   const { tree: categoryTree } = useCategoryTree();
 
   const [product, setProduct] = useState(null);
@@ -272,8 +274,11 @@ const ProductDetail = () => {
 
   const [toast, setToast] = useState({ msg: '', type: 'success' });
 
+  const [canReview, setCanReview] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   const [similar, setSimilar] = useState([]);
   const [youMayLike, setYouMayLike] = useState([]);
@@ -281,6 +286,24 @@ const ProductDetail = () => {
 
   const simCarousel = useCarousel(similar);
   const likeCarousel = useCarousel(youMayLike);
+
+  const [addingWishlist, setAddingWishlist] = useState(false);
+
+  const handleAddToWishlist = async () => {
+    if (!selectedVariant?.variant_id) {
+      showToast('Please select a variant first.', 'error');
+      return;
+    }
+    setAddingWishlist(true);
+    try {
+      await wishlistService.addToWishlist(selectedVariant.variant_id);
+      showToast('Added to wishlist!');
+    } catch (err) {
+      showToast(err?.error || err?.message || 'Failed to add to wishlist.', 'error');
+    } finally {
+      setAddingWishlist(false);
+    }
+  };
 
   const showToast = useCallback((msg, type = 'success') => setToast({ msg, type }), []);
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
@@ -372,6 +395,7 @@ const ProductDetail = () => {
 
     let mounted = true;
     setReviewsLoading(true);
+    setCanReview(false);
 
     reviewService
       .getProductReviews(product.product_id, { limit: 5 })
@@ -386,10 +410,19 @@ const ProductDetail = () => {
         if (mounted) setReviewsLoading(false);
       });
 
+    if (isAuthenticated) {
+      productService.canReview(product.product_id)
+        .then((res) => {
+          const payload = res?.data ?? res ?? {};
+          if (mounted) setCanReview(payload.can_review === true);
+        })
+        .catch(() => {});
+    }
+
     return () => {
       mounted = false;
     };
-  }, [product?.product_id]);
+  }, [product?.product_id, isAuthenticated]);
 
   /* load similar / you may also like */
   useEffect(() => {
@@ -472,6 +505,29 @@ const ProductDetail = () => {
 
     return () => clearInterval(iv);
   }, [simCarousel.hasWheel, likeCarousel.hasWheel, simCarousel.next, likeCarousel.next, syncKey]);
+
+
+  const handleSubmitReview = async () => {
+    if (!reviewForm.rating) return;
+    setSubmittingReview(true);
+    try {
+      await reviewService.createReview({
+        product_id: product.product_id,
+        rating: reviewForm.rating,
+        comment: reviewForm.comment.trim() || undefined,
+      });
+      showToast('Review submitted!');
+      setReviewForm({ rating: 5, comment: '' });
+      setCanReview(false);
+      // refresh reviews
+      const res = await reviewService.getProductReviews(product.product_id, { limit: 5 });
+      setReviews(normalizeReviewResponse(res));
+    } catch (err) {
+      showToast(err?.error || err?.message || 'Failed to submit review.', 'error');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -710,7 +766,20 @@ const ProductDetail = () => {
             )}
           </div>
 
-          {!inStock && <p className="pd-out-of-stock">This item is currently out of stock</p>}
+          {!inStock && (
+  <div className="pd-oos-block">
+    <p className="pd-out-of-stock">This item is currently out of stock</p>
+    {isAuthenticated && (
+      <button
+        className="pd-btn-wishlist"
+        onClick={handleAddToWishlist}
+        disabled={addingWishlist}
+      >
+        {addingWishlist ? <><Spin s={13} /> Adding…</> : '♡ Add to Wishlist — notify me when back'}
+      </button>
+    )}
+  </div>
+)}
           {inStock && selectedVariant && (
             <p className="pd-stock-note">
               {selectedVariant.size ? `Selected size stock: ${selectedStock}` : `Available stock: ${selectedStock}`}
@@ -791,7 +860,43 @@ const ProductDetail = () => {
             label="Reviews"
             badge={Number(product.review_count) > 0 ? ` (${product.review_count})` : null}
           >
-            <div className="pd-acc-content">
+           <div className="pd-acc-content">
+              {canReview && (
+                <div className="pd-review-form">
+                  <p className="pd-review-form-label">Write a Review</p>
+                  <div className="pd-review-stars-pick">
+                    {[1,2,3,4,5].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        className="pd-star-btn"
+                        onClick={() => setReviewForm(p => ({ ...p, rating: n }))}
+                      >
+                        <svg width="22" height="22" viewBox="0 0 24 24"
+                          fill={n <= reviewForm.rating ? '#f0a500' : 'none'}
+                          stroke="#f0a500" strokeWidth="1.5" strokeLinecap="round">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    className="pd-review-textarea"
+                    rows={3}
+                    placeholder="Share your thoughts (optional)…"
+                    value={reviewForm.comment}
+                    onChange={e => setReviewForm(p => ({ ...p, comment: e.target.value }))}
+                  />
+                  <button
+                    className="pd-btn-add"
+                    style={{ height: 44, fontSize: 12, letterSpacing: '.08em', flex: 'none', alignSelf: 'flex-start', padding: '0 24px' }}
+                    onClick={handleSubmitReview}
+                    disabled={submittingReview}
+                  >
+                    {submittingReview ? <><Spin s={14}/> SUBMITTING…</> : 'SUBMIT REVIEW'}
+                  </button>
+                </div>
+              )}
               {reviewsLoading ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#999', fontSize: 13.5 }}>
                   <Spin /> Loading reviews…
@@ -1190,6 +1295,30 @@ const ProductDetail = () => {
           font-size: 13px;
           color: #c62828;
         }
+        .pd-oos-block {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .pd-btn-wishlist {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 10px 18px;
+          background: #fff;
+          border: 1px solid #d1d1d1;
+          font-size: 13px;
+          font-weight: 600;
+          color: #555;
+          cursor: pointer;
+          transition: all .2s;
+          align-self: flex-start;
+        }
+        .pd-btn-wishlist:hover:not(:disabled) {
+          border-color: #111;
+          color: #111;
+        }
+        .pd-btn-wishlist:disabled { opacity: .5; cursor: not-allowed; }
         .pd-stock-note {
           margin: 0;
           font-size: 13px;
@@ -1343,6 +1472,47 @@ const ProductDetail = () => {
           color: #444;
           line-height: 1.65;
         }
+          .pd-review-form {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding: 14px;
+          background: #f9f9f9;
+          border: 1px solid #e8e8e8;
+          margin-bottom: 4px;
+        }
+        .pd-review-form-label {
+          margin: 0;
+          font-size: 13px;
+          font-weight: 700;
+          color: #111;
+          letter-spacing: .04em;
+        }
+        .pd-review-stars-pick {
+          display: flex;
+          gap: 4px;
+        }
+        .pd-star-btn {
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          line-height: 0;
+          transition: transform .1s;
+        }
+        .pd-star-btn:hover { transform: scale(1.15); }
+        .pd-review-textarea {
+          padding: 9px 13px;
+          border: 1px solid #d1d1d1;
+          font-size: 13.5px;
+          color: #111;
+          font-family: inherit;
+          resize: vertical;
+          line-height: 1.6;
+          outline: none;
+          transition: border-color .2s;
+        }
+        .pd-review-textarea:focus { border-color: #111; }
 
         .pd-cta-row {
           display: flex;

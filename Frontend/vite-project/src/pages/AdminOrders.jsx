@@ -1,15 +1,15 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { orderService } from '../services';
 
 const STATUS_OPTIONS = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 const STATUS_META = {
-  pending:    { color: '#d97706', bg: '#fff7e6', border: '#fcd9a0' },
-  confirmed:  { color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+  pending: { color: '#d97706', bg: '#fff7e6', border: '#fcd9a0' },
+  confirmed: { color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
   processing: { color: '#0891b2', bg: '#f0f9ff', border: '#bae6fd' },
-  shipped:    { color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
-  delivered:  { color: '#15803d', bg: '#f0faf3', border: '#bbe5c8' },
-  cancelled:  { color: '#9f1239', bg: '#fff2f3', border: '#f5c2c7' },
+  shipped: { color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+  delivered: { color: '#15803d', bg: '#f0faf3', border: '#bbe5c8' },
+  cancelled: { color: '#9f1239', bg: '#fff2f3', border: '#f5c2c7' },
 };
 
 const StatusBadge = ({ status }) => {
@@ -31,8 +31,8 @@ const Toast = ({ msg, type, onDismiss }) => {
   return (
     <div className={`ao-toast ao-toast-${type}`}>
       {type === 'error'
-        ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+        : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
       }
       {msg}
     </div>
@@ -40,27 +40,30 @@ const Toast = ({ msg, type, onDismiss }) => {
 };
 
 const AdminOrders = () => {
-  const [orders, setOrders]         = useState([]);
+  const [orders, setOrders] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [statusFilter, setStatusFilter] = useState('all');
-  const [loading, setLoading]       = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const [expandedId, setExpandedId]   = useState(null);
-  const [detailsMap, setDetailsMap]   = useState({});
+  const [expandedId, setExpandedId] = useState(null);
+  const [detailsMap, setDetailsMap] = useState({});
   const [detailLoading, setDetailLoading] = useState(null);
 
-  const [editingId, setEditingId]     = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [statusDraft, setStatusDraft] = useState('');
-  const [savingId, setSavingId]       = useState(null);
+  const [savingId, setSavingId] = useState(null);
   const [cancellingId, setCancellingId] = useState(null);
 
   const [toast, setToast] = useState({ msg: '', type: 'success' });
-  const showToast  = (msg, type = 'success') => setToast({ msg, type });
+  const showToast = (msg, type = 'success') => setToast({ msg, type });
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
+  const loadMoreRef = useRef(null);
 
   /* ── fetch ── */
-  const loadOrders = useCallback(async (page = 1, status = statusFilter) => {
-    setLoading(true);
+  const loadOrders = useCallback(async (page = 1, status = statusFilter, append = false) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     try {
       const res = await orderService.getAllOrders({
         page,
@@ -68,13 +71,19 @@ const AdminOrders = () => {
         status: status === 'all' ? undefined : status,
       });
       const fetched = Array.isArray(res?.orders) ? res.orders : [];
-      setOrders(fetched);
+      setOrders((prev) => {
+        if (!append) return fetched;
+        const seen = new Set(prev.map((o) => o.order_id));
+        const next = fetched.filter((o) => !seen.has(o.order_id));
+        return [...prev, ...next];
+      });
       setPagination(res?.pagination || { page, pages: 1, total: fetched.length });
-      setEditingId(null);
+      if (!append) setEditingId(null);
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to load orders.', 'error');
     } finally {
-      setLoading(false);
+      if (append) setLoadingMore(false);
+      else setLoading(false);
     }
   }, [statusFilter]);
 
@@ -83,8 +92,27 @@ const AdminOrders = () => {
   /* ── filter ── */
   const applyFilter = (status) => {
     setStatusFilter(status);
+    setExpandedId(null);
+    setDetailsMap({});
     loadOrders(1, status);
   };
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry.isIntersecting) return;
+        if (loading || loadingMore) return;
+        if (pagination.page >= pagination.pages) return;
+        loadOrders(pagination.page + 1, statusFilter, true);
+      },
+      { rootMargin: '320px 0px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [loadOrders, loading, loadingMore, pagination.page, pagination.pages, statusFilter]);
 
   /* ── expand / detail ── */
   const toggleExpand = async (orderId) => {
@@ -119,7 +147,7 @@ const AdminOrders = () => {
       cancelEdit();
       // Refresh detail cache for this order
       setDetailsMap(prev => { const n = { ...prev }; delete n[orderId]; return n; });
-      await loadOrders(pagination.page, statusFilter);
+      await loadOrders(1, statusFilter);
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to update status.', 'error');
     } finally {
@@ -135,7 +163,7 @@ const AdminOrders = () => {
       await orderService.cancelOrder(orderId);
       showToast(`Order #${orderId} cancelled.`);
       setDetailsMap(prev => { const n = { ...prev }; delete n[orderId]; return n; });
-      await loadOrders(pagination.page, statusFilter);
+      await loadOrders(1, statusFilter);
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to cancel order.', 'error');
     } finally {
@@ -143,7 +171,7 @@ const AdminOrders = () => {
     }
   };
 
-  const fmt     = (n) => '৳' + Number(n || 0).toLocaleString('en-BD');
+  const fmt = (n) => '৳' + Number(n || 0).toLocaleString('en-BD');
   const fmtDate = (d) => new Date(d).toLocaleDateString('en-BD', { year: 'numeric', month: 'short', day: 'numeric' });
 
   return (
@@ -161,8 +189,8 @@ const AdminOrders = () => {
           disabled={loading}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-            <polyline points="23 4 23 10 17 10"/>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
           </svg>
           Refresh
         </button>
@@ -195,9 +223,9 @@ const AdminOrders = () => {
         ) : !orders.length ? (
           <div className="ao-empty">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-              <line x1="3" y1="6" x2="21" y2="6"/>
-              <path d="M16 10a4 4 0 01-8 0"/>
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 01-8 0" />
             </svg>
             <p>No orders found{statusFilter !== 'all' ? ` with status "${orderService.getStatusLabel(statusFilter)}"` : ''}.</p>
           </div>
@@ -217,9 +245,9 @@ const AdminOrders = () => {
                 </thead>
                 <tbody>
                   {orders.map(order => {
-                    const isEditing   = editingId === order.order_id;
-                    const isExpanded  = expandedId === order.order_id;
-                    const detail      = detailsMap[order.order_id];
+                    const isEditing = editingId === order.order_id;
+                    const isExpanded = expandedId === order.order_id;
+                    const detail = detailsMap[order.order_id];
                     const isCancelled = order.status === 'cancelled';
                     const isDelivered = order.status === 'delivered';
 
@@ -336,17 +364,15 @@ const AdminOrders = () => {
                               ) : (
                                 <div className="ao-detail-panel">
 
-                                  {/* Address */}
+                                  {/* Shipping Address */}
                                   <div className="ao-detail-section">
                                     <p className="ao-detail-section-label">Shipping Address</p>
                                     <p className="ao-detail-value">
                                       {[
-                                        detail.street,
-                                        detail.apartment,
-                                        detail.city,
-                                        detail.district,
-                                        detail.postal_code,
-                                        detail.country,
+                                        detail.address?.street,
+                                        detail.address?.city,
+                                        detail.address?.postal_code,
+                                        detail.address?.country,
                                       ].filter(Boolean).join(', ') || 'No address on record'}
                                     </p>
                                   </div>
@@ -355,11 +381,11 @@ const AdminOrders = () => {
                                   <div className="ao-detail-section">
                                     <p className="ao-detail-section-label">Payment</p>
                                     <p className="ao-detail-value">
-                                      {detail.payment_method_type
-                                        ? detail.payment_method_type.toUpperCase()
+                                      {detail.payment?.payment_type
+                                        ? detail.payment.payment_type.toUpperCase()
                                         : 'N/A'}
-                                      {detail.payment_status && (
-                                        <span className="ao-payment-status"> · {detail.payment_status}</span>
+                                      {detail.payment?.status && (
+                                        <span className="ao-payment-status"> · {detail.payment.status}</span>
                                       )}
                                     </p>
                                   </div>
@@ -374,12 +400,12 @@ const AdminOrders = () => {
                                             {item.primary_image
                                               ? <img src={item.primary_image} alt={item.product_name} className="ao-item-img" />
                                               : <div className="ao-item-img-placeholder">
-                                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                                                    <polyline points="21 15 16 10 5 21"/>
-                                                  </svg>
-                                                </div>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                                                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                                                  <circle cx="8.5" cy="8.5" r="1.5" />
+                                                  <polyline points="21 15 16 10 5 21" />
+                                                </svg>
+                                              </div>
                                             }
                                           </div>
                                           <div className="ao-item-info">
@@ -415,24 +441,8 @@ const AdminOrders = () => {
               </table>
             </div>
 
-            {/* ── PAGINATION ── */}
-            {pagination.pages > 1 && (
-              <div className="ao-pagination">
-                <p className="ao-muted">Page {pagination.page} of {pagination.pages}</p>
-                <div className="ao-pag-btns">
-                  <button
-                    className="ao-pag-btn"
-                    disabled={pagination.page <= 1 || loading}
-                    onClick={() => loadOrders(pagination.page - 1, statusFilter)}
-                  >← Previous</button>
-                  <button
-                    className="ao-pag-btn"
-                    disabled={pagination.page >= pagination.pages || loading}
-                    onClick={() => loadOrders(pagination.page + 1, statusFilter)}
-                  >Next →</button>
-                </div>
-              </div>
-            )}
+            <div ref={loadMoreRef} className="ao-load-more" aria-hidden="true" />
+            {loadingMore && <p className="ao-muted">Loading more orders…</p>}
           </>
         )}
       </div>

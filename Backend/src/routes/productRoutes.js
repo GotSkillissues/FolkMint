@@ -27,7 +27,7 @@ const {
   deleteImage
 } = require('../controllers/productController');
 
-const { authenticate, isAdmin } = require('../middleware/authMiddleware');
+const { authenticate, isAdmin, optionalAuth } = require('../middleware/authMiddleware');
 
 // =====================================================================
 // SPECIAL NAMED ROUTES
@@ -73,7 +73,9 @@ router.delete('/images/:imageId', authenticate, isAdmin, deleteImage);
 // =====================================================================
 
 // GET /api/products
-router.get('/', getProducts);
+// optionalAuth: if a valid admin JWT is present, req.user is populated
+// so the controller can honour ?include_inactive=true for admin users.
+router.get('/', optionalAuth, getProducts);
 
 // POST /api/products
 router.post('/', authenticate, isAdmin, createProduct);
