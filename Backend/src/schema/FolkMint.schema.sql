@@ -310,7 +310,7 @@ CREATE TABLE review (
 
 -- ---------- WISHLIST ----------
 -- stores variant_id so restock notifications know exactly which size
--- only allowed when stock_quantity = 0 (enforced by backend)
+-- no stock-status constraint is enforced at schema level
 -- for unsized products the single NULL-size variant is used automatically
 CREATE TABLE wishlist (
     wishlist_id SERIAL PRIMARY KEY,
@@ -383,6 +383,518 @@ CREATE INDEX idx_wishlist_variant     ON wishlist(variant_id);
 
 CREATE INDEX idx_notification_user    ON notification(user_id);
 CREATE INDEX idx_notification_unread  ON notification(user_id) WHERE is_read = false;
+
+-- ---------- ORDER PROCEDURES ----------
+-- place_order centralizes the full checkout workflow.
+CREATE OR REPLACE PROCEDURE place_order(
+    p_user_id           INT,
+    p_address_id        INT,
+    p_payment_method_id INT,
+    OUT p_order_id      INT,
+    OUT p_total_amount  NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_total_cart_count  INT;
+    v_active_cart_count INT;
+    v_cart_item         RECORD;
+    v_seen_products     INT[] := ARRAY[]::INT[];
+    v_total_cents       BIGINT := 0;
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM address
+        WHERE address_id = p_address_id
+          AND user_id = p_user_id
+          AND is_deleted = false
+    ) THEN
+        RAISE EXCEPTION 'Invalid shipping address';
+    END IF;
+
+    IF p_payment_method_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1
+        FROM payment_method
+        WHERE payment_method_id = p_payment_method_id
+          AND user_id = p_user_id
+    ) THEN
+        RAISE EXCEPTION 'Invalid payment method';
+    END IF;
+
+    SELECT COUNT(*)::INT
+    INTO v_total_cart_count
+    FROM cart
+    WHERE user_id = p_user_id;
+
+    IF v_total_cart_count = 0 THEN
+        RAISE EXCEPTION 'Your cart is empty';
+    END IF;
+
+    SELECT COUNT(*)::INT
+    INTO v_active_cart_count
+    FROM cart c
+    JOIN product_variant pv ON pv.variant_id = c.variant_id
+    JOIN product p ON p.product_id = pv.product_id
+    WHERE c.user_id = p_user_id
+      AND p.is_active = true;
+
+    IF v_active_cart_count = 0 THEN
+        RAISE EXCEPTION 'All items in your cart are currently unavailable. Please review your cart before checking out.';
+    END IF;
+
+    IF v_active_cart_count < v_total_cart_count THEN
+        RAISE EXCEPTION 'Some items in your cart are no longer available. Please review your cart and remove unavailable items before checking out.';
+    END IF;
+
+    PERFORM pv.variant_id
+    FROM cart c
+    JOIN product_variant pv ON pv.variant_id = c.variant_id
+    JOIN product p ON p.product_id = pv.product_id
+    WHERE c.user_id = p_user_id
+      AND p.is_active = true
+    FOR UPDATE OF pv;
+
+    FOR v_cart_item IN
+        SELECT
+            c.variant_id,
+            c.quantity,
+            pv.product_id,
+            pv.size,
+            pv.stock_quantity,
+            p.name,
+            p.price
+        FROM cart c
+        JOIN product_variant pv ON pv.variant_id = c.variant_id
+        JOIN product p ON p.product_id = pv.product_id
+        WHERE c.user_id = p_user_id
+          AND p.is_active = true
+    LOOP
+        IF v_cart_item.product_id = ANY(v_seen_products) THEN
+            RAISE EXCEPTION 'Your cart contains multiple variants of the same product. Please keep only one size per product before checkout.';
+        END IF;
+
+        v_seen_products := array_append(v_seen_products, v_cart_item.product_id);
+
+        IF v_cart_item.stock_quantity < v_cart_item.quantity THEN
+            RAISE EXCEPTION
+                'Insufficient stock for %. Available: %, requested: %.',
+                v_cart_item.name || COALESCE(' (Size: ' || v_cart_item.size || ')', ''),
+                v_cart_item.stock_quantity,
+                v_cart_item.quantity;
+        END IF;
+
+        v_total_cents := v_total_cents
+            + (ROUND(v_cart_item.price * 100)::BIGINT * v_cart_item.quantity);
+    END LOOP;
+
+    p_total_amount := (v_total_cents::NUMERIC / 100)::NUMERIC(10, 2);
+
+    INSERT INTO orders (user_id, address_id, status, total_amount)
+    VALUES (p_user_id, p_address_id, 'pending', p_total_amount)
+    RETURNING order_id INTO p_order_id;
+
+    FOR v_cart_item IN
+        SELECT
+            c.variant_id,
+            c.quantity,
+            pv.product_id,
+            p.price
+        FROM cart c
+        JOIN product_variant pv ON pv.variant_id = c.variant_id
+        JOIN product p ON p.product_id = pv.product_id
+        WHERE c.user_id = p_user_id
+          AND p.is_active = true
+    LOOP
+        INSERT INTO order_item (order_id, product_id, variant_id, quantity, unit_price)
+        VALUES (
+            p_order_id,
+            v_cart_item.product_id,
+            v_cart_item.variant_id,
+            v_cart_item.quantity,
+            v_cart_item.price
+        );
+
+        UPDATE product_variant
+        SET stock_quantity = stock_quantity - v_cart_item.quantity
+        WHERE variant_id = v_cart_item.variant_id;
+    END LOOP;
+
+    INSERT INTO payment (order_id, payment_method_id, amount, status)
+    VALUES (p_order_id, p_payment_method_id, p_total_amount, 'pending');
+
+    DELETE FROM cart
+    WHERE user_id = p_user_id;
+END;
+$$;
+
+-- cancel_order centralizes customer cancellation with stock/payment rollback.
+CREATE OR REPLACE PROCEDURE cancel_order(
+    p_order_id INT,
+    p_user_id  INT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_order RECORD;
+    v_item  RECORD;
+BEGIN
+    SELECT order_id, status, user_id
+    INTO v_order
+    FROM orders
+    WHERE order_id = p_order_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Order not found';
+    END IF;
+
+    IF v_order.user_id <> p_user_id THEN
+        RAISE EXCEPTION 'Access denied';
+    END IF;
+
+    IF v_order.status <> 'pending' THEN
+        RAISE EXCEPTION 'Only pending orders can be cancelled. This order is ''%''.', v_order.status;
+    END IF;
+
+    FOR v_item IN
+        SELECT variant_id, quantity
+        FROM order_item
+        WHERE order_id = p_order_id
+    LOOP
+        IF v_item.variant_id IS NOT NULL THEN
+            UPDATE product_variant
+            SET stock_quantity = stock_quantity + v_item.quantity
+            WHERE variant_id = v_item.variant_id;
+        END IF;
+    END LOOP;
+
+    UPDATE payment
+    SET status = 'refunded',
+        updated_at = NOW()
+    WHERE order_id = p_order_id
+      AND status <> 'refunded';
+
+    UPDATE orders
+    SET status = 'cancelled',
+        updated_at = NOW()
+    WHERE order_id = p_order_id;
+END;
+$$;
+
+-- ---------- REVIEW / WISHLIST DB LOGIC ----------
+CREATE OR REPLACE FUNCTION get_product_avg_rating(
+    p_product_id INT
+)
+RETURNS NUMERIC AS $$
+BEGIN
+    RETURN (
+        SELECT COALESCE(ROUND(AVG(rating)::NUMERIC, 1), 0)
+        FROM review
+        WHERE product_id = p_product_id
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_product_total_stock(
+    p_product_id INT
+)
+RETURNS INT AS $$
+BEGIN
+    RETURN (
+        SELECT COALESCE(SUM(stock_quantity), 0)::INT
+        FROM product_variant
+        WHERE product_id = p_product_id
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_product_review_count(
+    p_product_id INT
+)
+RETURNS INT AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(*)::INT
+        FROM review
+        WHERE product_id = p_product_id
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_low_stock_count(
+    p_threshold INT DEFAULT 5
+)
+RETURNS INT AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(*)::INT
+        FROM product_variant pv
+        JOIN product p ON p.product_id = pv.product_id
+        WHERE pv.stock_quantity > 0
+          AND pv.stock_quantity <= p_threshold
+          AND p.is_active = true
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_product_units_sold(
+    p_product_id INT
+)
+RETURNS INT AS $$
+BEGIN
+    RETURN (
+        SELECT COALESCE(SUM(oi.quantity), 0)::INT
+        FROM order_item oi
+        JOIN orders o ON o.order_id = oi.order_id
+        WHERE oi.product_id = p_product_id
+          AND o.status <> 'cancelled'
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_product_revenue(
+    p_product_id INT
+)
+RETURNS NUMERIC AS $$
+BEGIN
+    RETURN (
+        SELECT COALESCE(SUM(oi.quantity * oi.unit_price), 0)
+        FROM order_item oi
+        JOIN orders o ON o.order_id = oi.order_id
+        WHERE oi.product_id = p_product_id
+          AND o.status <> 'cancelled'
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_product_units_sold_in_days(
+    p_product_id INT,
+    p_days INT
+)
+RETURNS INT AS $$
+BEGIN
+    RETURN (
+        SELECT COALESCE(SUM(oi.quantity), 0)::INT
+        FROM order_item oi
+        JOIN orders o ON o.order_id = oi.order_id
+        WHERE oi.product_id = p_product_id
+          AND o.status <> 'cancelled'
+          AND o.created_at >= NOW() - (p_days || ' days')::INTERVAL
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_product_revenue_in_days(
+    p_product_id INT,
+    p_days INT
+)
+RETURNS NUMERIC AS $$
+BEGIN
+    RETURN (
+        SELECT COALESCE(SUM(oi.quantity * oi.unit_price), 0)
+        FROM order_item oi
+        JOIN orders o ON o.order_id = oi.order_id
+        WHERE oi.product_id = p_product_id
+          AND o.status <> 'cancelled'
+          AND o.created_at >= NOW() - (p_days || ' days')::INTERVAL
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION has_purchased_product(
+    p_user_id INT,
+    p_product_id INT
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1
+        FROM order_item oi
+        JOIN orders o ON o.order_id = oi.order_id
+        WHERE o.user_id = p_user_id
+          AND oi.product_id = p_product_id
+          AND o.status = 'delivered'
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_product_rating_distribution(
+    p_product_id INT
+)
+RETURNS TABLE(
+    total_reviews INT,
+    avg_rating NUMERIC,
+    five_star INT,
+    four_star INT,
+    three_star INT,
+    two_star INT,
+    one_star INT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        COUNT(*)::INT AS total_reviews,
+        COALESCE(ROUND(AVG(rating)::NUMERIC, 1), 0) AS avg_rating,
+        COUNT(*) FILTER (WHERE rating = 5)::INT AS five_star,
+        COUNT(*) FILTER (WHERE rating = 4)::INT AS four_star,
+        COUNT(*) FILTER (WHERE rating = 3)::INT AS three_star,
+        COUNT(*) FILTER (WHERE rating = 2)::INT AS two_star,
+        COUNT(*) FILTER (WHERE rating = 1)::INT AS one_star
+    FROM review
+    WHERE product_id = p_product_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_user_preferred_categories(
+    p_user_id INT
+)
+RETURNS TABLE(category_id INT, name VARCHAR, score INT) AS $$
+BEGIN
+    RETURN QUERY
+    WITH category_signals AS (
+        SELECT p.category_id, oi.quantity::INT AS weight
+        FROM order_item oi
+        JOIN orders o ON o.order_id = oi.order_id
+        JOIN product p ON p.product_id = oi.product_id
+        WHERE o.user_id = p_user_id
+          AND o.status <> 'cancelled'
+
+        UNION ALL
+
+        SELECT p.category_id, 1 AS weight
+        FROM wishlist w
+        JOIN product_variant pv ON pv.variant_id = w.variant_id
+        JOIN product p ON p.product_id = pv.product_id
+        WHERE w.user_id = p_user_id
+
+        UNION ALL
+
+        SELECT p.category_id, c.quantity::INT AS weight
+        FROM cart c
+        JOIN product_variant pv ON pv.variant_id = c.variant_id
+        JOIN product p ON p.product_id = pv.product_id
+        WHERE c.user_id = p_user_id
+
+        UNION ALL
+
+        SELECT p.category_id, 1 AS weight
+        FROM review r
+        JOIN product p ON p.product_id = r.product_id
+        WHERE r.user_id = p_user_id
+    )
+    SELECT
+        c.category_id,
+        c.name,
+        SUM(cs.weight)::INT AS score
+    FROM category_signals cs
+    JOIN category c ON c.category_id = cs.category_id
+    GROUP BY c.category_id, c.name
+    ORDER BY score DESC, c.name ASC
+    LIMIT 10;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE submit_review(
+    p_user_id INT,
+    p_product_id INT,
+    p_rating INT,
+    p_comment TEXT,
+    OUT p_review_id INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM product
+        WHERE product_id = p_product_id
+          AND is_active = true
+    ) THEN
+        RAISE EXCEPTION 'Product not found';
+    END IF;
+
+    IF NOT has_purchased_product(p_user_id, p_product_id) THEN
+        RAISE EXCEPTION 'You can only review products you have purchased and received';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM review
+        WHERE user_id = p_user_id
+          AND product_id = p_product_id
+    ) THEN
+        RAISE EXCEPTION 'You have already reviewed this product';
+    END IF;
+
+    INSERT INTO review (user_id, product_id, rating, comment)
+    VALUES (p_user_id, p_product_id, p_rating, p_comment)
+    RETURNING review_id INTO p_review_id;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE move_to_cart(
+    p_wishlist_id INT,
+    p_user_id INT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_wishlist RECORD;
+    v_variant RECORD;
+    v_cart RECORD;
+BEGIN
+    SELECT wishlist_id, variant_id
+    INTO v_wishlist
+    FROM wishlist
+    WHERE wishlist_id = p_wishlist_id
+      AND user_id = p_user_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Wishlist item not found';
+    END IF;
+
+    SELECT pv.stock_quantity, pv.size, p.name
+    INTO v_variant
+    FROM product_variant pv
+    JOIN product p ON p.product_id = pv.product_id
+    WHERE pv.variant_id = v_wishlist.variant_id
+      AND p.is_active = true;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Product variant no longer available';
+    END IF;
+
+    IF v_variant.stock_quantity = 0 THEN
+        RAISE EXCEPTION 'This item is still out of stock';
+    END IF;
+
+    SELECT cart_id, quantity
+    INTO v_cart
+    FROM cart
+    WHERE user_id = p_user_id
+      AND variant_id = v_wishlist.variant_id;
+
+    IF FOUND THEN
+        IF (v_cart.quantity + 1) > v_variant.stock_quantity THEN
+            RAISE EXCEPTION
+                'Only % units available. You already have % in your cart.',
+                v_variant.stock_quantity,
+                v_cart.quantity;
+        END IF;
+
+        UPDATE cart
+        SET quantity = quantity + 1,
+            updated_at = NOW()
+        WHERE cart_id = v_cart.cart_id;
+    ELSE
+        INSERT INTO cart (user_id, variant_id, quantity)
+        VALUES (p_user_id, v_wishlist.variant_id, 1);
+    END IF;
+
+    DELETE FROM wishlist
+    WHERE wishlist_id = p_wishlist_id;
+END;
+$$;
 
 SELECT rebuild_category_tree();
 

@@ -107,7 +107,7 @@ const checkWishlist = async (req, res) => {
 
 // POST /api/wishlist
 // Authenticated. Adds an item to the wishlist.
-// Updated: Supports product_id or variant_id, and removed out-of-stock restriction.
+// Supports product_id or variant_id.
 const addToWishlist = async (req, res) => {
   try {
     const userId    = req.user.userId;
@@ -247,8 +247,6 @@ const clearWishlist = async (req, res) => {
 // Authenticated. Moves a wishlist item to cart when it comes back in stock.
 // Removes from wishlist after adding to cart.
 const moveToCart = async (req, res) => {
-  let client;
-
   try {
     const userId     = req.user.userId;
     const wishlistId = parsePositiveInt(req.params.wishlistId);
@@ -257,100 +255,31 @@ const moveToCart = async (req, res) => {
       return res.status(400).json({ error: 'Invalid wishlist ID' });
     }
 
-    client = await pool.connect();
-    await client.query('BEGIN');
-
-    // Get wishlist item
-    const wishlistResult = await client.query(
-      `SELECT w.wishlist_id, w.variant_id
-       FROM wishlist w
-       WHERE w.wishlist_id = $1
-         AND w.user_id = $2`,
-      [wishlistId, userId]
-    );
-
-    if (wishlistResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Wishlist item not found' });
-    }
-
-    const { variant_id } = wishlistResult.rows[0];
-
-    // Verify variant is now in stock
-    const variantResult = await client.query(
-      `SELECT pv.stock_quantity, pv.size, p.name
-       FROM product_variant pv
-       JOIN product p ON p.product_id = pv.product_id
-       WHERE pv.variant_id = $1
-         AND p.is_active = true`,
-      [variant_id]
-    );
-
-    if (variantResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Product variant no longer available' });
-    }
-
-    const variant = variantResult.rows[0];
-
-    if (variant.stock_quantity === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({
-        error: 'This item is still out of stock'
-      });
-    }
-
-    // Upsert into cart
-    const existingCart = await client.query(
-      'SELECT cart_id, quantity FROM cart WHERE user_id = $1 AND variant_id = $2',
-      [userId, variant_id]
-    );
-
-    if (existingCart.rows.length > 0) {
-      const newQuantity = existingCart.rows[0].quantity + 1;
-
-      if (newQuantity > variant.stock_quantity) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({
-          error: `Only ${variant.stock_quantity} units available. You already have ${existingCart.rows[0].quantity} in your cart.`
-        });
-      }
-
-      await client.query(
-        `UPDATE cart
-         SET quantity = $1, updated_at = NOW()
-         WHERE user_id = $2 AND variant_id = $3`,
-        [newQuantity, userId, variant_id]
-      );
-    } else {
-      await client.query(
-        `INSERT INTO cart (user_id, variant_id, quantity)
-         VALUES ($1, $2, 1)`,
-        [userId, variant_id]
-      );
-    }
-
-    // Remove from wishlist
-    await client.query(
-      'DELETE FROM wishlist WHERE wishlist_id = $1',
-      [wishlistId]
-    );
-
-    await client.query('COMMIT');
+    await pool.query('CALL move_to_cart($1, $2)', [wishlistId, userId]);
 
     return res.status(200).json({
       message: 'Item moved to cart successfully'
     });
   } catch (error) {
-    if (client) {
-      await client.query('ROLLBACK');
-      client.release();
-      client = null;
+    const message = String(error?.message || '');
+
+    if (message.includes('Wishlist item not found')) {
+      return res.status(404).json({ error: 'Wishlist item not found' });
     }
+
+    if (message.includes('Product variant no longer available')) {
+      return res.status(404).json({ error: 'Product variant no longer available' });
+    }
+
+    if (
+      message.includes('This item is still out of stock') ||
+      message.includes('Only')
+    ) {
+      return res.status(400).json({ error: message });
+    }
+
     console.error('Move to cart error:', error);
     return res.status(500).json({ error: 'Failed to move item to cart' });
-  } finally {
-    if (client) client.release();
   }
 };
 

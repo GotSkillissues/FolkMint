@@ -234,11 +234,7 @@ const getProducts = async (req, res) => {
              AND pi.is_primary = true
            LIMIT 1
          ) AS primary_image,
-         COALESCE((
-           SELECT SUM(pv.stock_quantity)
-           FROM product_variant pv
-           WHERE pv.product_id = p.product_id
-         ), 0) AS total_stock
+         get_product_total_stock(p.product_id) AS total_stock
        FROM product p
        LEFT JOIN category c ON c.category_id = p.category_id
        ${whereClause}
@@ -312,29 +308,24 @@ const getProductById = async (req, res) => {
       [productId]
     );
 
-    const reviewsResult = await pool.query(
+    const productStatsResult = await pool.query(
       `SELECT
-         COUNT(*)::int AS review_count,
-         ROUND(AVG(rating)::numeric, 1) AS avg_rating
-       FROM review
-       WHERE product_id = $1`,
+         get_product_total_stock($1) AS total_stock,
+         get_product_review_count($1) AS review_count,
+         get_product_avg_rating($1) AS avg_rating`,
       [productId]
     );
-
-    const totalStock = variantsResult.rows.reduce(
-      (sum, v) => sum + Number(v.stock_quantity || 0),
-      0
-    );
+    const productStats = productStatsResult.rows[0];
 
     return res.status(200).json({
       product: {
         ...buildProductResponse(product),
         variants: variantsResult.rows,
         images: imagesResult.rows,
-        total_stock: totalStock,
-        review_count: reviewsResult.rows[0].review_count,
-        avg_rating: reviewsResult.rows[0].avg_rating
-          ? String(reviewsResult.rows[0].avg_rating)
+        total_stock: Number.parseInt(productStats.total_stock, 10),
+        review_count: productStats.review_count,
+        avg_rating: productStats.avg_rating
+          ? String(productStats.avg_rating)
           : '0.0'
       }
     });
@@ -382,11 +373,7 @@ const getSimilarProducts = async (req, res) => {
              AND pi.is_primary = true
            LIMIT 1
          ) AS primary_image,
-         COALESCE((
-           SELECT SUM(pv.stock_quantity)
-           FROM product_variant pv
-           WHERE pv.product_id = p.product_id
-         ), 0) AS total_stock
+         get_product_total_stock(p.product_id) AS total_stock
        FROM product p
        LEFT JOIN category c ON c.category_id = p.category_id
        WHERE p.category_id = $1
@@ -462,11 +449,7 @@ const getYouMayAlsoLike = async (req, res) => {
              AND pi.is_primary = true
            LIMIT 1
          ) AS primary_image,
-         COALESCE((
-           SELECT SUM(pv.stock_quantity)
-           FROM product_variant pv
-           WHERE pv.product_id = p.product_id
-         ), 0) AS total_stock
+         get_product_total_stock(p.product_id) AS total_stock
        FROM product p
        LEFT JOIN category c ON c.category_id = p.category_id
        WHERE p.category_id IN (
@@ -534,11 +517,7 @@ const getTopRatedProducts = async (req, res) => {
            FROM product_image
            WHERE product_id = p.product_id
          ), '[]') AS all_images,
-         COALESCE((
-           SELECT SUM(pv.stock_quantity)
-           FROM product_variant pv
-           WHERE pv.product_id = p.product_id
-         ), 0) AS total_stock,
+         get_product_total_stock(p.product_id) AS total_stock,
          COALESCE(hs.total_units, 0) AS category_total_sales
        FROM product p
        LEFT JOIN order_item oi ON oi.product_id = p.product_id
@@ -611,11 +590,7 @@ const getPopularProducts = async (req, res) => {
            FROM product_image
            WHERE product_id = p.product_id
          ), '[]') AS all_images,
-         COALESCE((
-           SELECT SUM(pv.stock_quantity)
-           FROM product_variant pv
-           WHERE pv.product_id = p.product_id
-         ), 0) AS total_stock,
+         get_product_total_stock(p.product_id) AS total_stock,
          COALESCE(hs.total_units, 0) AS category_total_sales
        FROM product p
        LEFT JOIN order_item oi ON oi.product_id = p.product_id
@@ -730,11 +705,7 @@ const getRecommendedProducts = async (req, res) => {
            FROM product_image
            WHERE product_id = p.product_id
          ), '[]') AS all_images,
-         COALESCE((
-           SELECT SUM(pv2.stock_quantity)
-           FROM product_variant pv2
-           WHERE pv2.product_id = p.product_id
-         ), 0) AS total_stock
+         get_product_total_stock(p.product_id) AS total_stock
        FROM product p
        LEFT JOIN category_scores cs ON cs.category_id = p.category_id
        LEFT JOIN category c ON c.category_id = p.category_id
@@ -796,20 +767,16 @@ const canReview = async (req, res) => {
     }
 
     const purchaseCheck = await pool.query(
-      `SELECT 1
-       FROM order_item oi
-       JOIN orders o ON o.order_id = oi.order_id
-       WHERE o.user_id = $1
-         AND oi.product_id = $2
-         AND o.status = 'delivered'
-       LIMIT 1`,
+      'SELECT has_purchased_product($1, $2) AS can_review',
       [userId, productId]
     );
 
+    const canReviewProduct = Boolean(purchaseCheck.rows[0]?.can_review);
+
     return res.status(200).json({
-      can_review: purchaseCheck.rows.length > 0,
+      can_review: canReviewProduct,
       reason:
-        purchaseCheck.rows.length > 0
+        canReviewProduct
           ? null
           : 'No delivered order found for this product'
     });

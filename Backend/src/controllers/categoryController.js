@@ -443,7 +443,7 @@ const updateCategory = async (req, res) => {
 };
 
 // DELETE /api/categories/:id
-// Admin only. Blocked if category has products or active children.
+// Admin only. Deletes the category subtree and products in that subtree.
 const deleteCategory = async (req, res) => {
   try {
     const categoryId = parsePositiveInt(req.params.id);

@@ -293,46 +293,7 @@ const getUserPreferences = async (req, res) => {
     }
 
     const result = await pool.query(
-      `WITH category_signals AS (
-         SELECT p.category_id, oi.quantity::int AS weight
-         FROM order_item oi
-         JOIN orders o ON o.order_id = oi.order_id
-         JOIN product p ON p.product_id = oi.product_id
-         WHERE o.user_id = $1
-           AND o.status <> 'cancelled'
-
-         UNION ALL
-
-         SELECT p.category_id, 1 AS weight
-         FROM wishlist w
-         JOIN product_variant pv ON pv.variant_id = w.variant_id
-         JOIN product p ON p.product_id = pv.product_id
-         WHERE w.user_id = $1
-
-         UNION ALL
-
-         SELECT p.category_id, c.quantity::int AS weight
-         FROM cart c
-         JOIN product_variant pv ON pv.variant_id = c.variant_id
-         JOIN product p ON p.product_id = pv.product_id
-         WHERE c.user_id = $1
-
-         UNION ALL
-
-         SELECT p.category_id, 1 AS weight
-         FROM review r
-         JOIN product p ON p.product_id = r.product_id
-         WHERE r.user_id = $1
-       )
-       SELECT
-         c.category_id,
-         c.name,
-         SUM(cs.weight)::int AS score
-       FROM category_signals cs
-       JOIN category c ON c.category_id = cs.category_id
-       GROUP BY c.category_id, c.name
-       ORDER BY score DESC, c.name ASC
-       LIMIT 10`,
+      'SELECT * FROM get_user_preferred_categories($1)',
       [userId]
     );
 

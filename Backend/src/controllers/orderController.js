@@ -59,27 +59,6 @@ const buildPaymentResponse = (row) => {
   };
 };
 
-// String-based money helpers to avoid JS float math.
-const moneyStringToCents = (value) => {
-  const str = String(value ?? '').trim();
-  if (!/^\d+(\.\d{1,2})?$/.test(str)) {
-    throw new Error(`Invalid money value: ${str}`);
-  }
-
-  const [whole, fraction = ''] = str.split('.');
-  const paddedFraction = (fraction + '00').slice(0, 2);
-  return Number.parseInt(whole, 10) * 100 + Number.parseInt(paddedFraction, 10);
-};
-
-const centsToMoneyString = (cents) => {
-  const safe = Number.isInteger(cents) ? cents : 0;
-  const sign = safe < 0 ? '-' : '';
-  const abs = Math.abs(safe);
-  const whole = Math.floor(abs / 100);
-  const fraction = String(abs % 100).padStart(2, '0');
-  return `${sign}${whole}.${fraction}`;
-};
-
 // Internal helper — fire order notification non-blocking
 const fireOrderNotification = async (userId, type, title, message, orderId) => {
   try {
@@ -307,165 +286,20 @@ const createOrder = async (req, res) => {
     client = await pool.connect();
     await client.query('BEGIN');
 
-    const addressCheck = await client.query(
-      `SELECT address_id
-       FROM address
-       WHERE address_id = $1
-         AND user_id = $2
-         AND is_deleted = false`,
-      [address_id, userId]
+    const callResult = await client.query(
+      'CALL place_order($1, $2, $3, NULL, NULL)',
+      [userId, address_id, payment_method_id]
     );
 
-    if (addressCheck.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'Invalid shipping address' });
-    }
-
-    if (payment_method_id) {
-      const pmCheck = await client.query(
-        `SELECT payment_method_id
-         FROM payment_method
-         WHERE payment_method_id = $1
-           AND user_id = $2`,
-        [payment_method_id, userId]
-      );
-
-      if (pmCheck.rows.length === 0) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({ error: 'Invalid payment method' });
-      }
-    }
-
-    const cartResult = await client.query(
-      `SELECT
-         c.variant_id,
-         c.quantity,
-         pv.product_id,
-         pv.size,
-         pv.stock_quantity,
-         p.name,
-         p.price
-       FROM cart c
-       JOIN product_variant pv ON pv.variant_id = c.variant_id
-       JOIN product p ON p.product_id = pv.product_id
-       WHERE c.user_id = $1
-         AND p.is_active = true`,
-      [userId]
-    );
-
-    // Count total cart rows regardless of product active status
-    const totalCartCount = await client.query(
-      'SELECT COUNT(*)::int AS count FROM cart WHERE user_id = $1',
-      [userId]
-    );
-
-    if (totalCartCount.rows[0].count === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'Your cart is empty' });
-    }
-
-    if (cartResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({
-        error: 'All items in your cart are currently unavailable. Please review your cart before checking out.'
-      });
-    }
-
-    // Block if any cart items were skipped due to inactive products
-    if (cartResult.rows.length < totalCartCount.rows[0].count) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({
-        error: 'Some items in your cart are no longer available. Please review your cart and remove unavailable items before checking out.'
-      });
-    }
-
-    // Guard against schema conflict:
-    // order_item has UNIQUE (order_id, product_id), so the cart cannot contain
-    // two different variants of the same product for one checkout.
-    const seenProducts = new Set();
-    for (const item of cartResult.rows) {
-      if (seenProducts.has(item.product_id)) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({
-          error: 'Your cart contains multiple variants of the same product. Please keep only one size per product before checkout.'
-        });
-      }
-      seenProducts.add(item.product_id);
-    }
-
-    const variantIds = cartResult.rows.map((r) => r.variant_id);
-
-    const lockedVariants = await client.query(
-      `SELECT variant_id, stock_quantity
-       FROM product_variant
-       WHERE variant_id = ANY($1)
-       FOR UPDATE`,
-      [variantIds]
-    );
-
-    const stockMap = {};
-    lockedVariants.rows.forEach((v) => {
-      stockMap[v.variant_id] = v.stock_quantity;
-    });
-
-    for (const item of cartResult.rows) {
-      const available = stockMap[item.variant_id] ?? 0;
-      if (available < item.quantity) {
-        await client.query('ROLLBACK');
-        const sizeLabel = item.size ? ` (Size: ${item.size})` : '';
-        return res.status(400).json({
-          error: `Insufficient stock for ${item.name}${sizeLabel}. Available: ${available}, requested: ${item.quantity}.`
-        });
-      }
-    }
-
-    // String/integer-cents based total calculation.
-    const totalCents = cartResult.rows.reduce((sum, item) => {
-      return sum + (moneyStringToCents(item.price) * Number(item.quantity));
-    }, 0);
-    const total_amount = centsToMoneyString(totalCents);
-
+    const placedOrder = callResult.rows?.[0] || {};
     const orderResult = await client.query(
-      `INSERT INTO orders (user_id, address_id, status, total_amount)
-       VALUES ($1, $2, 'pending', $3)
-       RETURNING order_id, status, total_amount, user_id, address_id, created_at, updated_at`,
-      [userId, address_id, total_amount]
+      `SELECT order_id, status, total_amount, user_id, address_id, created_at, updated_at
+       FROM orders
+       WHERE order_id = $1`,
+      [placedOrder.p_order_id]
     );
 
     const order = orderResult.rows[0];
-
-    for (const item of cartResult.rows) {
-      await client.query(
-        `INSERT INTO order_item (order_id, product_id, variant_id, quantity, unit_price)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          order.order_id,
-          item.product_id,
-          item.variant_id,
-          item.quantity,
-          String(item.price)
-        ]
-      );
-
-      await client.query(
-        `UPDATE product_variant
-         SET stock_quantity = stock_quantity - $1
-         WHERE variant_id = $2`,
-        [item.quantity, item.variant_id]
-      );
-    }
-
-    await client.query(
-      `INSERT INTO payment (order_id, payment_method_id, amount, status)
-       VALUES ($1, $2, $3, 'pending')`,
-      [order.order_id, payment_method_id, total_amount]
-    );
-
-    await client.query(
-      `DELETE FROM cart
-       WHERE user_id = $1`,
-      [userId]
-    );
 
     await client.query('COMMIT');
 
@@ -473,7 +307,7 @@ const createOrder = async (req, res) => {
       userId,
       'order_placed',
       'Order placed',
-      `Your order #${order.order_id} has been placed successfully. Total: ৳${total_amount}.`,
+      `Your order #${order.order_id} has been placed successfully. Total: ৳${order.total_amount}.`,
       order.order_id
     );
 
@@ -482,11 +316,26 @@ const createOrder = async (req, res) => {
       order: buildOrderResponse(order)
     });
   } catch (error) {
+    const message = String(error?.message || '');
+
     if (client) {
       await client.query('ROLLBACK');
       client.release();
       client = null;
     }
+
+    if (
+      message.includes('Invalid shipping address') ||
+      message.includes('Invalid payment method') ||
+      message.includes('Your cart is empty') ||
+      message.includes('All items in your cart are currently unavailable') ||
+      message.includes('Some items in your cart are no longer available') ||
+      message.includes('Your cart contains multiple variants of the same product') ||
+      message.includes('Insufficient stock for')
+    ) {
+      return res.status(400).json({ error: message });
+    }
+
     console.error('Create order error:', error);
     return res.status(500).json({ error: 'Failed to place order' });
   } finally {
@@ -655,66 +504,12 @@ const cancelOrder = async (req, res) => {
     client = await pool.connect();
     await client.query('BEGIN');
 
-    const orderResult = await client.query(
-      `SELECT order_id, status, user_id
-       FROM orders
-       WHERE order_id = $1
-       FOR UPDATE`,
-      [orderId]
-    );
-
-    if (orderResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Order not found' });
-    }
-
-    const order = orderResult.rows[0];
-
-    if (order.user_id !== userId) {
-      await client.query('ROLLBACK');
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
-    if (order.status !== 'pending') {
-      await client.query('ROLLBACK');
-      return res.status(400).json({
-        error: `Only pending orders can be cancelled. This order is '${order.status}'.`
-      });
-    }
-
-    const items = await client.query(
-      `SELECT variant_id, quantity
-       FROM order_item
-       WHERE order_id = $1`,
-      [orderId]
-    );
-
-    for (const item of items.rows) {
-      if (item.variant_id) {
-        await client.query(
-          `UPDATE product_variant
-           SET stock_quantity = stock_quantity + $1
-           WHERE variant_id = $2`,
-          [item.quantity, item.variant_id]
-        );
-      }
-    }
-
-    await client.query(
-      `UPDATE payment
-       SET status = 'refunded',
-           updated_at = NOW()
-       WHERE order_id = $1
-         AND status != 'refunded'`,
-      [orderId]
-    );
+    await client.query('CALL cancel_order($1, $2)', [orderId, userId]);
 
     const result = await client.query(
-      `UPDATE orders
-       SET status = 'cancelled',
-           updated_at = NOW()
-       WHERE order_id = $1
-       RETURNING order_id, status, total_amount, user_id, address_id, created_at, updated_at`,
+      `SELECT order_id, status, total_amount, user_id, address_id, created_at, updated_at
+       FROM orders
+       WHERE order_id = $1`,
       [orderId]
     );
 
@@ -733,11 +528,26 @@ const cancelOrder = async (req, res) => {
       order: buildOrderResponse(result.rows[0])
     });
   } catch (error) {
+    const message = String(error?.message || '');
+
     if (client) {
       await client.query('ROLLBACK');
       client.release();
       client = null;
     }
+
+    if (message.includes('Order not found')) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (message.includes('Access denied')) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (message.includes('Only pending orders can be cancelled')) {
+      return res.status(400).json({ error: message });
+    }
+
     console.error('Cancel order error:', error);
     return res.status(500).json({ error: 'Failed to cancel order' });
   } finally {

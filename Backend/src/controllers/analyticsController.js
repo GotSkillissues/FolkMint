@@ -4,14 +4,13 @@ const { pool } = require('../config/database');
 // Route middleware should enforce this before reaching these handlers.
 
 const LOW_STOCK_THRESHOLD_DEFAULT = 5;
-
-// Use one consistent definition everywhere:
-// "low stock" = stock_quantity between 1 and threshold for active products.
 const LOW_STOCK_WHERE_SQL = `
   pv.stock_quantity > 0
   AND pv.stock_quantity <= $1
   AND p.is_active = true
 `;
+
+// Low stock logic is centralized in get_low_stock_count(threshold).
 
 // GET /api/analytics/dashboard
 // Overview stats for the admin dashboard.
@@ -89,12 +88,7 @@ const getDashboardStats = async (req, res) => {
 
       // Low stock variants for active products only — stock between 1 and threshold
       pool.query(
-        `
-          SELECT COUNT(*)::int AS count
-          FROM product_variant pv
-          JOIN product p ON p.product_id = pv.product_id
-          WHERE ${LOW_STOCK_WHERE_SQL}
-        `,
+        'SELECT get_low_stock_count($1)::int AS count',
         [LOW_STOCK_THRESHOLD_DEFAULT]
       )
     ]);
@@ -207,18 +201,9 @@ const getTopProducts = async (req, res) => {
          p.price::text,
          c.name AS category_name,
          COUNT(DISTINCT o.order_id)::int AS order_count,
-         COALESCE(
-           SUM(CASE WHEN o.order_id IS NOT NULL THEN oi.quantity ELSE 0 END),
-           0
-         )::int AS total_quantity,
-         COALESCE(
-           SUM(CASE WHEN o.order_id IS NOT NULL THEN oi.quantity * oi.unit_price ELSE 0 END),
-           0
-         )::text AS total_revenue,
-         COALESCE(
-           SUM(CASE WHEN o.order_id IS NOT NULL THEN oi.quantity * oi.unit_price ELSE 0 END),
-           0
-         ) AS total_revenue_numeric,
+         get_product_units_sold(p.product_id) AS total_quantity,
+         get_product_revenue(p.product_id)::text AS total_revenue,
+         get_product_revenue(p.product_id) AS total_revenue_numeric,
          (
            SELECT pi.image_url
            FROM product_image pi
@@ -295,12 +280,7 @@ const getLowStockProducts = async (req, res) => {
     const offset = (page - 1) * limit;
 
     const countResult = await pool.query(
-      `
-        SELECT COUNT(*)::int AS count
-        FROM product_variant pv
-        JOIN product p ON p.product_id = pv.product_id
-        WHERE ${LOW_STOCK_WHERE_SQL}
-      `,
+      'SELECT get_low_stock_count($1)::int AS count',
       [threshold]
     );
     const total = countResult.rows[0].count;
@@ -360,24 +340,11 @@ const getCategoryPerformance = async (req, res) => {
          c.depth,
          c.parent_category,
          COUNT(DISTINCT p.product_id)::int AS product_count,
-         COALESCE(
-           SUM(CASE WHEN o.order_id IS NOT NULL THEN oi.quantity ELSE 0 END),
-           0
-         )::int AS items_sold,
-         COALESCE(
-           SUM(CASE WHEN o.order_id IS NOT NULL THEN oi.quantity * oi.unit_price ELSE 0 END),
-           0
-         )::text AS total_revenue,
-         COALESCE(
-           SUM(CASE WHEN o.order_id IS NOT NULL THEN oi.quantity * oi.unit_price ELSE 0 END),
-           0
-         ) AS total_revenue_numeric
+         COALESCE(SUM(get_product_units_sold(p.product_id)), 0)::int AS items_sold,
+         COALESCE(SUM(get_product_revenue(p.product_id)), 0)::text AS total_revenue,
+         COALESCE(SUM(get_product_revenue(p.product_id)), 0) AS total_revenue_numeric
        FROM category c
        LEFT JOIN product p ON p.category_id = c.category_id
-       LEFT JOIN order_item oi ON oi.product_id = p.product_id
-       LEFT JOIN orders o
-         ON o.order_id = oi.order_id
-        AND o.status != 'cancelled'
        GROUP BY c.category_id, c.name, c.category_slug, c.depth, c.parent_category
        ORDER BY total_revenue_numeric DESC, c.name ASC`
     );
@@ -457,11 +424,10 @@ const getReviewStats = async (req, res) => {
          p.product_id,
          p.name,
          p.sku,
-         COUNT(r.review_id)::int AS review_count,
-         ROUND(AVG(r.rating)::numeric, 1)::text AS avg_rating
-       FROM review r
-       JOIN product p ON p.product_id = r.product_id
-       GROUP BY p.product_id, p.name, p.sku
+         get_product_review_count(p.product_id) AS review_count,
+         get_product_avg_rating(p.product_id)::text AS avg_rating
+       FROM product p
+       WHERE get_product_review_count(p.product_id) > 0
        ORDER BY review_count DESC
        LIMIT 10`
     );
@@ -471,13 +437,11 @@ const getReviewStats = async (req, res) => {
          p.product_id,
          p.name,
          p.sku,
-         COUNT(r.review_id)::int AS review_count,
-         ROUND(AVG(r.rating)::numeric, 1)::text AS avg_rating
-       FROM review r
-       JOIN product p ON p.product_id = r.product_id
-       GROUP BY p.product_id, p.name, p.sku
-       HAVING COUNT(r.review_id) >= 3
-       ORDER BY AVG(r.rating) ASC, review_count DESC
+         get_product_review_count(p.product_id) AS review_count,
+         get_product_avg_rating(p.product_id)::text AS avg_rating
+       FROM product p
+       WHERE get_product_review_count(p.product_id) >= 3
+       ORDER BY get_product_avg_rating(p.product_id) ASC, review_count DESC
        LIMIT 10`
     );
 
@@ -562,12 +526,7 @@ const getAnalytics = async (req, res) => {
           SELECT
             COUNT(*)::int AS total_products,
             COUNT(*) FILTER (WHERE is_active = true)::int AS active_products,
-            (
-              SELECT COUNT(*)::int
-              FROM product_variant pv
-              JOIN product p ON p.product_id = pv.product_id
-              WHERE ${LOW_STOCK_WHERE_SQL}
-            ) AS low_stock_count
+            get_low_stock_count($1)::int AS low_stock_count
           FROM product
         `,
         [LOW_STOCK_THRESHOLD_DEFAULT]
@@ -602,16 +561,17 @@ const getAnalytics = async (req, res) => {
         SELECT
           p.product_id,
           p.name,
-          COALESCE(SUM(oi.quantity * oi.unit_price), 0)::text AS revenue,
-          COALESCE(SUM(oi.quantity), 0)::int AS units_sold,
+          stats.revenue::text AS revenue,
+          stats.units_sold,
           p.is_active
         FROM product p
-        JOIN order_item oi ON oi.product_id = p.product_id
-        JOIN orders o ON o.order_id = oi.order_id
-          AND o.status != 'cancelled'
-          AND o.created_at >= NOW() - ($1 * INTERVAL '1 day')
-        GROUP BY p.product_id, p.name, p.is_active
-        ORDER BY SUM(oi.quantity * oi.unit_price) DESC
+        CROSS JOIN LATERAL (
+          SELECT
+            get_product_revenue_in_days(p.product_id, $1) AS revenue,
+            get_product_units_sold_in_days(p.product_id, $1) AS units_sold
+        ) stats
+        WHERE stats.revenue > 0
+        ORDER BY stats.revenue DESC
         LIMIT 5
       `, [days])
     ]);

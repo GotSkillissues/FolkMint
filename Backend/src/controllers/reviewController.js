@@ -128,18 +128,8 @@ const getProductReviews = async (req, res) => {
       [productId, limit, offset]
     );
 
-    // Summary stats
     const summaryResult = await pool.query(
-      `SELECT
-         COUNT(*)::int                                      AS total_reviews,
-         ROUND(AVG(rating)::numeric, 1)                     AS avg_rating,
-         COUNT(*) FILTER (WHERE rating = 5)::int            AS five_star,
-         COUNT(*) FILTER (WHERE rating = 4)::int            AS four_star,
-         COUNT(*) FILTER (WHERE rating = 3)::int            AS three_star,
-         COUNT(*) FILTER (WHERE rating = 2)::int            AS two_star,
-         COUNT(*) FILTER (WHERE rating = 1)::int            AS one_star
-       FROM review
-       WHERE product_id = $1`,
+      'SELECT * FROM get_product_rating_distribution($1)',
       [productId]
     );
 
@@ -251,51 +241,17 @@ const createReview = async (req, res) => {
       return res.status(400).json({ error: 'Rating must be between 1 and 5' });
     }
 
-    // Verify product exists
-    const productCheck = await pool.query(
-      'SELECT product_id FROM product WHERE product_id = $1 AND is_active = true',
-      [product_id]
-    );
-
-    if (productCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    // Enforce purchase check — must have a delivered order with this product
-    const purchaseCheck = await pool.query(
-      `SELECT 1
-       FROM order_item oi
-       JOIN orders o ON o.order_id = oi.order_id
-       WHERE o.user_id = $1
-         AND oi.product_id = $2
-         AND o.status = 'delivered'
-       LIMIT 1`,
-      [userId, product_id]
-    );
-
-    if (purchaseCheck.rows.length === 0) {
-      return res.status(403).json({
-        error: 'You can only review products you have purchased and received'
-      });
-    }
-
-    // Check if already reviewed
-    const existingReview = await pool.query(
-      'SELECT review_id FROM review WHERE user_id = $1 AND product_id = $2',
-      [userId, product_id]
-    );
-
-    if (existingReview.rows.length > 0) {
-      return res.status(409).json({
-        error: 'You have already reviewed this product'
-      });
-    }
-
-    const result = await pool.query(
-      `INSERT INTO review (user_id, product_id, rating, comment)
-       VALUES ($1, $2, $3, $4)
-       RETURNING review_id, rating, comment, user_id, product_id, created_at, updated_at`,
+    const callResult = await pool.query(
+      'CALL submit_review($1, $2, $3, $4, NULL)',
       [userId, product_id, rating, comment]
+    );
+
+    const reviewId = callResult.rows?.[0]?.p_review_id;
+    const result = await pool.query(
+      `SELECT review_id, rating, comment, user_id, product_id, created_at, updated_at
+       FROM review
+       WHERE review_id = $1`,
+      [reviewId]
     );
 
     return res.status(201).json({
@@ -303,9 +259,22 @@ const createReview = async (req, res) => {
       review:  buildReviewResponse(result.rows[0])
     });
   } catch (error) {
-    if (error.code === '23505') {
+    const message = String(error?.message || '');
+
+    if (message.includes('Product not found')) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    if (message.includes('You can only review products you have purchased and received')) {
+      return res.status(403).json({
+        error: 'You can only review products you have purchased and received'
+      });
+    }
+
+    if (message.includes('You have already reviewed this product') || error.code === '23505') {
       return res.status(409).json({ error: 'You have already reviewed this product' });
     }
+
     console.error('Create review error:', error);
     return res.status(500).json({ error: 'Failed to submit review' });
   }
