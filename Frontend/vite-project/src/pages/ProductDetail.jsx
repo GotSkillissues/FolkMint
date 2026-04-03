@@ -27,15 +27,120 @@ const findPath = (nodes, pred, trail = []) => {
 
 /* Parse description field — may be plain text or JSON {text, specs} */
 const parseDescription = (raw) => {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const directSpecs = raw.specs && typeof raw.specs === 'object' ? raw.specs : {};
+    const altSpecs = raw.specifications && typeof raw.specifications === 'object' ? raw.specifications : {};
+    return {
+      text: String(raw.text || raw.description || '').trim(),
+      specs: Object.keys(directSpecs).length ? directSpecs : altSpecs,
+    };
+  }
+
   if (!raw) return { text: '', specs: {} };
   const str = String(raw).trim();
+
+  const specsMarkerMatch = str.match(/\bspecifications\s*:/i);
+  if (specsMarkerMatch) {
+    const markerStart = specsMarkerMatch.index ?? -1;
+    const markerEnd = markerStart + specsMarkerMatch[0].length;
+
+    const introText = str.slice(0, markerStart).trim();
+    const specsText = str.slice(markerEnd).trim();
+
+    const keyPrefixes = [
+      'category path',
+      'care instructions',
+      'product code',
+      'sleeve length',
+      'neck type',
+      'occasion',
+      'material'
+    ];
+
+    const inlineSpecs = specsText
+      .split(/[;\n]+/)
+      .map((chunk) => chunk.trim())
+      .filter(Boolean)
+      .map((chunk) => chunk.replace(/\.+$/, '').trim())
+      .map((chunk) => {
+        if (!chunk) return null;
+
+        const colonSplit = chunk.split(/:(.+)/);
+        if (colonSplit.length >= 3) {
+          const key = colonSplit[0].trim();
+          const value = String(colonSplit[1] || '').trim();
+          return key && value ? [key, value] : null;
+        }
+
+        const lower = chunk.toLowerCase();
+        const matchedPrefix = keyPrefixes.find((prefix) => lower.startsWith(`${prefix} `));
+        if (matchedPrefix) {
+          const value = chunk.slice(matchedPrefix.length).trim();
+          return value ? [matchedPrefix, value] : null;
+        }
+
+        const firstSpaceIdx = chunk.indexOf(' ');
+        if (firstSpaceIdx <= 0) return null;
+
+        const key = chunk.slice(0, firstSpaceIdx).trim();
+        const value = chunk.slice(firstSpaceIdx + 1).trim();
+        return key && value ? [key, value] : null;
+      })
+      .filter(Boolean);
+
+    if (inlineSpecs.length >= 2) {
+      return {
+        text: introText,
+        specs: Object.fromEntries(inlineSpecs),
+      };
+    }
+  }
+
+  const parsedFromPlainText = str
+    .split(/\r?\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .reduce(
+      (acc, line) => {
+        const m = line.match(/^([^:]+)\s*:\s*(.+)$/);
+        if (!m) {
+          acc.nonSpecLines.push(line);
+          return acc;
+        }
+
+        const key = m[1].trim();
+        const value = m[2].trim();
+
+        if (!key || !value) {
+          acc.nonSpecLines.push(line);
+          return acc;
+        }
+
+        acc.specLines.push([key, value]);
+        return acc;
+      },
+      { specLines: [], nonSpecLines: [] }
+    );
+
+  // If description is mostly key:value rows, treat it as specifications.
+  if (
+    parsedFromPlainText.specLines.length >= 2 &&
+    parsedFromPlainText.nonSpecLines.length === 0
+  ) {
+    return {
+      text: '',
+      specs: Object.fromEntries(parsedFromPlainText.specLines),
+    };
+  }
 
   if (str.startsWith('{')) {
     try {
       const parsed = JSON.parse(str);
+      const directSpecs = parsed.specs && typeof parsed.specs === 'object' ? parsed.specs : {};
+      const altSpecs = parsed.specifications && typeof parsed.specifications === 'object' ? parsed.specifications : {};
       return {
-        text: String(parsed.text || '').trim(),
-        specs: parsed.specs && typeof parsed.specs === 'object' ? parsed.specs : {},
+        text: String(parsed.text || parsed.description || '').trim(),
+        specs: Object.keys(directSpecs).length ? directSpecs : altSpecs,
       };
     } catch {
       // fall through
@@ -43,6 +148,27 @@ const parseDescription = (raw) => {
   }
 
   return { text: str, specs: {} };
+};
+
+const formatSpecLabel = (label) =>
+  String(label || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+const formatSpecValue = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((v) => String(v)).join(', ');
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.entries(value)
+      .map(([k, v]) => `${formatSpecLabel(k)}: ${String(v)}`)
+      .join(' | ');
+  }
+
+  return String(value ?? '');
 };
 
 const normalizeCollectionResponse = (res) => {
@@ -333,19 +459,16 @@ const ProductDetail = () => {
       return findPath(categoryTree, (n) => String(n?.category_id) === String(catId)) || [];
     }
 
-    const name = String(product?.category_name || '').trim();
-    if (!name) return [];
-
-    return findPath(categoryTree, (n) => String(n?.name || '').trim().toLowerCase() === name.toLowerCase()) || [];
+    return [];
   }, [product, categoryTree]);
 
-  /* load product */
   useEffect(() => {
     let mounted = true;
 
+    setLoading(true);
+    setError('');
+
     const load = async () => {
-      setLoading(true);
-      setError('');
       setProduct(null);
       setSelectedVariant(null);
       setActiveImg(0);
@@ -375,6 +498,7 @@ const ProductDetail = () => {
     };
 
     load();
+
     return () => {
       mounted = false;
     };
@@ -599,38 +723,17 @@ const ProductDetail = () => {
 
   if (error || !product) {
     return (
-      <div
-        style={{
-          width: '100%',
-          minHeight: '80vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          gap: 12,
-          background: '#fff',
-          padding: '20px 24px',
-          textAlign: 'center',
-        }}
-      >
-        <p style={{ fontSize: 22, fontWeight: 600, color: '#111', margin: 0 }}>Product not found</p>
-        <p style={{ color: '#999', fontSize: 13.5, margin: 0 }}>{error}</p>
-        <button
-          onClick={() => navigate('/products')}
-          style={{
-            marginTop: 8,
-            padding: '11px 24px',
-            background: '#111',
-            color: '#fff',
-            border: 'none',
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: '.06em',
-            cursor: 'pointer',
-          }}
-        >
-          ← Back to Products
-        </button>
+      <div className="pd-state-wrap">
+        <div className="pd-state-card">
+          <p className="pd-state-title">Product not found</p>
+          <p className="pd-state-sub">{error}</p>
+          <button
+            onClick={() => navigate('/products')}
+            className="pd-state-btn"
+          >
+            ← Back to Products
+          </button>
+        </div>
       </div>
     );
   }
@@ -838,7 +941,7 @@ const ProductDetail = () => {
             </Accordion>
           )}
 
-          <Accordion label="Product Description" defaultOpen>
+          <Accordion label="Product Description">
             <div className="pd-acc-content">
               {descText ? (
                 <p className="pd-acc-text">{descText}</p>
@@ -853,8 +956,8 @@ const ProductDetail = () => {
                     <tbody>
                       {Object.entries(descSpecs).map(([k, v]) => (
                         <tr key={k}>
-                          <td className="pd-spec-key">{k}</td>
-                          <td className="pd-spec-val">{String(v)}</td>
+                          <td className="pd-spec-key">{formatSpecLabel(k)}</td>
+                          <td className="pd-spec-val">{formatSpecValue(v)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1088,9 +1191,59 @@ const ProductDetail = () => {
           padding: 20px 48px 80px;
           display: flex;
           flex-direction: column;
-          gap: 40px;
-          background: #fff;
+          gap: 24px;
+          background: var(--bg);
         }
+
+        .pd-state-wrap {
+          width: 100%;
+          min-height: 80vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          background: var(--bg);
+        }
+        .pd-state-card {
+          width: min(460px, 100%);
+          padding: 34px 28px;
+          border: 1px solid var(--border);
+          border-radius: var(--r);
+          background: var(--bg-card);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          text-align: center;
+          box-shadow: var(--sh-sm);
+        }
+        .pd-state-title {
+          margin: 0;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(26px, 3.4vw, 34px);
+          font-weight: 600;
+          color: var(--dark);
+          line-height: 1.1;
+        }
+        .pd-state-sub {
+          margin: 0;
+          font-size: 13.5px;
+          color: var(--muted);
+        }
+        .pd-state-btn {
+          margin-top: 8px;
+          padding: 10px 20px;
+          background: var(--dark);
+          color: var(--gold);
+          border: none;
+          border-radius: var(--r);
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: .06em;
+          cursor: pointer;
+          transition: background .2s;
+        }
+        .pd-state-btn:hover { background: var(--black); }
 
         .pd-toast {
           position: fixed;
@@ -1114,9 +1267,9 @@ const ProductDetail = () => {
           display: flex;
           align-items: center;
           flex-wrap: wrap;
-          font-size: 13px;
+          font-size: 12px;
           color: var(--muted);
-          margin-bottom: 24px;
+          margin-bottom: 8px;
         }
         .pd-breadcrumb a {
           color: var(--muted);
@@ -1129,8 +1282,8 @@ const ProductDetail = () => {
 
         .pd-main {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 64px;
+          grid-template-columns: minmax(360px, 0.92fr) minmax(380px, 1.08fr);
+          gap: 24px;
           align-items: start;
         }
 
@@ -1138,12 +1291,20 @@ const ProductDetail = () => {
           display: flex;
           flex-direction: column;
           gap: 14px;
+          border: 1px solid var(--border);
+          border-radius: var(--r);
+          background: var(--bg-card);
+          padding: 16px;
+          max-width: 560px;
+          width: 100%;
+          justify-self: center;
         }
         .pd-gallery-stage {
           display: flex;
           align-items: center;
           gap: 0;
           position: relative;
+          width: 100%;
         }
         .pd-gal-arrow {
           width: 44px;
@@ -1163,9 +1324,11 @@ const ProductDetail = () => {
 
         .pd-gal-img-wrap {
           flex: 1;
-          aspect-ratio: 3 / 4;
+          aspect-ratio: 5 / 6;
+          max-height: 620px;
           background: var(--bg-alt);
           overflow: hidden;
+          border-radius: calc(var(--r) - 2px);
         }
         .pd-gal-img {
           width: 100%;
@@ -1203,14 +1366,19 @@ const ProductDetail = () => {
           display: flex;
           flex-direction: column;
           gap: 14px;
+          border: 1px solid var(--border);
+          border-radius: var(--r);
+          background: var(--bg-card);
+          padding: 20px;
+          box-shadow: var(--sh-sm);
         }
         .pd-title {
           margin: 0;
-          font-family: var(--legal-title-font);
-          font-size: clamp(18px, 2.2vw, 24px);
-          font-weight: 700;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(28px, 3.2vw, 40px);
+          font-weight: 600;
           color: var(--dark);
-          line-height: 1.25;
+          line-height: 1.08;
         }
         .pd-stars {
           display: inline-flex;
@@ -1224,10 +1392,10 @@ const ProductDetail = () => {
         }
         .pd-price {
           margin: 0;
-          font-family: var(--legal-title-font);
-          font-size: 24px;
-          font-weight: 400;
-          color: var(--dark);
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 28px;
+          font-weight: 700;
+          color: var(--gold);
         }
 
         .pd-controls {
@@ -1326,18 +1494,20 @@ const ProductDetail = () => {
           align-items: center;
           gap: 7px;
           padding: 10px 18px;
-          background: #fff;
-          border: 1px solid #d1d1d1;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: var(--r);
           font-size: 13px;
-          font-weight: 600;
-          color: #555;
+          font-weight: 700;
+          letter-spacing: .04em;
+          color: var(--dark);
           cursor: pointer;
           transition: all .2s;
           align-self: flex-start;
         }
         .pd-btn-wishlist:hover:not(:disabled) {
-          border-color: #111;
-          color: #111;
+          border-color: var(--gold);
+          color: var(--gold);
         }
         .pd-btn-wishlist:disabled { opacity: .5; cursor: not-allowed; }
         .pd-stock-note {
@@ -1346,7 +1516,7 @@ const ProductDetail = () => {
           color: #666;
         }
 
-        .pd-sep {
+        .pd-divider {
           height: 1px;
           background: var(--border);
           margin: 4px 0;
@@ -1553,7 +1723,7 @@ const ProductDetail = () => {
         .pd-cta-row {
           display: flex;
           align-items: stretch;
-          gap: 0;
+          gap: 10px;
           margin-top: 6px;
         }
         .pd-btn-add {
@@ -1567,6 +1737,7 @@ const ProductDetail = () => {
           background: var(--dark);
           color: var(--bg);
           border: 1px solid var(--dark);
+          border-radius: var(--r);
           font-size: 13px;
           font-weight: 700;
           letter-spacing: .1em;
@@ -1581,7 +1752,7 @@ const ProductDetail = () => {
           width: 52px;
           height: 52px;
           border: 1px solid var(--border);
-          border-left: none;
+          border-radius: var(--r);
           background: var(--bg-card);
           color: var(--muted);
           cursor: pointer;
@@ -1689,13 +1860,15 @@ const ProductDetail = () => {
 
         @media (max-width: 1100px) {
           .pd-page { padding: 20px 28px 64px; }
-          .pd-main { gap: 40px; }
+          .pd-main { gap: 18px; }
           .pd-c-card { flex: 0 0 calc((100% - 2 * 2px) / 3); }
         }
 
         @media (max-width: 860px) {
           .pd-page { padding: 20px 20px 56px; }
           .pd-main { grid-template-columns: 1fr; gap: 28px; }
+          .pd-info { padding: 16px; }
+          .pd-gallery { padding: 12px; }
           .pd-c-card { flex: 0 0 calc((100% - 2px) / 2); }
         }
 
