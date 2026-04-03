@@ -1115,15 +1115,17 @@ const ProductDetail = () => {
           align-items: center;
           flex-wrap: wrap;
           font-size: 13px;
-          color: #888;
+          color: var(--muted);
+          margin-bottom: 24px;
         }
         .pd-breadcrumb a {
-          color: #888;
+          color: var(--muted);
           text-decoration: none;
+          transition: color .2s;
         }
-        .pd-breadcrumb a:hover { text-decoration: underline; }
-        .pd-crumb-sep { color: #bbb; }
-        .pd-crumb-current { color: #111; font-weight: 500; }
+        .pd-breadcrumb a:hover { color: var(--gold); }
+        .pd-crumb-sep { color: var(--border); margin: 0 8px; }
+        .pd-crumb-current { color: var(--dark); font-weight: 600; }
 
         .pd-main {
           display: grid;
@@ -1153,16 +1155,16 @@ const ProductDetail = () => {
           background: none;
           border: none;
           cursor: pointer;
-          color: #333;
+          color: var(--muted);
           padding: 0;
-          transition: color .2s;
+          transition: all .2s;
         }
-        .pd-gal-arrow:hover { color: #111; }
+        .pd-gal-arrow:hover { color: var(--gold); transform: scale(1.1); }
 
         .pd-gal-img-wrap {
           flex: 1;
           aspect-ratio: 3 / 4;
-          background: #f5f5f5;
+          background: var(--bg-alt);
           overflow: hidden;
         }
         .pd-gal-img {
@@ -1186,16 +1188,16 @@ const ProductDetail = () => {
           padding: 4px 0;
         }
         .pd-dot {
-          width: 9px;
-          height: 9px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
           padding: 0;
           border: none;
-          background: #ccc;
+          background: var(--border);
           cursor: pointer;
-          transition: background .2s;
+          transition: all .3s var(--ease);
         }
-        .pd-dot.active { background: #e85d04; }
+        .pd-dot.active { background: var(--gold); width: 24px; border-radius: 4px; }
 
         .pd-info {
           display: flex;
@@ -1204,10 +1206,11 @@ const ProductDetail = () => {
         }
         .pd-title {
           margin: 0;
+          font-family: var(--legal-title-font);
           font-size: clamp(18px, 2.2vw, 24px);
-          font-weight: 600;
-          color: #111;
-          line-height: 1.35;
+          font-weight: 700;
+          color: var(--dark);
+          line-height: 1.25;
         }
         .pd-stars {
           display: inline-flex;
@@ -1217,13 +1220,14 @@ const ProductDetail = () => {
         .pd-stars-label {
           margin-left: 5px;
           font-size: 13px;
-          color: #888;
+          color: var(--muted);
         }
         .pd-price {
           margin: 0;
-          font-size: 22px;
+          font-family: var(--legal-title-font);
+          font-size: 24px;
           font-weight: 400;
-          color: #111;
+          color: var(--dark);
         }
 
         .pd-controls {
@@ -1245,30 +1249,31 @@ const ProductDetail = () => {
           margin: 0;
           font-size: 13px;
           font-weight: 600;
-          color: #111;
+          color: var(--dark);
         }
 
         .pd-qty {
           display: inline-flex;
           align-items: center;
-          border: 1px solid #d1d1d1;
+          border: 1px solid var(--border);
           height: 46px;
+          background: var(--bg-card);
         }
         .pd-qty-btn {
           width: 46px;
           height: 100%;
-          background: #fff;
+          background: var(--bg-card);
           border: none;
           font-size: 20px;
-          color: #333;
+          color: var(--text);
           cursor: pointer;
-          transition: background .15s;
+          transition: all .15s;
           display: flex;
           align-items: center;
           justify-content: center;
           line-height: 1;
         }
-        .pd-qty-btn:hover:not(:disabled) { background: #f5f5f5; }
+        .pd-qty-btn:hover:not(:disabled) { background: var(--bg-alt); color: var(--gold); }
         .pd-qty-btn:disabled { opacity: .35; cursor: not-allowed; }
         .pd-qty-num {
           min-width: 52px;
@@ -1276,9 +1281,9 @@ const ProductDetail = () => {
           text-align: center;
           font-size: 15px;
           font-weight: 500;
-          color: #111;
-          border-left: 1px solid #d1d1d1;
-          border-right: 1px solid #d1d1d1;
+          color: var(--dark);
+          border-left: 1px solid var(--border);
+          border-right: 1px solid var(--border);
           user-select: none;
         }
 
@@ -1287,16 +1292,16 @@ const ProductDetail = () => {
           width: 100%;
           height: 46px;
           padding: 0 36px 0 14px;
-          border: 1px solid #d1d1d1;
-          background: #fff;
-          color: #111;
+          border: 1px solid var(--border);
+          background: var(--bg-card);
+          color: var(--dark);
           font-size: 14px;
           cursor: pointer;
           appearance: none;
           outline: none;
           transition: border-color .2s;
         }
-        .pd-select:focus { border-color: #111; }
+        .pd-select:focus { border-color: var(--gold); }
         .pd-select-chevron {
           position: absolute;
           right: 12px;
@@ -1341,9 +1346,9 @@ const ProductDetail = () => {
           color: #666;
         }
 
-        .pd-divider {
+        .pd-sep {
           height: 1px;
-          background: #e8e8e8;
+          background: var(--border);
           margin: 4px 0;
         }
 
@@ -1352,17 +1357,17 @@ const ProductDetail = () => {
           justify-content: space-between;
           align-items: center;
           padding: 12px 0;
-          border-bottom: 1px solid #e8e8e8;
+          border-bottom: 1px solid var(--border);
           font-size: 13.5px;
         }
-        .pd-info-row-label { color: #111; font-weight: 500; }
+        .pd-info-row-label { color: var(--dark); font-weight: 500; }
         .pd-info-row-val {
-          color: #888;
+          color: var(--muted);
           font-family: ui-monospace, monospace;
           font-size: 12.5px;
         }
 
-        .pd-acc { border-bottom: 1px solid #e8e8e8; }
+        .pd-acc { border-bottom: 1px solid var(--border); }
         .pd-acc-row {
           width: 100%;
           display: flex;
@@ -1374,14 +1379,14 @@ const ProductDetail = () => {
           cursor: pointer;
           font-size: 13.5px;
           font-weight: 600;
-          color: #111;
+          color: var(--dark);
           text-align: left;
-          transition: color .15s;
+          transition: all .2s;
         }
-        .pd-acc-row:hover { color: #555; }
+        .pd-acc-row:hover { color: var(--gold); padding-left: 4px; }
         .pd-acc-badge {
           font-weight: 400;
-          color: #888;
+          color: var(--muted);
           font-size: 13px;
         }
         .pd-acc-body { padding-bottom: 16px; }
@@ -1393,10 +1398,10 @@ const ProductDetail = () => {
         .pd-acc-text {
           margin: 0;
           font-size: 13.5px;
-          color: #444;
-          line-height: 1.8;
+          color: var(--text);
+          line-height: 1.7;
         }
-        .pd-acc-muted { color: #999; }
+        .pd-acc-muted { color: var(--muted); }
 
         .pd-size-guide-table,
         .pd-spec-table {
@@ -1407,14 +1412,14 @@ const ProductDetail = () => {
         .pd-size-guide-table th,
         .pd-size-guide-table td {
           padding: 8px 12px;
-          border: 1px solid #e8e8e8;
+          border: 1px solid var(--border);
           text-align: center;
           font-size: 13px;
         }
         .pd-size-guide-table thead th {
-          background: #f5f5f5;
+          background: var(--bg-alt);
           font-weight: 700;
-          color: #666;
+          color: var(--muted);
           font-size: 11px;
           text-transform: uppercase;
           letter-spacing: .06em;
@@ -1424,19 +1429,19 @@ const ProductDetail = () => {
           margin: 4px 0 0;
           font-size: 14px;
           font-weight: 600;
-          color: #111;
+          color: var(--dark);
         }
-        .pd-spec-table tr { border-bottom: 1px solid #f0f0f0; }
+        .pd-spec-table tr { border-bottom: 1px solid var(--border); }
         .pd-spec-key {
           width: 40%;
           padding: 9px 16px 9px 0;
-          color: #888;
+          color: var(--muted);
           vertical-align: top;
           font-size: 13.5px;
         }
         .pd-spec-val {
           padding: 9px 0;
-          color: #111;
+          color: var(--dark);
           font-weight: 500;
           font-size: 13.5px;
         }
@@ -1448,7 +1453,7 @@ const ProductDetail = () => {
         }
         .pd-review {
           padding: 12px 0;
-          border-bottom: 1px solid #f0f0f0;
+          border-bottom: 1px solid var(--border);
         }
         .pd-review:last-child { border-bottom: none; }
         .pd-review-top {
@@ -1461,8 +1466,8 @@ const ProductDetail = () => {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: #111;
-          color: #fff;
+          background: var(--dark);
+          color: var(--bg);
           font-size: 11px;
           font-weight: 700;
           display: flex;
@@ -1474,7 +1479,7 @@ const ProductDetail = () => {
           margin: 0 0 2px;
           font-size: 13px;
           font-weight: 600;
-          color: #111;
+          color: var(--dark);
         }
         .pd-review-date {
           margin-left: auto;
@@ -1485,7 +1490,7 @@ const ProductDetail = () => {
         .pd-review-comment {
           margin: 0;
           font-size: 13.5px;
-          color: #444;
+          color: var(--text);
           line-height: 1.65;
         }
         .pd-review-form {
@@ -1493,8 +1498,8 @@ const ProductDetail = () => {
           flex-direction: column;
           gap: 12px;
           padding: 20px;
-          background: #fafafa;
-          border: 1px solid #eee;
+          background: var(--bg-alt);
+          border: 1px solid var(--border);
           margin-bottom: 24px;
           border-radius: 4px;
         }
@@ -1515,7 +1520,7 @@ const ProductDetail = () => {
           margin: 0;
           font-size: 13px;
           font-weight: 700;
-          color: #111;
+          color: var(--dark);
           letter-spacing: .04em;
         }
         .pd-review-stars-pick {
@@ -1533,16 +1538,17 @@ const ProductDetail = () => {
         .pd-star-btn:hover { transform: scale(1.15); }
         .pd-review-textarea {
           padding: 9px 13px;
-          border: 1px solid #d1d1d1;
+          border: 1px solid var(--border);
           font-size: 13.5px;
-          color: #111;
+          color: var(--text);
+          background: var(--bg-card);
           font-family: inherit;
           resize: vertical;
           line-height: 1.6;
           outline: none;
           transition: border-color .2s;
         }
-        .pd-review-textarea:focus { border-color: #111; }
+        .pd-review-textarea:focus { border-color: var(--gold); }
 
         .pd-cta-row {
           display: flex;
@@ -1558,9 +1564,9 @@ const ProductDetail = () => {
           justify-content: center;
           gap: 8px;
           padding: 0 24px;
-          background: #111;
-          color: #fff;
-          border: 1px solid #111;
+          background: var(--dark);
+          color: var(--bg);
+          border: 1px solid var(--dark);
           font-size: 13px;
           font-weight: 700;
           letter-spacing: .1em;
@@ -1568,16 +1574,16 @@ const ProductDetail = () => {
           transition: background .2s;
           white-space: nowrap;
         }
-        .pd-btn-add:hover:not(:disabled) { background: #333; }
+        .pd-btn-add:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--sh-md); }
         .pd-btn-add:disabled { opacity: .5; cursor: not-allowed; }
 
         .pd-icon-btn {
           width: 52px;
           height: 52px;
-          border: 1px solid #d1d1d1;
+          border: 1px solid var(--border);
           border-left: none;
-          background: #fff;
-          color: #555;
+          background: var(--bg-card);
+          color: var(--muted);
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -1586,8 +1592,8 @@ const ProductDetail = () => {
           flex-shrink: 0;
         }
         .pd-icon-btn:hover {
-          border-color: #111;
-          color: #111;
+          border-color: var(--gold);
+          color: var(--gold);
         }
 
         .pd-carousel-section {
@@ -1600,7 +1606,7 @@ const ProductDetail = () => {
           font-size: clamp(16px, 2vw, 20px);
           font-weight: 700;
           letter-spacing: .08em;
-          color: #111;
+          color: var(--dark);
           text-align: center;
         }
         .pd-carousel-stage {
@@ -1616,14 +1622,14 @@ const ProductDetail = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #fff;
+          background: var(--bg-card);
           border: none;
           cursor: pointer;
           color: #555;
           transition: color .2s;
           padding: 0;
         }
-        .pd-carousel-arrow:hover { color: #111; }
+        .pd-carousel-arrow:hover { color: var(--gold); }
         .pd-carousel-arrow-l { order: -1; }
 
         .pd-c-vp {
@@ -1638,7 +1644,7 @@ const ProductDetail = () => {
           flex: 0 0 calc((100% - 3 * 2px) / 4);
           text-decoration: none;
           color: inherit;
-          background: #f5f5f5;
+          background: var(--bg-alt);
           position: relative;
           display: block;
         }
@@ -1646,7 +1652,7 @@ const ProductDetail = () => {
         .pd-c-img-wrap {
           aspect-ratio: 3 / 4;
           overflow: hidden;
-          background: #f5f5f5;
+          background: var(--bg-alt);
         }
         .pd-c-img {
           width: 100%;
@@ -1661,13 +1667,13 @@ const ProductDetail = () => {
         }
         .pd-c-body {
           padding: 12px 4px 4px;
-          background: #fff;
+          background: var(--bg-card);
         }
         .pd-c-name {
           margin: 0 0 4px;
           font-size: 13px;
           font-weight: 600;
-          color: #111;
+          color: var(--dark);
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
@@ -1677,7 +1683,7 @@ const ProductDetail = () => {
         .pd-c-price {
           margin: 0;
           font-size: 13px;
-          color: #111;
+          color: var(--muted);
           font-weight: 400;
         }
 

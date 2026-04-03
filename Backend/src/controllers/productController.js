@@ -651,7 +651,7 @@ const getPopularProducts = async (req, res) => {
 // GET /api/products/recommended
 // Authenticated. Personalised by user signals. Falls back to top rated.
 const getRecommendedProducts = async (req, res) => {
-  const userId = req.user?.user_id;
+  const userId = req.user?.userId;
   const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
 
   if (!userId) {
@@ -774,7 +774,7 @@ const getRecommendedProducts = async (req, res) => {
 const canReview = async (req, res) => {
   try {
     const productId = parsePositiveInt(req.params.id);
-    const userId = req.user.user_id;
+    const userId = req.user.userId;
 
     if (!productId) {
       return res.status(400).json({ error: 'Invalid product ID' });
