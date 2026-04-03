@@ -7,7 +7,7 @@ async function runSeed() {
   const client = new Client({
     host: process.env.DB_HOST || 'localhost',
     port: Number(process.env.DB_PORT || 5432),
-    database: process.env.DB_NAME || 'folkmint',
+    database: process.env.DB_NAME || 'jobayer',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'hqhq',
   });
@@ -24,7 +24,7 @@ async function runSeed() {
     console.error('Failed to apply category seed:', error.message);
     process.exitCode = 1;
   } finally {
-    await client.end().catch(() => {});
+    await client.end().catch(() => { });
   }
 }
 

@@ -21,7 +21,28 @@
   --sh-lg:      0 16px 40px -8px rgba(10, 17, 40, 0.12);
   --r:          0.6rem;       /* Softer radius for premium look */
   --ease:       cubic-bezier(0.25, 1, 0.5, 1);
-  --btn-interaction: #000058;
+  --btn-interaction: var(--dark); /* High-end dark interaction */
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --gold:       #E5C05E;      /* Brighter gold for dark mode */
+  --gold-lt:    #4a3f12;      /* Deep amber/gold for low opacity backgrounds */
+  --gold-muted: #1e1b12;      /* Near-black with gold tint */
+  --black:      #f8f9fa;      /* Clean off-white for text on dark */
+  --dark:       #ffffff;      /* Pure white for prominent headings */
+  --text:       #e2e8f0;      /* Soft light gray for readability */
+  --muted:      #94a3b8;      /* Slate blue-gray */
+  --bg:         #020617;      /* Obsidian Navy */
+  --bg-alt:     #0f172a;      /* Slate Navy */
+  --bg-card:    #1e293b;      /* Slate dark card */
+  --border:     #334155;      /* Slate border */
+  --border-hover: #E5C05E;    /* Brighter gold on hover */
+  --sh-sm:      0 4px 14px 0 rgba(0, 0, 0, 0.4);       
+  --sh-md:      0 8px 25px -4px rgba(0, 0, 0, 0.6); 
+  --sh-lg:      0 16px 40px -8px rgba(0, 0, 0, 0.8);
+  --btn-interaction: var(--gold); /* Gold interaction in dark mode */
+  color-scheme: dark;
 }
 
 html { 
@@ -37,6 +58,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
   min-height: 100vh;
+  transition: background-color 0.4s var(--ease), color 0.4s var(--ease), border-color 0.4s var(--ease), box-shadow 0.4s var(--ease);
 }
 
 a { text-decoration: none; color: inherit; }
@@ -52,7 +74,7 @@ button { font-family: 'Playfair Display', serif; cursor: pointer; }
 :where(button, a[class*='btn'], [role='button'])[aria-current='page'] {
   background-color: var(--btn-interaction) !important;
   border-color: var(--btn-interaction) !important;
-  color: #ffffff !important;
+  color: var(--bg) !important; /* Forces high contrast background against text */
 }
 
 #root {

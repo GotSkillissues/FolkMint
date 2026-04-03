@@ -1,8 +1,10 @@
-/* ── FOOTER ── */
+/* ── FOOTER — fully theme-aware ── */
 .site-footer {
-  background: #f4efe4;
-  color: #2a3347;
+  background: var(--bg-alt);
+  color: var(--text);
   margin-top: 80px;
+  border-top: 1px solid var(--border);
+  transition: background 0.4s, border-color 0.4s;
 }
 
 .footer-inner {
@@ -15,18 +17,20 @@
   gap: 56px;
 }
 
+/* Brand */
 .ft-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
 .ft-brand-name {
   font-family: 'Playfair Display', serif;
   font-size: 20px; font-weight: 600;
   letter-spacing: .05em; color: var(--dark); line-height: 1;
 }
-.ft-brand-name b { color: var(--gold); font-weight: 600; }
+.ft-brand-name b { color: var(--gold); font-weight: 700; }
 .ft-about {
   font-size: 13px; line-height: 1.8;
-  color: #4c5567; font-style: italic; max-width: 280px;
+  color: var(--muted); font-style: italic; max-width: 280px;
 }
 
+/* Columns */
 .ft-col h4 {
   font-family: 'DM Sans', sans-serif;
   font-size: 10px; font-weight: 700;
@@ -36,61 +40,66 @@
 .ft-col ul { list-style: none; padding: 0; margin: 0; }
 .ft-col ul li { margin-bottom: 13px; }
 .ft-col ul li a {
-  font-size: 13px; color: #3f495d;
+  font-size: 13px; color: var(--muted);
   text-decoration: none; transition: color .25s;
 }
-.ft-col ul li a:hover { color: #000058; }
+.ft-col ul li a:hover { color: var(--gold); }
 
+/* Contact */
 .contact-row {
   display: flex; align-items: center; gap: 12px;
-  margin-bottom: 14px; font-size: 13px; color: #3f495d;
+  margin-bottom: 14px; font-size: 13px; color: var(--muted);
 }
 .contact-row svg { color: var(--gold); flex-shrink: 0; }
 .contact-row a { color: inherit; transition: color .25s; text-decoration: none; }
-.contact-row a:hover { color: #000058; }
+.contact-row a:hover { color: var(--gold); }
 
+/* Socials */
 .social-link {
   display: flex; align-items: center; gap: 13px;
-  font-size: 13px; color: #3f495d;
+  font-size: 13px; color: var(--muted);
   padding: 11px 14px;
-  border: 1px solid #d7cfbf; border-radius: var(--r);
+  border: 1px solid var(--border); border-radius: var(--r);
   margin-bottom: 12px; text-decoration: none;
-  background: #fffdf9;
+  background: var(--bg-card);
   transition: border-color .25s, color .25s, background .25s;
 }
-.social-link:hover { border-color: #000058; color: #fff; background: #000058; }
+.social-link:hover {
+  border-color: var(--gold);
+  color: var(--gold) !important;
+  background: rgba(212,175,55,0.08) !important;
+}
 .social-link svg { flex-shrink: 0; }
 
 /* Payment row */
 .ft-payments {
   max-width: none; width: 100%; margin: 0 auto;
   padding: 24px 40px;
-  border-top: 1px solid #ddd3c1;
+  border-top: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   gap: 10px; flex-wrap: wrap;
+  background: var(--bg-alt);
 }
 .pay-logo {
   display: flex; align-items: center; justify-content: center;
-  opacity: .88; transition: opacity .25s, transform .25s;
+  opacity: .85; transition: opacity .25s, transform .25s;
   border-radius: 5px; overflow: hidden;
 }
 .pay-logo:hover { opacity: 1; transform: translateY(-1px); }
-
 .pay-logo.bkash-logo {
-  width: 66px;
-  height: 36px;
-  border-radius: 5px;
+  width: 66px; height: 36px; border-radius: 5px;
 }
 
 /* Footer bottom */
 .ft-bottom {
   max-width: none; width: 100%; margin: 0 auto;
-  border-top: 1px solid #ddd3c1;
+  border-top: 1px solid var(--border);
   padding: 20px 40px;
   display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-alt);
 }
-.ft-copy { font-size: 12px; color: #4f5a70; }
-.ft-craft { font-size: 11px; color: #59647b; letter-spacing: .05em; }
+.ft-copy { font-size: 12px; color: var(--muted); }
+.ft-craft { font-size: 11px; color: var(--muted); letter-spacing: .05em; opacity: .7; }
 
 @media (max-width: 1100px) {
   .footer-inner { grid-template-columns: 1fr 1fr; gap: 40px; }

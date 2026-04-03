@@ -262,47 +262,54 @@ const deleteReadNotifications = async (req, res) => {
 };
 
 // POST /api/notifications/system
-// Admin only. Sends a system notification to a specific user or all customers.
-// body: { user_id?, title, message }
+// Admin only. Sends a system notification to a specific user, a list of users, or all customers.
+// body: { user_id?, user_ids?: number[], title, message }
 const sendSystemNotification = async (req, res) => {
   try {
     const body = req.body || {};
     const title = String(body.title || '').trim();
     const message = String(body.message || '').trim();
     const user_id = parsePositiveInt(body.user_id) || null;
+    const user_ids = Array.isArray(body.user_ids)
+      ? body.user_ids.map(id => parsePositiveInt(id)).filter(Boolean)
+      : [];
 
-    if (!title) {
-      return res.status(400).json({ error: 'title is required' });
+    if (!title) return res.status(400).json({ error: 'title is required' });
+    if (!message) return res.status(400).json({ error: 'message is required' });
+
+    // Multi-user send
+    if (user_ids.length > 0) {
+      await pool.query(
+        `INSERT INTO notification (user_id, type, title, message)
+         SELECT u.user_id, 'system', $1, $2
+         FROM users u
+         WHERE u.user_id = ANY($3)`,
+        [title, message, user_ids]
+      );
+      return res.status(201).json({
+        message: `System notification sent to ${user_ids.length} users`,
+        sent_to: user_ids.length
+      });
     }
 
-    if (!message) {
-      return res.status(400).json({ error: 'message is required' });
-    }
-
+    // Single user send
     if (user_id) {
       const userCheck = await pool.query(
-        `SELECT user_id
-         FROM users
-         WHERE user_id = $1`,
+        `SELECT user_id FROM users WHERE user_id = $1`,
         [user_id]
       );
-
       if (userCheck.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });
       }
-
       await pool.query(
         `INSERT INTO notification (user_id, type, title, message)
          VALUES ($1, 'system', $2, $3)`,
         [user_id, title, message]
       );
-
-      return res.status(201).json({
-        message: 'System notification sent',
-        sent_to: 1
-      });
+      return res.status(201).json({ message: 'System notification sent', sent_to: 1 });
     }
 
+    // Broadcast to all customers
     const result = await pool.query(
       `INSERT INTO notification (user_id, type, title, message)
        SELECT user_id, 'system', $1, $2
@@ -310,7 +317,6 @@ const sendSystemNotification = async (req, res) => {
        WHERE role = 'customer'`,
       [title, message]
     );
-
     return res.status(201).json({
       message: 'System notification broadcast to all customers',
       sent_to: result.rowCount

@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { adminService } from '../services';
 
 const fmt = (n) => '৳' + Number(n || 0).toLocaleString('en-BD');
 const fmtNum = (n) => Number(n || 0).toLocaleString('en-BD');
 
-const unwrap = (res) => res?.data ?? res ?? {};
+const unwrap = (res) => res?.data !== undefined && !Array.isArray(res) && Object.keys(res).length === 1 && Object.keys(res)[0] === 'data' ? res.data : (res ?? {});
 
 const STATUS_META = {
   pending:    { color: '#d97706', bg: '#fff7e6' },
@@ -26,7 +26,7 @@ const normalizeDashboard = (res) => unwrap(res);
 
 const normalizeSales = (res) => {
   const payload = unwrap(res);
-  const rows = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload?.report) ? payload.report : [];
+  const rows = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : Array.isArray(payload?.report) ? payload.report : [];
 
   return rows.map((row) => ({
     period: row.period_start || row.period || '',
@@ -76,6 +76,8 @@ const normalizeCategoryPerformance = (res) => {
     name: cat.name,
     category_slug: cat.category_slug,
     full_path: cat.full_path || cat.category_slug || '',
+    parent_category: cat.parent_category,
+    depth: cat.depth ?? 0,
     revenue: Number(cat.total_revenue ?? cat.revenue ?? 0),
     items_sold: Number(cat.items_sold ?? 0),
     order_count: Number(cat.product_count ?? cat.order_count ?? 0),
@@ -95,6 +97,8 @@ const AdminAnalytics = () => {
   const [lowStock, setLowStock] = useState([]);
   const [threshold, setThreshold] = useState(5);
   const [catPerf, setCatPerf] = useState([]);
+  const [selectedRootCategory, setSelectedRootCategory] = useState('all');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('all');
   const [reviewStats, setReviewStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [salesLoading, setSalesLoading] = useState(false);
@@ -178,6 +182,29 @@ const AdminAnalytics = () => {
   const maxRevenue = sales.length ? Math.max(...sales.map((r) => Number(r.revenue || 0)), 1) : 1;
   const totalReviews = Number(reviewStats?.summary?.total_reviews || 0);
   const starKeys = ['five_star', 'four_star', 'three_star', 'two_star', 'one_star'];
+
+  /* ── category filtering ── */
+  const rootCategories = catPerf.filter(cat => cat.depth === 0);
+  const subCategories = selectedRootCategory !== 'all' 
+    ? catPerf.filter(cat => cat.parent_category === Number(selectedRootCategory))
+    : [];
+
+  const displayedCategories = useMemo(() => {
+    if (selectedRootCategory === 'all') return catPerf;
+    
+    // Find the currently selected category object (either sub or root)
+    const targetId = selectedSubCategory !== 'all' ? Number(selectedSubCategory) : Number(selectedRootCategory);
+    const targetCat = catPerf.find(c => c.category_id === targetId);
+    
+    if (!targetCat) return [];
+    
+    // Include the category itself and all its descendants (via full_path)
+    return catPerf.filter(cat => 
+      cat.category_id === targetId || 
+      (cat.full_path && targetCat.full_path && cat.full_path.startsWith(targetCat.full_path + '/')) ||
+      cat.parent_category === targetId
+    );
+  }, [catPerf, selectedRootCategory, selectedSubCategory]);
 
   if (loading) {
     return (
@@ -404,9 +431,41 @@ const AdminAnalytics = () => {
       </div>
 
       <div className="an-card">
-        <SectionHead title="Category Performance" sub="Revenue and units sold per category" />
-        {!catPerf.length ? (
-          <p className="an-empty">No category sales data yet.</p>
+        <div className="an-sec-head-row">
+          <SectionHead title="Category Performance" sub="Revenue and units sold per category" />
+          {catPerf.length > 0 && (
+            <div className="an-chip-group an-cat-filters">
+              <select
+                className="an-threshold-input an-cat-select"
+                value={selectedRootCategory}
+                onChange={(e) => {
+                  setSelectedRootCategory(e.target.value);
+                  setSelectedSubCategory('all');
+                }}
+              >
+                <option value="all">All Root Categories</option>
+                {rootCategories.map(cat => (
+                  <option key={cat.category_id} value={cat.category_id}>{cat.name}</option>
+                ))}
+              </select>
+
+              {selectedRootCategory !== 'all' && subCategories.length > 0 && (
+                <select
+                  className="an-threshold-input an-cat-select"
+                  value={selectedSubCategory}
+                  onChange={(e) => setSelectedSubCategory(e.target.value)}
+                >
+                  <option value="all">All Subcategories</option>
+                  {subCategories.map(cat => (
+                    <option key={cat.category_id} value={cat.category_id}>{cat.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+        </div>
+        {!displayedCategories.length ? (
+          <p className="an-empty">No category sales data to show.</p>
         ) : (
           <table className="an-table">
             <thead>
@@ -419,7 +478,7 @@ const AdminAnalytics = () => {
               </tr>
             </thead>
             <tbody>
-              {catPerf.map((cat) => (
+              {displayedCategories.map((cat) => (
                 <tr key={cat.category_id}>
                   <td>
                     <p className="an-product-name">{cat.name}</p>
@@ -745,7 +804,13 @@ const AdminAnalytics = () => {
           font-size: 13px; color: var(--dark); font-family: inherit;
           text-align: center;
         }
+        .an-threshold-input.an-cat-select {
+          width: auto; text-align: left; min-width: 140px; cursor: pointer;
+        }
         .an-threshold-input:focus { outline: none; border-color: var(--gold); }
+        .an-cat-filters {
+          align-items: center; gap: 8px;
+        }
         .an-stock-badge {
           display: inline-flex; align-items: center; padding: 2px 10px;
           border-radius: 999px; font-size: 12px; font-weight: 700;

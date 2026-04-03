@@ -90,8 +90,473 @@ const Toast = ({ msg, type, onDismiss }) => {
    - publishing is blocked by backend until at least one variant and one image exist
 */
 
-const EMPTY_PRODUCT = { name: '', description: '', price: '', category_id: '' };
+const EMPTY_PRODUCT = { name: '', description: '', price: '', category_id: '', image_url: '', publish: false };
 const EMPTY_VARIANT = { size: '', stock_quantity: '' };
+
+/* ─────────────────────────────────────────
+   Step indicator
+───────────────────────────────────────── */
+const StepDot = ({ num, active, done, label }) => (
+  <div className="wiz-step-dot-wrap">
+    <div className={`wiz-step-dot${active ? ' wiz-dot-active' : done ? ' wiz-dot-done' : ''}`}>
+      {done ? (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : num}
+    </div>
+    <span className={`wiz-step-label${active ? ' wiz-step-label-active' : ''}`}>{label}</span>
+  </div>
+);
+
+const StepBar = ({ step }) => (
+  <div className="wiz-step-bar">
+    <StepDot num={1} active={step === 1} done={step > 1} label="Category" />
+    <div className={`wiz-step-line${step > 1 ? ' wiz-line-done' : ''}`} />
+    <StepDot num={2} active={step === 2} done={step > 2} label="Subcategory" />
+    <div className={`wiz-step-line${step > 2 ? ' wiz-line-done' : ''}`} />
+    <StepDot num={3} active={step === 3} done={false} label="Product Info" />
+  </div>
+);
+
+/* ─────────────────────────────────────────
+   Create Wizard
+───────────────────────────────────────── */
+const CreateWizard = ({ categories, onComplete, onCancel, showToast }) => {
+  const [step, setStep] = useState(1);
+
+  // Step 1 state
+  const [catMode, setCatMode] = useState(null); // 'existing' | 'new'
+  const [selectedRootId, setSelectedRootId] = useState('');
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatDesc, setNewCatDesc] = useState('');
+  const [creatingCat, setCreatingCat] = useState(false);
+
+  // Step 2 state
+  const [subMode, setSubMode] = useState(null); // 'existing' | 'new' | 'none'
+  const [selectedSubId, setSelectedSubId] = useState('');
+  const [newSubName, setNewSubName] = useState('');
+  const [newSubDesc, setNewSubDesc] = useState('');
+  const [creatingSub, setCreatingSub] = useState(false);
+
+  // Step 3 state
+  const [product, setProduct] = useState({ name: '', description: '', price: '', stock: '10', image_url: '', image_file: null, publish: false });
+  const [creating, setCreating] = useState(false);
+
+  // Derived
+  const rootCategories = categories.filter(c => !c.parent_category);
+  const selectedRoot = categories.find(c => String(c.category_id) === String(selectedRootId));
+  const subCategories = selectedRoot
+    ? categories.filter(c => String(c.parent_category) === String(selectedRootId))
+    : [];
+
+  let finalCategoryId = '';
+  if (catMode === 'new') {
+    finalCategoryId = selectedRootId; 
+  } else if (subMode === 'none') {
+    finalCategoryId = selectedRootId;
+  } else if (subMode === 'existing' || subMode === 'new') {
+    finalCategoryId = selectedSubId || selectedRootId;
+  } else {
+    finalCategoryId = selectedRootId;
+  }
+
+  // Step 1 → 2
+  const handleStep1Next = async () => {
+    if (catMode === 'existing') {
+      if (!selectedRootId) { showToast('Please select a category.', 'error'); return; }
+      setStep(2);
+    } else {
+      if (!newCatName.trim()) { showToast('Category name is required.', 'error'); return; }
+      setCreatingCat(true);
+      try {
+        const res = await categoryService.createCategory({ name: newCatName.trim(), description: newCatDesc.trim() || undefined });
+        const newId = res?.data?.category?.category_id || res?.category?.category_id || res?.category_id;
+        // Refresh categories list via reload—just use returned id if available or refetch
+        // For now move to step 3 directly since new cat has no subs yet
+        if (newId) setSelectedRootId(String(newId));
+        showToast('Category created!');
+        setStep(3); // New root category → skip subcategory step
+      } catch (err) {
+        showToast(err?.error || err?.message || 'Failed to create category.', 'error');
+      } finally {
+        setCreatingCat(false);
+      }
+    }
+  };
+
+  // Step 2 → 3
+  const handleStep2Next = async () => {
+    if (subMode === 'existing') {
+      if (!selectedSubId) { showToast('Please select a subcategory.', 'error'); return; }
+      setStep(3);
+    } else if (subMode === 'new') {
+      if (!newSubName.trim()) { showToast('Subcategory name is required.', 'error'); return; }
+      setCreatingSub(true);
+      try {
+        const res = await categoryService.createCategory({
+          name: newSubName.trim(),
+          description: newSubDesc.trim() || undefined,
+          parent_category: Number(selectedRootId),
+        });
+        const newId = res?.data?.category?.category_id || res?.category?.category_id || res?.category_id;
+        if (newId) setSelectedSubId(String(newId));
+        showToast('Subcategory created!');
+        setStep(3);
+      } catch (err) {
+        showToast(err?.error || err?.message || 'Failed to create subcategory.', 'error');
+      } finally {
+        setCreatingSub(false);
+      }
+    } else {
+      // 'none' — use root category directly
+      setStep(3);
+    }
+  };
+
+  // Final submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!product.name.trim() || !product.price) {
+      showToast('Name and price are required.', 'error'); return;
+    }
+    const priceNum = parseFloat(product.price);
+    const stockNum = parseInt(product.stock, 10);
+    if (Number.isNaN(priceNum) || priceNum < 0) {
+      showToast('Price must be a valid positive number.', 'error'); return;
+    }
+    if (Number.isNaN(stockNum) || stockNum < 0) {
+      showToast('Stock quantity must be 0 or more.', 'error'); return;
+    }
+    if (!finalCategoryId) {
+      showToast('No category selected. Go back and select a category.', 'error'); return;
+    }
+    setCreating(true);
+    try {
+      await onComplete({
+        name: product.name.trim(),
+        description: product.description.trim() || undefined,
+        price: priceNum.toFixed(2),
+        stock: stockNum,
+        category_id: Number(finalCategoryId),
+        image_url: product.image_url.trim() || null,
+        image_file: product.image_file,
+        publish: product.publish,
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const rootLabel = selectedRoot?.name || '—';
+  const subLabel = categories.find(c => String(c.category_id) === String(selectedSubId))?.name;
+
+  return (
+    <div className="wiz-card">
+      {/* Header breadcrumb */}
+      <div className="wiz-header">
+        <h3 className="ap-card-title" style={{ margin: 0 }}>New Product</h3>
+        <button onClick={onCancel} className="wiz-close-btn" type="button" aria-label="Cancel">✕</button>
+      </div>
+
+      <StepBar step={step} />
+
+      {/* Breadcrumb trail */}
+      {step > 1 && (
+        <div className="wiz-trail">
+          <span className="wiz-trail-item">{catMode === 'new' ? `New: "${newCatName}"` : rootLabel}</span>
+          {step > 2 && subLabel && <><span className="wiz-trail-sep">›</span><span className="wiz-trail-item">{subLabel}</span></>}
+          {step > 2 && !subLabel && subMode === 'new' && <><span className="wiz-trail-sep">›</span><span className="wiz-trail-item">New: "{newSubName}"</span></>}
+          {step > 2 && subMode === 'none' && <><span className="wiz-trail-sep">›</span><span className="wiz-trail-item wiz-trail-muted">No subcategory</span></>}
+        </div>
+      )}
+
+      {/* ── STEP 1: Category ── */}
+      {step === 1 && (
+        <div className="wiz-step-body">
+          <p className="wiz-step-title">Step 1 — Choose a Category</p>
+          <p className="wiz-step-sub">Will this product go into an existing category, or do you need to create a new one?</p>
+
+          <div className="wiz-choice-row">
+            <button
+              type="button"
+              className={`wiz-choice-card${catMode === 'existing' ? ' wiz-choice-active' : ''}`}
+              onClick={() => setCatMode('existing')}
+            >
+              <div className="wiz-choice-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h18v4H3z"/><path d="M3 10h18v4H3z"/><path d="M3 17h18v4H3z"/></svg>
+              </div>
+              <span className="wiz-choice-title">Existing Category</span>
+              <span className="wiz-choice-sub">Pick from your current list</span>
+            </button>
+            <button
+              type="button"
+              className={`wiz-choice-card${catMode === 'new' ? ' wiz-choice-active' : ''}`}
+              onClick={() => setCatMode('new')}
+            >
+              <div className="wiz-choice-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              </div>
+              <span className="wiz-choice-title">New Category</span>
+              <span className="wiz-choice-sub">Create a brand-new root category</span>
+            </button>
+          </div>
+
+          {catMode === 'existing' && (
+            <div className="wiz-field-group">
+              <label className="ap-label">Root Category <span className="ap-req">*</span></label>
+              <select className="ap-select" value={selectedRootId} onChange={e => setSelectedRootId(e.target.value)}>
+                <option value="">Select category…</option>
+                {rootCategories.map(c => (
+                  <option key={c.category_id} value={c.category_id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {catMode === 'new' && (
+            <div className="wiz-field-group">
+              <label className="ap-label">Category Name <span className="ap-req">*</span></label>
+              <input className="ap-input" placeholder="e.g. Footwear" value={newCatName} onChange={e => setNewCatName(e.target.value)} />
+              <label className="ap-label" style={{ marginTop: 10 }}>Description <span className="wiz-opt">(optional)</span></label>
+              <input className="ap-input" placeholder="Short description" value={newCatDesc} onChange={e => setNewCatDesc(e.target.value)} />
+            </div>
+          )}
+
+          <div className="wiz-foot">
+            <button type="button" className="ap-btn-ghost" onClick={onCancel}>Cancel</button>
+            <button type="button" className="ap-btn-primary" disabled={!catMode || creatingCat} onClick={handleStep1Next}>
+              {creatingCat ? <><span className="ap-spinner" /> Creating…</> : 'Next →'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 2: Subcategory ── */}
+      {step === 2 && (
+        <div className="wiz-step-body">
+          <p className="wiz-step-title">Step 2 — Subcategory under <strong>{rootLabel}</strong></p>
+          <p className="wiz-step-sub">Should this product go in a specific subcategory, a new one, or directly under {rootLabel}?</p>
+
+          <div className="wiz-choice-row">
+            <button type="button" className={`wiz-choice-card${subMode === 'existing' ? ' wiz-choice-active' : ''}`}
+              onClick={() => setSubMode('existing')} disabled={subCategories.length === 0}
+              title={subCategories.length === 0 ? 'No subcategories exist yet' : ''}>
+              <div className="wiz-choice-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+              <span className="wiz-choice-title">Existing Sub</span>
+              <span className="wiz-choice-sub">{subCategories.length > 0 ? `${subCategories.length} available` : 'None yet'}</span>
+            </button>
+            <button type="button" className={`wiz-choice-card${subMode === 'new' ? ' wiz-choice-active' : ''}`} onClick={() => setSubMode('new')}>
+              <div className="wiz-choice-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              </div>
+              <span className="wiz-choice-title">New Subcategory</span>
+              <span className="wiz-choice-sub">Create under {rootLabel}</span>
+            </button>
+            <button type="button" className={`wiz-choice-card${subMode === 'none' ? ' wiz-choice-active' : ''}`} onClick={() => setSubMode('none')}>
+              <div className="wiz-choice-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+              <span className="wiz-choice-title">No Subcategory</span>
+              <span className="wiz-choice-sub">Place directly in {rootLabel}</span>
+            </button>
+          </div>
+
+          {subMode === 'existing' && (
+            <div className="wiz-field-group">
+              <label className="ap-label">Subcategory <span className="ap-req">*</span></label>
+              <select className="ap-select" value={selectedSubId} onChange={e => setSelectedSubId(e.target.value)}>
+                <option value="">Select subcategory…</option>
+                {subCategories.map(c => <option key={c.category_id} value={c.category_id}>{c.name}</option>)}
+              </select>
+            </div>
+          )}
+
+          {subMode === 'new' && (
+            <div className="wiz-field-group">
+              <label className="ap-label">Subcategory Name <span className="ap-req">*</span></label>
+              <input className="ap-input" placeholder={`e.g. Jamdani under ${rootLabel}`} value={newSubName} onChange={e => setNewSubName(e.target.value)} />
+              <label className="ap-label" style={{ marginTop: 10 }}>Description <span className="wiz-opt">(optional)</span></label>
+              <input className="ap-input" placeholder="Short description" value={newSubDesc} onChange={e => setNewSubDesc(e.target.value)} />
+            </div>
+          )}
+
+          <div className="wiz-foot">
+            <button type="button" className="ap-btn-ghost" onClick={() => setStep(1)}>← Back</button>
+            <button type="button" className="ap-btn-primary" disabled={!subMode || creatingSub} onClick={handleStep2Next}>
+              {creatingSub ? <><span className="ap-spinner" /> Creating…</> : 'Next →'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 3: Product Details ── */}
+      {step === 3 && (
+        <div className="wiz-step-body">
+          <p className="wiz-step-title">Step 3 — Product Details</p>
+          <p className="wiz-step-sub">Fill in the product information. You can publish it immediately or save as draft.</p>
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="wiz-field-group">
+              <div className="wiz-two-col">
+                <div>
+                  <label className="ap-label">Product Name <span className="ap-req">*</span></label>
+                  <input className="ap-input" placeholder="e.g. Jamdani Saree" value={product.name}
+                    onChange={e => setProduct(p => ({ ...p, name: e.target.value }))} required />
+                </div>
+                <div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
+                    <div>
+                      <label className="ap-label">Price (৳) <span className="ap-req">*</span></label>
+                      <input className="ap-input" type="number" min="0" step="0.01" placeholder="0.00"
+                        value={product.price} onChange={e => setProduct(p => ({ ...p, price: e.target.value }))} required />
+                    </div>
+                    <div>
+                      <label className="ap-label">Stock <span className="ap-req">*</span></label>
+                      <input className="ap-input" type="number" min="0" placeholder="10"
+                        value={product.stock} onChange={e => setProduct(p => ({ ...p, stock: e.target.value }))} required />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 14 }}>
+                <label className="ap-label">Description</label>
+                <textarea className="ap-textarea" rows={3} placeholder="Short description of the product…"
+                  value={product.description} onChange={e => setProduct(p => ({ ...p, description: e.target.value }))} />
+              </div>
+
+              <div style={{ marginTop: 14 }}>
+                <label className="ap-label">Image <span className="wiz-opt">(optional — upload a file OR paste a link)</span></label>
+                <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                  <label className="ap-btn-ghost" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    {product.image_file ? 'Change File' : 'Upload File'}
+                    <input type="file" style={{ display: 'none' }} accept="image/jpeg,image/png,image/webp"
+                      onChange={e => setProduct(p => ({ ...p, image_file: e.target.files[0], image_url: '' }))} />
+                  </label>
+                  <input className="ap-input" type="url" placeholder="OR paste https://... image URL"
+                    value={product.image_url} style={{ flex: 1 }}
+                    onChange={e => setProduct(p => ({ ...p, image_url: e.target.value, image_file: null }))} />
+                </div>
+                {product.image_file && <div style={{ fontSize: 12, marginTop: 6, color: 'var(--muted)' }}>Selected: {product.image_file.name}</div>}
+                {!product.image_file && product.image_url && (
+                  <img src={product.image_url} alt="Preview"
+                    style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 8, marginTop: 10, border: '1px solid var(--border)' }}
+                    onError={e => { e.target.style.display = 'none'; }} />
+                )}
+              </div>
+
+              <label className="wiz-publish-check" style={{ marginTop: 14 }}>
+                <input type="checkbox" checked={product.publish}
+                  onChange={e => setProduct(p => ({ ...p, publish: e.target.checked }))}
+                  style={{ accentColor: 'var(--gold)', width: 15, height: 15 }} />
+                <span>Publish immediately <span className="wiz-opt">(make visible to customers)</span></span>
+              </label>
+            </div>
+
+            <div className="wiz-foot">
+              <button type="button" className="ap-btn-ghost" onClick={() => setStep(catMode === 'new' ? 1 : 2)}>← Back</button>
+              <button type="submit" className="ap-btn-primary" disabled={creating}>
+                {creating ? <><span className="ap-spinner" /> Creating…</> : (product.publish ? '🚀 Create & Publish' : 'Create as Draft')}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <style>{`
+        .wiz-card {
+          background: var(--bg-card); border: 1px solid var(--border);
+          border-radius: var(--r); padding: 28px 32px;
+          animation: ac-fade .2s ease; display: flex; flex-direction: column; gap: 0;
+        }
+        .wiz-header {
+          display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
+        }
+        .wiz-close-btn {
+          background: none; border: 1px solid var(--border); border-radius: 50%;
+          width: 30px; height: 30px; cursor: pointer; color: var(--muted);
+          display: flex; align-items: center; justify-content: center; font-size: 13px;
+          transition: all .15s;
+        }
+        .wiz-close-btn:hover { color: #9f1239; border-color: #f5c2c7; }
+
+        /* Step bar */
+        .wiz-step-bar {
+          display: flex; align-items: center; gap: 0; margin-bottom: 20px;
+        }
+        .wiz-step-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .wiz-step-dot {
+          width: 32px; height: 32px; border-radius: 50%;
+          border: 2px solid var(--border); background: var(--bg-alt);
+          color: var(--muted); font-size: 13px; font-weight: 700;
+          display: flex; align-items: center; justify-content: center; transition: all .25s;
+        }
+        .wiz-dot-active { border-color: var(--gold); background: var(--gold); color: var(--dark); }
+        .wiz-dot-done { border-color: #15803d; background: #f0faf3; color: #15803d; }
+        .wiz-step-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); white-space: nowrap; }
+        .wiz-step-label-active { color: var(--gold); }
+        .wiz-step-line { flex: 1; height: 2px; background: var(--border); margin: 0 8px; margin-bottom: 18px; transition: background .25s; }
+        .wiz-line-done { background: #15803d; }
+
+        /* Trail */
+        .wiz-trail {
+          display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+          padding: 8px 14px; background: var(--bg-alt); border: 1px solid var(--border);
+          border-radius: calc(var(--r) - 2px); margin-bottom: 20px;
+          font-size: 12.5px; font-weight: 600; color: var(--dark);
+        }
+        .wiz-trail-item { padding: 2px 8px; background: var(--bg-card); border-radius: 999px; border: 1px solid var(--border); }
+        .wiz-trail-muted { color: var(--muted); }
+        .wiz-trail-sep { color: var(--muted); font-weight: 300; }
+
+        /* Step body */
+        .wiz-step-body { display: flex; flex-direction: column; gap: 16px; }
+        .wiz-step-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 700; color: var(--dark); margin: 0; }
+        .wiz-step-sub { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.6; }
+
+        /* Choice cards */
+        .wiz-choice-row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .wiz-choice-card {
+          flex: 1 1 140px; padding: 18px 16px;
+          border: 2px solid var(--border); border-radius: var(--r);
+          background: var(--bg-alt); cursor: pointer; text-align: center;
+          display: flex; flex-direction: column; align-items: center; gap: 8px;
+          transition: all .2s; color: var(--dark);
+        }
+        .wiz-choice-card:hover:not(:disabled) { border-color: var(--gold); background: var(--bg-card); }
+        .wiz-choice-card.wiz-choice-active { border-color: var(--gold); background: rgba(196,146,42,.06); }
+        .wiz-choice-card:disabled { opacity: .4; cursor: not-allowed; }
+        .wiz-choice-icon { color: var(--gold); }
+        .wiz-choice-title { font-size: 13.5px; font-weight: 700; color: var(--dark); }
+        .wiz-choice-sub { font-size: 11.5px; color: var(--muted); }
+
+        /* Fields */
+        .wiz-field-group { display: flex; flex-direction: column; gap: 5px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--r); padding: 18px 20px; }
+        .wiz-two-col { display: grid; grid-template-columns: 1fr 200px; gap: 14px; }
+        .wiz-opt { font-weight: 400; font-size: 10px; color: var(--muted); text-transform: none; letter-spacing: 0; }
+        .wiz-publish-check { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--dark); cursor: pointer; }
+
+        /* Footer */
+        .wiz-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+
+        @media (max-width: 640px) {
+          .wiz-two-col { grid-template-columns: 1fr; }
+          .wiz-choice-card { flex: 1 1 100%; }
+          .wiz-card { padding: 20px 18px; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 
 /* ─────────────────────────────────────────
    Variant panel
@@ -367,7 +832,7 @@ const ImagePanel = ({ productId, onToast }) => {
     try {
       const uploadRes = await productService.uploadImage(file);
       const payload = unwrap(uploadRes);
-      const imageUrl = payload?.url || payload?.image_url;
+      const imageUrl = payload?.image?.url || payload?.url || payload?.image_url;
 
       if (!imageUrl) throw new Error('No URL returned from upload.');
 
@@ -529,6 +994,8 @@ const AdminProducts = () => {
   const [publishingId, setPublishingId] = useState(null);
 
   const [toast, setToast] = useState({ msg: '', type: 'success' });
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const showToast = useCallback((msg, type = 'success') => setToast({ msg, type }), []);
   const clearToast = useCallback(() => setToast({ msg: '', type: 'success' }), []);
   const loadMoreRef = useRef(null);
@@ -634,37 +1101,80 @@ const AdminProducts = () => {
     return () => observer.disconnect();
   }, [filters, loadProducts, loading, loadingMore, pagination.page, pagination.pages]);
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
-
-    if (!newProduct.name.trim() || !newProduct.price || !newProduct.category_id) {
-      showToast('Name, price, and category are required.', 'error');
-      return;
-    }
-
-    const priceNum = parseFloat(newProduct.price);
-    if (Number.isNaN(priceNum) || priceNum < 0) {
-      showToast('Price must be a valid positive number.', 'error');
-      return;
-    }
-
+  const handleWizardComplete = async (productData) => {
     setCreating(true);
     try {
       const res = await productService.createProduct({
-        name: newProduct.name.trim(),
-        description: newProduct.description.trim() || undefined,
-        price: priceNum.toFixed(2),
-        category_id: Number(newProduct.category_id),
+        name: productData.name,
+        description: productData.description,
+        price: productData.price,
+        category_id: productData.category_id,
         is_active: false,
       });
 
       const payload = unwrap(res);
-      showToast('Product created as draft. Add variants and images, then publish it.');
-      setNewProduct(EMPTY_PRODUCT);
+      const createdId = payload?.product?.product_id;
+
+      let finalImageUrl = productData.image_url;
+
+      if (productData.image_file) {
+        try {
+          const uploadRes = await productService.uploadImage(productData.image_file);
+          const uploadPayload = unwrap(uploadRes);
+          // The backend returns { message: "...", image: { url: "..." } }
+          finalImageUrl = uploadPayload?.image?.url || uploadPayload?.url || uploadPayload?.image_url || finalImageUrl;
+        } catch (err) {
+          showToast('Failed to upload image file.', 'error');
+        }
+      }
+
+      if (createdId && finalImageUrl) {
+        try {
+          await productService.addImage(createdId, {
+            image_url: finalImageUrl,
+            is_primary: true,
+          });
+        } catch {
+          showToast('Product created but image could not be saved.', 'error');
+        }
+      }
+
+      if (createdId) {
+        try {
+          // The database trigger automatically creates a variant with stock=0
+          // Wait briefly, fetch variants, and update the default variant's stock
+          const variantRes = await productService.getVariants(createdId);
+          const variants = unwrap(variantRes);
+          // Check if payload wraps variants array
+          const variantList = Array.isArray(variants) ? variants : (variants.variants || []);
+          
+          if (variantList && variantList.length > 0) {
+            const defaultVariant = variantList[0];
+            await productService.updateVariant(defaultVariant.variant_id, {
+              stock_quantity: productData.stock
+            });
+          } else {
+            // Fallback if trigger didn't run
+            await productService.createVariant(createdId, { size: null, stock_quantity: productData.stock });
+          }
+        } catch { /* ignore if variant setup fails */ }
+      }
+
+      if (createdId && productData.publish) {
+        try {
+          await productService.updateProduct(createdId, { is_active: true });
+        } catch {
+          showToast('Product created but could not publish.', 'error');
+        }
+      }
+
+      showToast(productData.publish ? 'Product created and published!' : 'Product created as draft.');
       setShowCreate(false);
+      
+      // We must reload categories just in case the wizard created a new one
+      categoryService.getAllCategories().then(res => setCategories(normalizeCategories(res))).catch(() => {});
       await loadProducts(1, filters);
 
-      const createdId = payload?.product?.product_id;
       if (createdId) {
         setExpandedId(createdId);
         setExpandedPanel('images');
@@ -774,6 +1284,41 @@ const AdminProducts = () => {
     loadProducts(1, filters);
   };
 
+  const toggleSelectAll = () => {
+    if (selectedIds.size === products.length && products.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(products.map(p => p.product_id)));
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Delete ${selectedIds.size} selected products?`)) return;
+    setBulkDeleting(true);
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => productService.deleteProduct(id)));
+      showToast(`${selectedIds.size} products deleted.`);
+      setSelectedIds(new Set());
+      await loadProducts(1, filters);
+      setExpandedId(null);
+      setExpandedPanel(null);
+    } catch (err) {
+      showToast('Finished with errors. Some products might not be deleted.', 'error');
+      await loadProducts(1, filters);
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   return (
     <div className="ap-page">
       <div className="ap-head">
@@ -808,88 +1353,12 @@ const AdminProducts = () => {
       <Toast msg={toast.msg} type={toast.type} onDismiss={clearToast} />
 
       {showCreate && (
-        <div className="ap-create-card">
-          <h3 className="ap-card-title">New Product</h3>
-          <p className="ap-card-hint">
-            Products are created as <strong>drafts</strong>. After creating, add at least one
-            variant and one image, then publish.
-          </p>
-
-          <form className="ap-create-form" onSubmit={handleCreate} noValidate>
-            <div className="ap-create-row ap-create-row-main">
-              <div className="ap-field ap-field-grow">
-                <label className="ap-label">
-                  Product name <span className="ap-req">*</span>
-                </label>
-                <input
-                  className="ap-input"
-                  placeholder="e.g. Jamdani Saree"
-                  value={newProduct.name}
-                  onChange={(e) => setNewProduct((p) => ({ ...p, name: e.target.value }))}
-                  required
-                />
-              </div>
-
-              <div className="ap-field ap-field-price">
-                <label className="ap-label">
-                  Price (৳) <span className="ap-req">*</span>
-                </label>
-                <input
-                  className="ap-input"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={newProduct.price}
-                  onChange={(e) => setNewProduct((p) => ({ ...p, price: e.target.value }))}
-                  required
-                />
-              </div>
-
-              <div className="ap-field ap-field-cat">
-                <label className="ap-label">
-                  Category <span className="ap-req">*</span>
-                </label>
-                <select
-                  className="ap-select"
-                  value={newProduct.category_id}
-                  onChange={(e) => setNewProduct((p) => ({ ...p, category_id: e.target.value }))}
-                  required
-                >
-                  <option value="">Select…</option>
-                  {categories.map((c) => (
-                    <option key={c.category_id} value={c.category_id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="ap-field">
-              <label className="ap-label">Description</label>
-              <textarea
-                className="ap-textarea"
-                rows={3}
-                placeholder="Short description of the product…"
-                value={newProduct.description}
-                onChange={(e) => setNewProduct((p) => ({ ...p, description: e.target.value }))}
-              />
-            </div>
-
-            <div className="ap-create-foot">
-              <button className="ap-btn-primary" type="submit" disabled={creating}>
-                {creating ? (
-                  <>
-                    <span className="ap-spinner" /> Creating…
-                  </>
-                ) : (
-                  'Create Product'
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
+        <CreateWizard
+          categories={categories}
+          onComplete={handleWizardComplete}
+          onCancel={() => setShowCreate(false)}
+          showToast={showToast}
+        />
       )}
 
       <div className="ap-filters-card">
@@ -940,9 +1409,22 @@ const AdminProducts = () => {
           </button>
         </form>
 
-        <p className="ap-count">
-          {pagination.total} product{pagination.total !== 1 ? 's' : ''}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <p className="ap-count">
+            {pagination.total} product{pagination.total !== 1 ? 's' : ''}
+          </p>
+          {selectedIds.size > 0 && (
+            <button
+              className="ap-action-btn ap-action-delete"
+              style={{ padding: '6px 12px', background: 'var(--bg-card)', borderColor: '#fecaca', color: '#dc2626' }}
+              type="button"
+              disabled={bulkDeleting}
+              onClick={handleBulkDelete}
+            >
+              {bulkDeleting ? <span className="ap-spinner" /> : `Delete Selected (${selectedIds.size})`}
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -969,6 +1451,22 @@ const AdminProducts = () => {
         </div>
       ) : (
         <div className="ap-product-list">
+          <div className="ap-list-row" style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '12px 24px', position: 'sticky', top: 0, zIndex: 10 }}>
+            <div className="ap-col" style={{ flex: '0 0 auto', paddingRight: '12px', display: 'flex', alignItems: 'center' }}>
+              <input 
+                type="checkbox" 
+                style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--gold)' }}
+                checked={products.length > 0 && selectedIds.size === products.length}
+                onChange={toggleSelectAll}
+                title="Select All"
+              />
+            </div>
+            <div className="ap-col ap-col-name" style={{ fontWeight: 600, color: 'var(--muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Product</div>
+            <div className="ap-col ap-col-category" style={{ fontWeight: 600, color: 'var(--muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</div>
+            <div className="ap-col ap-col-stock" style={{ fontWeight: 600, color: 'var(--muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stock</div>
+            <div className="ap-col ap-col-price" style={{ fontWeight: 600, color: 'var(--muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price</div>
+            <div className="ap-col ap-col-actions" style={{ fontWeight: 600, color: 'var(--muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</div>
+          </div>
           {products.map((product) => {
             const d = editDrafts[product.product_id] || {};
             const isExpandedVariants = expandedId === product.product_id && expandedPanel === 'variants';
@@ -980,9 +1478,18 @@ const AdminProducts = () => {
             return (
               <div
                 key={product.product_id}
-                className={`ap-product-card${!product.is_active ? ' ap-product-inactive' : ''}`}
+                className={`ap-product-card${!product.is_active ? ' ap-product-inactive' : ''}${selectedIds.has(product.product_id) ? ' ap-product-selected' : ''}`}
+                style={selectedIds.has(product.product_id) ? { backgroundColor: 'rgba(196,146,42,0.05)' } : {}}
               >
                 <div className="ap-list-row">
+                  <div className="ap-col" style={{ flex: '0 0 auto', paddingRight: '12px', display: 'flex', alignItems: 'center' }}>
+                    <input 
+                      type="checkbox" 
+                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--gold)' }}
+                      checked={selectedIds.has(product.product_id)}
+                      onChange={() => toggleSelectOne(product.product_id)}
+                    />
+                  </div>
                   <div className="ap-col ap-col-name">
                     <div className="ap-list-name-wrap">
                       <div className="ap-product-thumb ap-product-thumb-sm">

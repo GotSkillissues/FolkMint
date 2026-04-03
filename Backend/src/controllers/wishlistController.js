@@ -106,16 +106,28 @@ const checkWishlist = async (req, res) => {
 };
 
 // POST /api/wishlist
-// Authenticated. Adds a variant to the wishlist.
-// Only allowed when stock_quantity = 0.
-// If item is in stock the user should add to cart instead.
+// Authenticated. Adds an item to the wishlist.
+// Updated: Supports product_id or variant_id, and removed out-of-stock restriction.
 const addToWishlist = async (req, res) => {
   try {
     const userId    = req.user.userId;
-    const variantId = parsePositiveInt(req.body?.variant_id);
+    const productId = parsePositiveInt(req.body?.product_id);
+    let variantId   = parsePositiveInt(req.body?.variant_id);
 
-    if (!variantId) {
-      return res.status(400).json({ error: 'variant_id is required' });
+    if (!variantId && !productId) {
+      return res.status(400).json({ error: 'product_id or variant_id is required' });
+    }
+
+    // If only product_id is provided, find the first available variant
+    if (!variantId && productId) {
+      const vRes = await pool.query(
+        'SELECT variant_id FROM product_variant WHERE product_id = $1 LIMIT 1',
+        [productId]
+      );
+      if (vRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Product has no variants' });
+      }
+      variantId = vRes.rows[0].variant_id;
     }
 
     // Verify variant exists and belongs to an active product
@@ -123,26 +135,15 @@ const addToWishlist = async (req, res) => {
       `SELECT
          pv.variant_id,
          pv.stock_quantity,
-         pv.size,
-         p.name AS product_name
+         p.is_active
        FROM product_variant pv
        JOIN product p ON p.product_id = pv.product_id
-       WHERE pv.variant_id = $1
-         AND p.is_active = true`,
+       WHERE pv.variant_id = $1`,
       [variantId]
     );
 
-    if (variantResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Product variant not found' });
-    }
-
-    const variant = variantResult.rows[0];
-
-    // Block if item is in stock — user should add to cart instead
-    if (variant.stock_quantity > 0) {
-      return res.status(400).json({
-        error: 'This item is in stock. Add it to your cart instead.'
-      });
+    if (variantResult.rows.length === 0 || !variantResult.rows[0].is_active) {
+      return res.status(404).json({ error: 'Product variant not found or inactive' });
     }
 
     const result = await pool.query(
@@ -153,7 +154,7 @@ const addToWishlist = async (req, res) => {
     );
 
     return res.status(201).json({
-      message: 'Added to wishlist. We will notify you when this item is back in stock.',
+      message: 'Added to wishlist',
       item: result.rows[0]
     });
   } catch (error) {

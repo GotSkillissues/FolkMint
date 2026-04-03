@@ -83,6 +83,7 @@ const AdminOrders = () => {
       });
       setPagination(res?.pagination || { page, pages: 1, total: fetched.length });
       if (!append) setEditingId(null);
+      window.dispatchEvent(new CustomEvent('folkmint:orders-updated'));
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to load orders.', 'error');
     } finally {
@@ -152,6 +153,7 @@ const AdminOrders = () => {
       // Refresh detail cache for this order
       setDetailsMap(prev => { const n = { ...prev }; delete n[orderId]; return n; });
       await loadOrders(1, statusFilter);
+      window.dispatchEvent(new CustomEvent('folkmint:orders-updated'));
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to update status.', 'error');
     } finally {
@@ -168,6 +170,7 @@ const AdminOrders = () => {
       showToast(`Order #${orderId} cancelled.`);
       setDetailsMap(prev => { const n = { ...prev }; delete n[orderId]; return n; });
       await loadOrders(1, statusFilter);
+      window.dispatchEvent(new CustomEvent('folkmint:orders-updated'));
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to cancel order.', 'error');
     } finally {

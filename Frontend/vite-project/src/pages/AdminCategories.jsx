@@ -35,6 +35,7 @@ const flattenTree = (nodes, depth = 0) => {
 
 /* Recursive category row */
 const CategoryRow = ({ node, depth, flatList, onSave, onDelete }) => {
+  const [expanded, setExpanded] = useState(false);
   const [editing, setEditing]   = useState(false);
   // FIX: initialise is_active in draft state so the toggle has a value to read/write
   const [draft, setDraft]       = useState({
@@ -57,7 +58,7 @@ const CategoryRow = ({ node, depth, flatList, onSave, onDelete }) => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Delete "${node.name}"? This will fail if it has products or child categories.`)) return;
+    if (!window.confirm(`WARNING: Deleting "${node.name}" will also permanently delete ALL of its subcategories and ALL products contained within them. Do you wish to continue?`)) return;
     setDeleting(true);
     await onDelete(node.category_id);
     setDeleting(false);
@@ -122,10 +123,14 @@ const CategoryRow = ({ node, depth, flatList, onSave, onDelete }) => {
             </div>
           </div>
         ) : (
-          <div className="ac-cat-info">
+          <div className="ac-cat-info" onClick={() => children.length > 0 && setExpanded(!expanded)} style={{ cursor: children.length > 0 ? 'pointer' : 'default' }}>
             <div className="ac-cat-name-row">
               {children.length > 0 && (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="ac-has-children-icon">
+                <svg
+                  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                  strokeLinecap="round"
+                  className={`ac-has-children-icon${expanded ? ' expanded' : ''}`}
+                >
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               )}
@@ -158,8 +163,8 @@ const CategoryRow = ({ node, depth, flatList, onSave, onDelete }) => {
         )}
       </div>
 
-      {/* Recurse */}
-      {children.map(child => (
+      {/* Recurse - conditionally show children if expanded */}
+      {expanded && children.length > 0 && children.map(child => (
         <CategoryRow
           key={child.category_id}
           node={child}
@@ -222,6 +227,7 @@ const AdminCategories = () => {
       showToast('Category created. Slug and tree auto-computed by database.');
       setNewCat(EMPTY_NEW);
       setShowCreate(false);
+      window.dispatchEvent(new Event('folkmint:categories-updated'));
       await loadTree();
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to create category.', 'error');
@@ -241,6 +247,7 @@ const AdminCategories = () => {
         is_active:       draft.is_active !== false,
       });
       showToast('Category updated.');
+      window.dispatchEvent(new Event('folkmint:categories-updated'));
       await loadTree();
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to update category.', 'error');
@@ -251,6 +258,7 @@ const AdminCategories = () => {
     try {
       await categoryService.deleteCategory(categoryId);
       showToast('Category deleted.');
+      window.dispatchEvent(new Event('folkmint:categories-updated'));
       await loadTree();
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to delete category.', 'error');
@@ -499,8 +507,10 @@ const AdminCategories = () => {
         /* inactive badge shown in read mode */
         .ac-cat-inactive-badge {
           font-size: 10px; font-weight: 700; letter-spacing: .06em;
-          text-transform: uppercase; color: #9f1239;
-          background: #fff2f3; border: 1px solid #f5c2c7;
+          text-transform: uppercase;
+          color: #f87171;
+          background: rgba(220,38,38,0.1);
+          border: 1px solid rgba(220,38,38,0.25);
           padding: 1px 7px; border-radius: 999px;
         }
 
@@ -581,10 +591,19 @@ const AdminCategories = () => {
         }
         .ac-action-edit:hover { border-color: var(--gold); color: var(--gold); }
         .ac-action-delete {
-          background: #fff2f3; border-color: #f5c2c7; color: #9f1239;
+          background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.25); color: #f87171;
         }
         .ac-action-delete:hover:not(:disabled) {
-          background: #9f1239; border-color: #9f1239; color: #fff;
+          background: #dc2626; border-color: #dc2626; color: #fff;
+        }
+
+        .ac-has-children-icon {
+          color: var(--muted);
+          flex-shrink: 0;
+          transition: transform .2s ease;
+        }
+        .ac-has-children-icon.expanded {
+          transform: rotate(90deg);
         }
 
         /* inline edit form */

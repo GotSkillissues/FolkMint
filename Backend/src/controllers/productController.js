@@ -251,6 +251,7 @@ const getProducts = async (req, res) => {
       products: result.rows.map((row) => ({
         ...buildProductResponse(row),
         primary_image: row.primary_image || null,
+        all_images: Array.isArray(row.all_images) ? row.all_images : [],
         total_stock: Number.parseInt(row.total_stock, 10)
       })),
       pagination: {
@@ -495,19 +496,32 @@ const getYouMayAlsoLike = async (req, res) => {
 };
 
 // GET /api/products/top-rated
-// Public. Min 10 reviews, avg rating >= 4.2
+// Public. Changed to: "Most Sold All Time" as per user request.
 const getTopRatedProducts = async (req, res) => {
   try {
     const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
 
     const result = await pool.query(
-      `SELECT
+      `WITH cat_stats AS (
+         SELECT p.category_id, COALESCE(SUM(oi.quantity), 0)::int AS cat_units
+         FROM product p
+         LEFT JOIN order_item oi ON oi.product_id = p.product_id
+         LEFT JOIN orders o ON o.order_id = oi.order_id AND o.status != 'cancelled'
+         GROUP BY p.category_id
+       ),
+       hier_stats AS (
+         SELECT ancestor_category_id AS cat_id, SUM(cat_units)::int AS total_units
+         FROM category_closure 
+         JOIN cat_stats ON descendant_category_id = category_id
+         GROUP BY ancestor_category_id
+       )
+       SELECT
          p.product_id, p.name, p.description, p.sku, p.price,
          p.category_id, p.is_active, p.created_at, p.updated_at,
          c.name AS category_name,
          c.category_slug,
-         COUNT(r.review_id)::int AS review_count,
-         ROUND(AVG(r.rating)::numeric, 1) AS avg_rating,
+         COALESCE(SUM(oi.quantity), 0)::int AS units_sold,
+         COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0.0) AS avg_rating,
          (
            SELECT pi.image_url
            FROM product_image pi
@@ -516,18 +530,27 @@ const getTopRatedProducts = async (req, res) => {
            LIMIT 1
          ) AS primary_image,
          COALESCE((
+           SELECT JSON_AGG(image_url ORDER BY is_primary DESC, image_id ASC)
+           FROM product_image
+           WHERE product_id = p.product_id
+         ), '[]') AS all_images,
+         COALESCE((
            SELECT SUM(pv.stock_quantity)
            FROM product_variant pv
            WHERE pv.product_id = p.product_id
-         ), 0) AS total_stock
+         ), 0) AS total_stock,
+         COALESCE(hs.total_units, 0) AS category_total_sales
        FROM product p
-       JOIN review r ON r.product_id = p.product_id
+       LEFT JOIN order_item oi ON oi.product_id = p.product_id
+       LEFT JOIN orders o ON o.order_id = oi.order_id AND o.status != 'cancelled'
+       LEFT JOIN review r ON r.product_id = p.product_id
        LEFT JOIN category c ON c.category_id = p.category_id
+       LEFT JOIN hier_stats hs ON hs.cat_id = p.category_id
        WHERE p.is_active = true
-       GROUP BY p.product_id, c.name, c.category_slug
-       HAVING COUNT(r.review_id) >= 10
-          AND AVG(r.rating) >= 4.2
-       ORDER BY avg_rating DESC, review_count DESC
+       GROUP BY p.product_id, p.name, p.description, p.sku, p.price, 
+                p.category_id, p.is_active, p.created_at, p.updated_at,
+                c.name, c.category_slug, hs.total_units
+       ORDER BY avg_rating DESC, units_sold DESC, p.created_at DESC
        LIMIT $1`,
       [limit]
     );
@@ -536,30 +559,46 @@ const getTopRatedProducts = async (req, res) => {
       products: result.rows.map((row) => ({
         ...buildProductResponse(row),
         primary_image: row.primary_image || null,
+        secondary_image: row.secondary_image || null,
         total_stock: Number.parseInt(row.total_stock, 10),
-        review_count: row.review_count,
+        units_sold: row.units_sold,
         avg_rating: String(row.avg_rating)
       }))
     });
   } catch (error) {
-    console.error('Get top rated error:', error);
-    return res.status(500).json({ error: 'Failed to fetch top rated products' });
+    console.error('Get top rated (all-time sold) error:', error);
+    return res.status(500).json({ error: 'Failed to fetch best sellers' });
   }
 };
 
 // GET /api/products/popular
-// Public. Min 10 units sold in last 30 days, non-cancelled orders only.
+// Public. Units sold in current calendar month.
 const getPopularProducts = async (req, res) => {
   try {
     const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
 
     const result = await pool.query(
-      `SELECT
+      `WITH cat_stats AS (
+         SELECT p.category_id, COALESCE(SUM(oi.quantity), 0)::int AS cat_units
+         FROM product p
+         LEFT JOIN order_item oi ON oi.product_id = p.product_id
+         LEFT JOIN orders o ON o.order_id = oi.order_id 
+           AND o.status != 'cancelled'
+           AND o.created_at >= date_trunc('month', CURRENT_DATE)
+         GROUP BY p.category_id
+       ),
+       hier_stats AS (
+         SELECT ancestor_category_id AS cat_id, SUM(cat_units)::int AS total_units
+         FROM category_closure 
+         JOIN cat_stats ON descendant_category_id = category_id
+         GROUP BY ancestor_category_id
+       )
+       SELECT
          p.product_id, p.name, p.description, p.sku, p.price,
          p.category_id, p.is_active, p.created_at, p.updated_at,
          c.name AS category_name,
          c.category_slug,
-         SUM(oi.quantity)::int AS units_sold,
+         COALESCE(SUM(oi.quantity), 0)::int AS units_sold,
          (
            SELECT pi.image_url
            FROM product_image pi
@@ -568,20 +607,28 @@ const getPopularProducts = async (req, res) => {
            LIMIT 1
          ) AS primary_image,
          COALESCE((
+           SELECT JSON_AGG(image_url ORDER BY is_primary DESC, image_id ASC)
+           FROM product_image
+           WHERE product_id = p.product_id
+         ), '[]') AS all_images,
+         COALESCE((
            SELECT SUM(pv.stock_quantity)
            FROM product_variant pv
            WHERE pv.product_id = p.product_id
-         ), 0) AS total_stock
+         ), 0) AS total_stock,
+         COALESCE(hs.total_units, 0) AS category_total_sales
        FROM product p
-       JOIN order_item oi ON oi.product_id = p.product_id
-       JOIN orders o ON o.order_id = oi.order_id
+       LEFT JOIN order_item oi ON oi.product_id = p.product_id
+       LEFT JOIN orders o ON o.order_id = oi.order_id 
+          AND o.status != 'cancelled'
+          AND o.created_at >= date_trunc('month', CURRENT_DATE)
        LEFT JOIN category c ON c.category_id = p.category_id
-       WHERE o.status != 'cancelled'
-         AND o.created_at >= NOW() - INTERVAL '30 days'
-         AND p.is_active = true
-       GROUP BY p.product_id, c.name, c.category_slug
-       HAVING SUM(oi.quantity) >= 10
-       ORDER BY units_sold DESC
+       LEFT JOIN hier_stats hs ON hs.cat_id = p.category_id
+       WHERE p.is_active = true
+       GROUP BY p.product_id, p.name, p.description, p.sku, p.price, 
+                p.category_id, p.is_active, p.created_at, p.updated_at,
+                c.name, c.category_slug, hs.total_units
+       ORDER BY units_sold DESC, category_total_sales DESC, p.created_at DESC
        LIMIT $1`,
       [limit]
     );
@@ -590,12 +637,13 @@ const getPopularProducts = async (req, res) => {
       products: result.rows.map((row) => ({
         ...buildProductResponse(row),
         primary_image: row.primary_image || null,
+        secondary_image: row.secondary_image || null,
         total_stock: Number.parseInt(row.total_stock, 10),
         units_sold: row.units_sold
       }))
     });
   } catch (error) {
-    console.error('Get popular products error:', error);
+    console.error('Get popular products (this month) error:', error);
     return res.status(500).json({ error: 'Failed to fetch popular products' });
   }
 };
@@ -603,10 +651,15 @@ const getPopularProducts = async (req, res) => {
 // GET /api/products/recommended
 // Authenticated. Personalised by user signals. Falls back to top rated.
 const getRecommendedProducts = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 10));
+  const userId = req.user?.user_id;
+  const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
 
+  if (!userId) {
+    // Guest: Fallback to Top Rated
+    return getTopRatedProducts(req, res);
+  }
+
+  try {
     const historyCheck = await pool.query(
       `SELECT 1
        FROM orders
@@ -617,86 +670,37 @@ const getRecommendedProducts = async (req, res) => {
     );
 
     if (historyCheck.rows.length === 0) {
-      const fallback = await pool.query(
-        `SELECT
-           p.product_id, p.name, p.description, p.sku, p.price,
-           p.category_id, p.is_active, p.created_at, p.updated_at,
-           c.name AS category_name,
-           c.category_slug,
-           COUNT(r.review_id)::int AS review_count,
-           ROUND(AVG(r.rating)::numeric, 1) AS avg_rating,
-           (
-             SELECT pi.image_url
-             FROM product_image pi
-             WHERE pi.product_id = p.product_id
-               AND pi.is_primary = true
-             LIMIT 1
-           ) AS primary_image,
-           COALESCE((
-             SELECT SUM(pv.stock_quantity)
-             FROM product_variant pv
-             WHERE pv.product_id = p.product_id
-           ), 0) AS total_stock
-         FROM product p
-         JOIN review r ON r.product_id = p.product_id
-         LEFT JOIN category c ON c.category_id = p.category_id
-         WHERE p.is_active = true
-         GROUP BY p.product_id, c.name, c.category_slug
-         HAVING COUNT(r.review_id) >= 10
-            AND AVG(r.rating) >= 4.2
-         ORDER BY avg_rating DESC, review_count DESC
-         LIMIT $1`,
-        [limit]
-      );
-
-      return res.status(200).json({
-        source: 'top_rated',
-        products: fallback.rows.map((row) => ({
-          ...buildProductResponse(row),
-          primary_image: row.primary_image || null,
-          total_stock: Number.parseInt(row.total_stock, 10),
-          review_count: row.review_count,
-          avg_rating: String(row.avg_rating)
-        }))
-      });
+      return getTopRatedProducts(req, res);
     }
 
     const result = await pool.query(
       `WITH signals AS (
-
          SELECT p.category_id, (oi.quantity * 10) AS score
          FROM order_item oi
          JOIN orders o ON o.order_id = oi.order_id
          JOIN product p ON p.product_id = oi.product_id
          WHERE o.user_id = $1
            AND o.status != 'cancelled'
-
          UNION ALL
-
          SELECT p.category_id, 4 AS score
          FROM review r
          JOIN product p ON p.product_id = r.product_id
          WHERE r.user_id = $1
-
          UNION ALL
-
          SELECT p.category_id, 3 AS score
          FROM wishlist w
          JOIN product_variant pv ON pv.variant_id = w.variant_id
          JOIN product p ON p.product_id = pv.product_id
          WHERE w.user_id = $1
-
          UNION ALL
-
          SELECT p.category_id, (c.quantity * 2) AS score
          FROM cart c
          JOIN product_variant pv ON pv.variant_id = c.variant_id
          JOIN product p ON p.product_id = pv.product_id
          WHERE c.user_id = $1
-
        ),
        category_scores AS (
-         SELECT category_id, SUM(score)::int AS total_score
+         SELECT category_id, COALESCE(SUM(score), 0)::int AS total_score
          FROM signals
          GROUP BY category_id
        ),
@@ -712,7 +716,8 @@ const getRecommendedProducts = async (req, res) => {
          p.category_id, p.is_active, p.created_at, p.updated_at,
          c.name AS category_name,
          c.category_slug,
-         cs.total_score,
+         COALESCE(cs.total_score, 0) AS total_score,
+         COALESCE(SUM(oi.quantity), 0)::int AS units_sold,
          (
            SELECT pi.image_url
            FROM product_image pi
@@ -721,25 +726,39 @@ const getRecommendedProducts = async (req, res) => {
            LIMIT 1
          ) AS primary_image,
          COALESCE((
+           SELECT JSON_AGG(image_url ORDER BY is_primary DESC, image_id ASC)
+           FROM product_image
+           WHERE product_id = p.product_id
+         ), '[]') AS all_images,
+         COALESCE((
            SELECT SUM(pv2.stock_quantity)
            FROM product_variant pv2
            WHERE pv2.product_id = p.product_id
          ), 0) AS total_stock
        FROM product p
-       JOIN category_scores cs ON cs.category_id = p.category_id
+       LEFT JOIN category_scores cs ON cs.category_id = p.category_id
        LEFT JOIN category c ON c.category_id = p.category_id
+       LEFT JOIN order_item oi ON oi.product_id = p.product_id
        WHERE p.is_active = true
          AND p.product_id NOT IN (SELECT product_id FROM already_purchased)
-       ORDER BY cs.total_score DESC, p.created_at DESC
+       GROUP BY p.product_id, p.name, p.description, p.sku, p.price, 
+                p.category_id, p.is_active, p.created_at, p.updated_at,
+                c.name, c.category_slug, cs.total_score
+       ORDER BY total_score DESC, p.created_at DESC
        LIMIT $2`,
       [userId, limit]
     );
+
+    if (result.rows.length === 0) {
+      return getTopRatedProducts(req, res);
+    }
 
     return res.status(200).json({
       source: 'personalised',
       products: result.rows.map((row) => ({
         ...buildProductResponse(row),
         primary_image: row.primary_image || null,
+        all_images: Array.isArray(row.all_images) ? row.all_images : [],
         total_stock: Number.parseInt(row.total_stock, 10),
         total_score: row.total_score
       }))
@@ -755,7 +774,7 @@ const getRecommendedProducts = async (req, res) => {
 const canReview = async (req, res) => {
   try {
     const productId = parsePositiveInt(req.params.id);
-    const userId = req.user.userId;
+    const userId = req.user.user_id;
 
     if (!productId) {
       return res.status(400).json({ error: 'Invalid product ID' });
@@ -1020,8 +1039,9 @@ const updateProduct = async (req, res) => {
 };
 
 // DELETE /api/products/:id
-// Admin only. Hard delete only if no order history. Otherwise soft delete.
+// Admin only. Hard delete of the product and all associated data (images, variants, reviews, cart, wishlist, order items).
 const deleteProduct = async (req, res) => {
+  let client;
   try {
     const productId = parsePositiveInt(req.params.id);
 
@@ -1029,51 +1049,55 @@ const deleteProduct = async (req, res) => {
       return res.status(400).json({ error: 'Invalid product ID' });
     }
 
-    const existing = await pool.query(
-      `SELECT product_id
-       FROM product
-       WHERE product_id = $1`,
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      `SELECT product_id FROM product WHERE product_id = $1`,
       [productId]
     );
 
     if (existing.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    const orderCheck = await pool.query(
-      `SELECT 1
-       FROM order_item
-       WHERE product_id = $1
-       LIMIT 1`,
-      [productId]
-    );
+    // Explicitly delete from all related tables to ensure "complete removal"
+    // Many have CASCADE, but let's be thorough for any that don't (like order_item).
+    
+    // 1. Delete reviews
+    await client.query('DELETE FROM review WHERE product_id = $1', [productId]);
 
-    if (orderCheck.rows.length > 0) {
-      await pool.query(
-        `UPDATE product
-         SET is_active = false,
-             updated_at = NOW()
-         WHERE product_id = $1`,
-        [productId]
-      );
+    // 2. Delete product images
+    await client.query('DELETE FROM product_image WHERE product_id = $1', [productId]);
 
-      return res.status(200).json({
-        message: 'Product deactivated. It has order history and cannot be permanently deleted.'
-      });
+    // 3. Delete from order_item (necessary since FK doesn't CASCADE by default)
+    await client.query('DELETE FROM order_item WHERE product_id = $1', [productId]);
+
+    // 4. Delete from cart and wishlist (via variants)
+    const variantResult = await client.query('SELECT variant_id FROM product_variant WHERE product_id = $1', [productId]);
+    const variantIds = variantResult.rows.map(v => v.variant_id);
+
+    if (variantIds.length > 0) {
+      await client.query('DELETE FROM cart WHERE variant_id = ANY($1)', [variantIds]);
+      await client.query('DELETE FROM wishlist WHERE variant_id = ANY($1)', [variantIds]);
+      await client.query('DELETE FROM product_variant WHERE product_id = $1', [productId]);
     }
 
-    await pool.query(
-      `DELETE FROM product
-       WHERE product_id = $1`,
-      [productId]
-    );
+    // 5. Finally, delete the product itself
+    await client.query('DELETE FROM product WHERE product_id = $1', [productId]);
 
-    return res.status(200).json({ message: 'Product deleted successfully' });
+    await client.query('COMMIT');
+    return res.status(200).json({ message: 'Product and all associated records deleted successfully from the database' });
   } catch (error) {
+    if (client) await client.query('ROLLBACK');
     console.error('Delete product error:', error);
-    return res.status(500).json({ error: 'Failed to delete product' });
+    return res.status(500).json({ error: 'Failed to delete product completely' });
+  } finally {
+    if (client) client.release();
   }
 };
+
 
 // =====================================================================
 // VARIANT CRUD (Admin)

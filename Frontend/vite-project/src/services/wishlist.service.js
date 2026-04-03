@@ -11,13 +11,11 @@ const wishlistService = {
     }
   },
 
-  // FIX: schema wishlist.variant_id — must send variant_id, not product_id
-  // For unsized products, pass the product's default variant id (size = NULL)
-  addToWishlist: async (variantId) => {
+  // Supports variant_id (number) OR { product_id, variant_id } payload
+  addToWishlist: async (payload) => {
     try {
-      const response = await apiClient.post(API_ENDPOINTS.WISHLIST.BASE, {
-        variant_id: variantId,
-      });
+      const data = typeof payload === 'object' ? payload : { variant_id: payload };
+      const response = await apiClient.post(API_ENDPOINTS.WISHLIST.BASE, data);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

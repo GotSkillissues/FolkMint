@@ -461,31 +461,31 @@ const deleteCategory = async (req, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    // Block if any child categories exist
-    const childCheck = await pool.query(
-      'SELECT 1 FROM category WHERE parent_category = $1 LIMIT 1',
+    // Fetch all descendant categories (including this one)
+    const descendantsRes = await pool.query(
+      'SELECT descendant_category_id FROM category_closure WHERE ancestor_category_id = $1',
       [categoryId]
     );
-    if (childCheck.rows.length > 0) {
-      return res.status(409).json({
-        error: 'Cannot delete a category that has subcategories. Delete or reassign them first.'
-      });
+    const catIds = descendantsRes.rows.map(r => r.descendant_category_id);
+
+    if (catIds.length > 0) {
+      // Find all products assigned to these categories
+      const productsRes = await pool.query(
+        'SELECT product_id FROM product WHERE category_id = ANY($1)',
+        [catIds]
+      );
+      
+      // Delete all products in these categories
+      // (product_variant, product_image, etc. will cascade)
+      if (productsRes.rows.length > 0) {
+        await pool.query('DELETE FROM product WHERE category_id = ANY($1)', [catIds]);
+      }
+
+      // Delete the categories
+      await pool.query('DELETE FROM category WHERE category_id = ANY($1)', [catIds]);
     }
 
-    // Block if any products are assigned to this category
-    const productCheck = await pool.query(
-      'SELECT 1 FROM product WHERE category_id = $1 LIMIT 1',
-      [categoryId]
-    );
-    if (productCheck.rows.length > 0) {
-      return res.status(409).json({
-        error: 'Cannot delete a category that has products. Reassign the products first.'
-      });
-    }
-
-    await pool.query('DELETE FROM category WHERE category_id = $1', [categoryId]);
-
-    return res.status(200).json({ message: 'Category deleted successfully' });
+    return res.status(200).json({ message: 'Category and its subcategories/products deleted successfully' });
   } catch (error) {
     console.error('Delete category error:', error);
     return res.status(500).json({ error: 'Failed to delete category' });

@@ -416,7 +416,9 @@ const ProductDetail = () => {
           const payload = res?.data ?? res ?? {};
           if (mounted) setCanReview(payload.can_review === true);
         })
-        .catch(() => {});
+        .catch((err) => {
+          console.error('Check canReview error:', err);
+        });
     }
 
     return () => {
@@ -518,10 +520,16 @@ const ProductDetail = () => {
       });
       showToast('Review submitted!');
       setReviewForm({ rating: 5, comment: '' });
+      
+      // Refresh everything to update avg rating and count
+      const [prodRes, revRes] = await Promise.all([
+        productService.getProductById(product.product_id),
+        reviewService.getProductReviews(product.product_id, { limit: 5 })
+      ]);
+      
+      setProduct(normalizeProductDetailResponse(prodRes));
+      setReviews(normalizeReviewResponse(revRes));
       setCanReview(false);
-      // refresh reviews
-      const res = await reviewService.getProductReviews(product.product_id, { limit: 5 });
-      setReviews(normalizeReviewResponse(res));
     } catch (err) {
       showToast(err?.error || err?.message || 'Failed to submit review.', 'error');
     } finally {
@@ -912,11 +920,19 @@ const ProductDetail = () => {
                           {((r.first_name?.[0] || '') + (r.last_name?.[0] || '')).toUpperCase() || '?'}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p className="pd-review-name">
-                            {r.first_name || r.last_name
-                              ? `${r.first_name || ''} ${r.last_name || ''}`.trim()
-                              : 'Anonymous'}
-                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                            <p className="pd-review-name">
+                              {r.first_name || r.last_name
+                                ? `${r.first_name || ''} ${r.last_name || ''}`.trim()
+                                : 'Anonymous'}
+                            </p>
+                            <span className="pd-verified-badge">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              Verified Buyer
+                            </span>
+                          </div>
                           <Stars rating={r.rating} count={null} />
                         </div>
                         <span className="pd-review-date">
@@ -1472,14 +1488,28 @@ const ProductDetail = () => {
           color: #444;
           line-height: 1.65;
         }
-          .pd-review-form {
+        .pd-review-form {
           display: flex;
           flex-direction: column;
-          gap: 10px;
-          padding: 14px;
-          background: #f9f9f9;
-          border: 1px solid #e8e8e8;
-          margin-bottom: 4px;
+          gap: 12px;
+          padding: 20px;
+          background: #fafafa;
+          border: 1px solid #eee;
+          margin-bottom: 24px;
+          border-radius: 4px;
+        }
+        .pd-verified-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: .05em;
+          color: #156238;
+          background: #f0faf3;
+          padding: 2px 6px;
+          border-radius: 4px;
         }
         .pd-review-form-label {
           margin: 0;

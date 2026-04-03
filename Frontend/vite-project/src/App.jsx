@@ -7,7 +7,7 @@ import {
   AdminNotifications,
 } from './pages';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider, CartProvider } from './context';
+import { AuthProvider, CartProvider, NotificationProvider, WishlistProvider, ThemeProvider } from './context';
 import { Layout, ProtectedRoute, RequireAdmin } from './components';
 import {
   Home,
@@ -48,183 +48,188 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
-      <AuthProvider>
-        <CartProvider>
-          <Layout>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/categories/:id" element={<CategoryLanding />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/shipping" element={<Shipping />} />
-              <Route path="/help" element={<Help />} />
+      <ThemeProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <Layout>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/categories/:id" element={<CategoryLanding />} />
+                    <Route path="/products/:id" element={<ProductDetail />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/shipping" element={<Shipping />} />
+                    <Route path="/help" element={<Help />} />
 
-              {/* Auth Routes - Only for non-authenticated users */}
-              <Route
-                path="/login"
-                element={
-                  <ProtectedRoute requireAuth={false}>
-                    <Login />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/register"
-                element={
-                  <ProtectedRoute requireAuth={false}>
-                    <Register />
-                  </ProtectedRoute>
-                }
-              />
+                    {/* Auth Routes - Only for non-authenticated users */}
+                    <Route
+                      path="/login"
+                      element={
+                        <ProtectedRoute requireAuth={false}>
+                          <Login />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/register"
+                      element={
+                        <ProtectedRoute requireAuth={false}>
+                          <Register />
+                        </ProtectedRoute>
+                      }
+                    />
 
-              {/* Protected Routes - Require authentication */}
-              <Route
-                path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <Checkout />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/account"
-                element={
-                  <ProtectedRoute>
-                    <Account />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orders"
-                element={
-                  <ProtectedRoute>
-                    <Orders />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/notifications"
-                element={
-                  <ProtectedRoute>
-                    <Notifications />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/wishlist"
-                element={
-                  <ProtectedRoute>
-                    <Wishlist />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Admin Routes */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <RequireAdmin>
-                      <AdminLayout>
-                        <AdminDashboard />
-                      </AdminLayout>
-                    </RequireAdmin>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/orders"
-                element={
-                  <ProtectedRoute>
-                    <RequireAdmin>
-                      <AdminLayout>
-                        <AdminOrders />
-                      </AdminLayout>
-                    </RequireAdmin>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/products"
-                element={
-                  <ProtectedRoute>
-                    <RequireAdmin>
-                      <AdminLayout>
-                        <AdminProducts />
-                      </AdminLayout>
-                    </RequireAdmin>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <ProtectedRoute>
-                    <RequireAdmin>
-                      <AdminLayout>
-                        <AdminUsers />
-                      </AdminLayout>
-                    </RequireAdmin>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/analytics"
-                element={
-                  <ProtectedRoute>
-                    <RequireAdmin>
-                      <AdminLayout>
-                        <AdminAnalytics />
-                      </AdminLayout>
-                    </RequireAdmin>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/categories"
-                element={
-                  <ProtectedRoute>
-                    <RequireAdmin>
-                      <AdminLayout>
-                        <AdminCategories />
-                      </AdminLayout>
-                    </RequireAdmin>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/reviews"
-                element={
-                  <ProtectedRoute>
-                    <RequireAdmin>
-                      <AdminLayout>
-                        <AdminReviews />
-                      </AdminLayout>
-                    </RequireAdmin>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/notifications"
-                element={
-                  <ProtectedRoute>
-                    <RequireAdmin>
-                      <AdminLayout>
-                        <AdminNotifications />
-                      </AdminLayout>
-                    </RequireAdmin>
-                  </ProtectedRoute>
-                }
-              />
-
-            </Routes>
-          </Layout>
-        </CartProvider>
-      </AuthProvider>
+                    {/* Protected Routes - Require authentication */}
+                    <Route
+                      path="/checkout"
+                      element={
+                        <ProtectedRoute>
+                          <Checkout />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/account"
+                      element={
+                        <ProtectedRoute>
+                          <Account />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/orders"
+                      element={
+                        <ProtectedRoute>
+                          <Orders />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/notifications"
+                      element={
+                        <ProtectedRoute>
+                          <Notifications />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/wishlist"
+                      element={
+                        <ProtectedRoute>
+                          <Wishlist />
+                        </ProtectedRoute>
+                      }
+                    />
+                    {/* Admin Routes */}
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute>
+                          <RequireAdmin>
+                            <AdminLayout>
+                              <AdminDashboard />
+                            </AdminLayout>
+                          </RequireAdmin>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/orders"
+                      element={
+                        <ProtectedRoute>
+                          <RequireAdmin>
+                            <AdminLayout>
+                              <AdminOrders />
+                            </AdminLayout>
+                          </RequireAdmin>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/products"
+                      element={
+                        <ProtectedRoute>
+                          <RequireAdmin>
+                            <AdminLayout>
+                              <AdminProducts />
+                            </AdminLayout>
+                          </RequireAdmin>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/users"
+                      element={
+                        <ProtectedRoute>
+                          <RequireAdmin>
+                            <AdminLayout>
+                              <AdminUsers />
+                            </AdminLayout>
+                          </RequireAdmin>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/analytics"
+                      element={
+                        <ProtectedRoute>
+                          <RequireAdmin>
+                            <AdminLayout>
+                              <AdminAnalytics />
+                            </AdminLayout>
+                          </RequireAdmin>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/categories"
+                      element={
+                        <ProtectedRoute>
+                          <RequireAdmin>
+                            <AdminLayout>
+                              <AdminCategories />
+                            </AdminLayout>
+                          </RequireAdmin>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/reviews"
+                      element={
+                        <ProtectedRoute>
+                          <RequireAdmin>
+                            <AdminLayout>
+                              <AdminReviews />
+                            </AdminLayout>
+                          </RequireAdmin>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/notifications"
+                      element={
+                        <ProtectedRoute>
+                          <RequireAdmin>
+                            <AdminLayout>
+                              <AdminNotifications />
+                            </AdminLayout>
+                          </RequireAdmin>
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </Layout>
+              </CartProvider>
+            </WishlistProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { categoryService, productService } from '../services';
 import { useCategoryTree } from '../hooks/useCategories';
 import { getCardImageUrl, getCategoryUrl } from '../utils';
+import { CardActions } from '../components';
 
 const PAGE_SIZE = 16;
 
@@ -68,6 +69,74 @@ const normalizeListResponse = (res) => {
       total: Number(pg.total) || items.length,
     },
   };
+};
+
+const ProductGridCard = ({ p, pid, price, inStock }) => {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [prevIdx, setPrevIdx] = useState(-1);
+  const [isHovering, setIsHovering] = useState(false);
+  
+  const rawList = Array.isArray(p.all_images) && p.all_images.length > 0 ? p.all_images : [p.primary_image];
+  const imageList = rawList.length === 1 ? [rawList[0], rawList[0], rawList[0], rawList[0]] : rawList;
+
+  useEffect(() => {
+    let interval;
+    if (isHovering && imageList.length > 1) {
+      interval = setInterval(() => {
+        setPrevIdx(activeIdx);
+        setActiveIdx((prev) => (prev + 1) % imageList.length);
+      }, 800);
+    } else {
+      setActiveIdx(0);
+      setPrevIdx(-1);
+    }
+    return () => clearInterval(interval);
+  }, [isHovering, activeIdx, imageList.length]);
+
+  return (
+    <Link 
+      to={`/products/${pid}`} 
+      className="pr-card"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <div className="pr-card-img-wrap">
+        {imageList.length > 0 && imageList[0] ? (
+          imageList.map((img, idx) => {
+            const isSim = rawList.length === 1;
+            const eff = isSim ? ` sim-eff-${idx}` : '';
+            let status = 'idle';
+            if (idx === activeIdx) status = 'active';
+            else if (idx === prevIdx) status = 'prev';
+
+            return (
+              <img 
+                key={idx}
+                src={getCardImageUrl({ ...p, primary_image: img }, { width: 560, height: 720, crop: 'limit' })} 
+                alt={p.name} 
+                loading="lazy" 
+                className={`pr-card-img pr-slide-${status}${eff}`} 
+              />
+            );
+          })
+        ) : (
+          <div className="pr-card-img-ph">
+            <ImgFallback />
+          </div>
+        )}
+
+        {/* Doped Action Overlays — Wishlist + Cart Link */}
+        <CardActions productId={pid} />
+
+        {!inStock && <span className="pr-oos-badge">Out of stock</span>}
+      </div>
+
+      <div className="pr-card-body">
+        <p className="pr-card-name">{p?.name}</p>
+        <p className="pr-card-price">৳{price.toLocaleString('en-BD')}</p>
+      </div>
+    </Link>
+  );
 };
 
 const Products = () => {
@@ -193,7 +262,8 @@ const Products = () => {
             }
           }
 
-          if (!resolvedCategoryParam) {
+          const isSpecialSort = ['recommended', 'popular'].includes(searchParams.get('sort'));
+          if (!resolvedCategoryParam && !isSpecialSort) {
             if (!mounted) return;
             if (isFirstPage) {
               setProducts([]);
@@ -203,12 +273,27 @@ const Products = () => {
           }
         }
 
-        const res = await productService.getAllProducts({
-          search: query || undefined,
-          category: resolvedCategoryParam,
-          page,
-          limit: PAGE_SIZE,
-        });
+        const page = Number(searchParams.get('page')) || 1;
+        const limit = PAGE_SIZE;
+
+        let res;
+        const sortParam = searchParams.get('sort');
+        const periodParam = searchParams.get('period');
+
+        if (sortParam === 'recommended') {
+          res = await productService.getRecommendedProducts(limit);
+        } else if (sortParam === 'popular' && periodParam === 'month') {
+          res = await productService.getPopularProducts(limit);
+        } else if (sortParam === 'popular' && periodParam === 'all') {
+          res = await productService.getTopRatedProducts(limit);
+        } else {
+          res = await productService.getAllProducts({
+            search: query || undefined,
+            category: resolvedCategoryParam,
+            page,
+            limit: limit,
+          });
+        }
 
         const { items, pagination: pg } = normalizeListResponse(res);
 
@@ -307,8 +392,13 @@ const Products = () => {
           </nav>
 
           <p className="pr-eyebrow">Collection</p>
-          <h1 className="pr-title">{activeCategory?.name || 'All Products'}</h1>
-          {!activeCategory && (
+          <h1 className="pr-title">
+            {searchParams.get('sort') === 'recommended' ? 'Recommended For You' :
+             searchParams.get('sort') === 'popular' && searchParams.get('period') === 'month' ? 'Most Loved This Month' :
+             searchParams.get('sort') === 'popular' ? 'All-Time Best Sellers' :
+             activeCategory?.name || 'All Products'}
+          </h1>
+          {!activeCategory && !searchParams.get('sort') && (
             <p className="pr-subtitle">
               Discover handcrafted collections curated for every style.
             </p>
@@ -372,42 +462,19 @@ const Products = () => {
         </div>
       ) : (
         <div className="pr-grid">
-          {products.map((product) => {
-            const pid = product?.product_id || product?.id;
-            const price = Number(product?.price ?? 0);
-            const imageUrl = getCardImageUrl(product, { width: 560, height: 720, crop: 'limit' });
-            const inStock = Number(product?.total_stock ?? 0) > 0;
+          {products.map((p) => {
+            const pid = p?.product_id || p?.id;
+            const price = Number(p?.price ?? 0);
+            const inStock = Number(p?.total_stock ?? 0) > 0;
 
             return (
-              <Link key={pid} to={`/products/${pid}`} className="pr-card">
-                <div className="pr-card-img-wrap">
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={product?.name}
-                      loading="lazy"
-                      className="pr-card-img"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        if (e.currentTarget.nextSibling) {
-                          e.currentTarget.nextSibling.style.display = 'flex';
-                        }
-                      }}
-                    />
-                  ) : null}
-
-                  <div className="pr-card-img-ph" style={{ display: imageUrl ? 'none' : 'flex' }}>
-                    <ImgFallback />
-                  </div>
-
-                  {!inStock && <span className="pr-oos-badge">Out of stock</span>}
-                </div>
-
-                <div className="pr-card-body">
-                  <p className="pr-card-name">{product?.name}</p>
-                  <p className="pr-card-price">৳{price.toLocaleString('en-BD')}</p>
-                </div>
-              </Link>
+              <ProductGridCard 
+                key={pid} 
+                p={p} 
+                pid={pid} 
+                price={price} 
+                inStock={inStock} 
+              />
             );
           })}
         </div>
@@ -650,10 +717,25 @@ const Products = () => {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform .35s var(--ease);
+          transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity .5s ease, filter .3s var(--ease);
+          position: absolute;
+          top: 0;
+          left: 0;
+          pointer-events: none;
         }
 
-        .pr-card:hover .pr-card-img { transform: scale(1.04); }
+        .pr-card-img.pr-slide-idle { transform: translateX(105%); opacity: 0; z-index: 0; }
+        .pr-card-img.pr-slide-active { transform: translateX(0); opacity: 1; z-index: 2; position: relative; }
+        .pr-card-img.pr-slide-prev { transform: translateX(-105%); opacity: 0; z-index: 1; }
+
+        .pr-card-img.pr-slide-active:first-of-type { position: relative; }
+        .pr-card-img.pr-slide-active:not(:first-of-type) { position: absolute; }
+
+        .sim-eff-1.pr-slide-active { transform: translateX(0) scale(1.1) !important; filter: brightness(1.08); }
+        .sim-eff-2.pr-slide-active { transform: translateX(0) scale(1.2) translate(-2%, -2%) !important; filter: brightness(1.02) contrast(1.05); }
+        .sim-eff-3.pr-slide-active { transform: translateX(0) scale(1.15) rotate(1deg) !important; filter: saturate(1.1); }
+
+        .pr-card:hover .pr-card-img:not([class*="sim-eff"]).pr-slide-active { transform: scale(1.04) translateX(0); }
 
         .pr-card-img-ph {
           width: 100%;

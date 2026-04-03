@@ -103,9 +103,16 @@ const AdminLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    orderService.getAllOrders({ page: 1, limit: 1, status: 'pending' })
-      .then(res => setPendingOrders(res?.pagination?.total || 0))
-      .catch(() => {});
+    const fetchPendingCount = () => {
+      orderService.getAllOrders({ page: 1, limit: 1, status: 'pending' })
+        .then(res => setPendingOrders(res?.pagination?.total || 0))
+        .catch(() => {});
+    };
+
+    fetchPendingCount();
+
+    window.addEventListener('folkmint:orders-updated', fetchPendingCount);
+    return () => window.removeEventListener('folkmint:orders-updated', fetchPendingCount);
   }, []);
 
   const handleLogout = async () => {
@@ -218,17 +225,19 @@ const AdminLayout = ({ children }) => {
           grid-template-columns: 64px 1fr;
         }
 
-        /* ── SIDEBAR ── */
+        /* ── SIDEBAR — always dark, never inverts with theme ── */
         .al-sidebar {
           position: sticky;
           top: 0;
           height: 100vh;
-          background: var(--dark);
+          background: #0c1220;
+          border-right: 1px solid rgba(255,255,255,.06);
           display: flex;
           flex-direction: column;
           overflow: hidden;
           z-index: 100;
           transition: width .3s var(--ease);
+          box-shadow: 4px 0 24px rgba(0,0,0,0.4);
         }
         .al-sidebar-inner {
           display: flex;
@@ -291,29 +300,34 @@ const AdminLayout = ({ children }) => {
           padding: 10px 12px;
           border-radius: calc(var(--r) - 2px);
           text-decoration: none;
-          color: rgba(255,255,255,.55);
+          color: rgba(255,255,255,.52) !important;
           font-size: 13.5px;
           font-weight: 500;
           transition: background .2s, color .2s;
           white-space: nowrap;
           overflow: hidden;
           position: relative;
+          background: transparent !important;
+          border-color: transparent !important;
         }
         .al-nav-item:hover {
-          background: rgba(255,255,255,.07);
-          color: #f5f1eb;
+          background: rgba(255,255,255,.07) !important;
+          color: #f5f1eb !important;
+          border-color: transparent !important;
         }
         .al-nav-item.active {
-          background: rgba(196,146,42,.15);
-          color: var(--gold);
-          font-weight: 600;
+          background: rgba(212,175,55,.18) !important;
+          color: #E5C05E !important;
+          font-weight: 700;
+          border-color: transparent !important;
+          box-shadow: inset 3px 0 0 #E5C05E;
         }
         .al-nav-icon { flex-shrink: 0; display: flex; }
         .al-nav-label { flex: 1; }
         .al-nav-badge {
           margin-left: auto;
           background: #dc2626;
-          color: #fff;
+          color: #fff !important;
           font-size: 10px;
           font-weight: 800;
           padding: 1px 6px;
@@ -341,14 +355,15 @@ const AdminLayout = ({ children }) => {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: var(--gold);
-          color: var(--dark);
+          background: linear-gradient(135deg, #E5C05E, #b8860b);
+          color: #0A1128;
           font-size: 11px;
           font-weight: 800;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          box-shadow: 0 0 10px rgba(229,192,94,0.4);
         }
         .al-user-info { min-width: 0; overflow: hidden; }
         .al-user-name {
@@ -398,9 +413,9 @@ const AdminLayout = ({ children }) => {
           width: 24px;
           height: 24px;
           border-radius: 50%;
-          background: var(--dark);
-          border: 1px solid rgba(255,255,255,.15);
-          color: rgba(255,255,255,.5);
+          background: #0c1220;
+          border: 1px solid rgba(255,255,255,.2);
+          color: rgba(255,255,255,.6);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -409,9 +424,9 @@ const AdminLayout = ({ children }) => {
           z-index: 10;
         }
         .al-collapse-btn:hover {
-          background: var(--gold);
-          border-color: var(--gold);
-          color: var(--dark);
+          background: #E5C05E !important;
+          border-color: #E5C05E !important;
+          color: #0A1128 !important;
         }
 
         /* ── MAIN ── */
