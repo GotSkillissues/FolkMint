@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { notificationService } from '../services';
-import { useAuth } from '../context';
+import { useAuth, useNotifications } from '../context';
 
 const IconBell      = () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>;
 const IconCheck     = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
@@ -56,9 +56,9 @@ const Toast = ({ msg, type, onClose }) => {
 
 const Notifications = () => {
   const { isAuthenticated } = useAuth();
+  const { unreadCount, setUnreadCount } = useNotifications();
 
   const [items, setItems]           = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading]       = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);

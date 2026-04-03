@@ -1,0 +1,247 @@
+[
+  {
+    "category_id": 40,
+    "name": "Vases & Pots",
+    "parent_category": 4
+  },
+  {
+    "category_id": 15,
+    "name": "folk jewelary",
+    "parent_category": null
+  },
+  {
+    "category_id": 10,
+    "name": "jobayer's shirt",
+    "parent_category": 1
+  },
+  {
+    "category_id": 33,
+    "name": "Wooden Crafts",
+    "parent_category": 4
+  },
+  {
+    "category_id": 51,
+    "name": "Terracotta and Clay Crafts",
+    "parent_category": 4
+  },
+  {
+    "category_id": 21,
+    "name": "Nakshi Kantha",
+    "parent_category": 3
+  },
+  {
+    "category_id": 35,
+    "name": "Lanterns / Candle Holder",
+    "parent_category": 4
+  },
+  {
+    "category_id": 22,
+    "name": "Jute Products",
+    "parent_category": 3
+  },
+  {
+    "category_id": 23,
+    "name": "Bamboo Crafts",
+    "parent_category": 3
+  },
+  {
+    "category_id": 24,
+    "name": "Cane Crafts",
+    "parent_category": 3
+  },
+  {
+    "category_id": 25,
+    "name": "Handmade Baskets",
+    "parent_category": 3
+  },
+  {
+    "category_id": 26,
+    "name": "Mats",
+    "parent_category": 3
+  },
+  {
+    "category_id": 27,
+    "name": "Embroidered Crafts",
+    "parent_category": 3
+  },
+  {
+    "category_id": 36,
+    "name": "Jute Bag",
+    "parent_category": 5
+  },
+  {
+    "category_id": 109,
+    "name": "Silk",
+    "parent_category": 106
+  },
+  {
+    "category_id": 17,
+    "name": "Jamdani Saree",
+    "parent_category": 12
+  },
+  {
+    "category_id": 18,
+    "name": "Cotton Saree",
+    "parent_category": 12
+  },
+  {
+    "category_id": 19,
+    "name": "Silk Saree",
+    "parent_category": 12
+  },
+  {
+    "category_id": 20,
+    "name": "Muslin Saree",
+    "parent_category": 12
+  },
+  {
+    "category_id": 103,
+    "name": "Cotton",
+    "parent_category": 102
+  },
+  {
+    "category_id": 104,
+    "name": "Silk",
+    "parent_category": 102
+  },
+  {
+    "category_id": 105,
+    "name": "Muslin",
+    "parent_category": 102
+  },
+  {
+    "category_id": 107,
+    "name": "Viscose",
+    "parent_category": 106
+  },
+  {
+    "category_id": 108,
+    "name": "Cotton",
+    "parent_category": 106
+  },
+  {
+    "category_id": 110,
+    "name": "Nakshi Kantha",
+    "parent_category": 106
+  },
+  {
+    "category_id": 37,
+    "name": "Tote Bag",
+    "parent_category": 5
+  },
+  {
+    "category_id": 38,
+    "name": "Handbag",
+    "parent_category": 5
+  },
+  {
+    "category_id": 13,
+    "name": "mahi",
+    "parent_category": 2
+  },
+  {
+    "category_id": 39,
+    "name": "Beaded Necklaces",
+    "parent_category": 15
+  },
+  {
+    "category_id": 5,
+    "name": "Bags & Accessories",
+    "parent_category": null
+  },
+  {
+    "category_id": 6,
+    "name": "Gift Cards",
+    "parent_category": null
+  },
+  {
+    "category_id": 3,
+    "name": "Handicrafts",
+    "parent_category": null
+  },
+  {
+    "category_id": 4,
+    "name": "Home Décor / Showpieces",
+    "parent_category": null
+  },
+  {
+    "category_id": 1,
+    "name": "Men",
+    "parent_category": null
+  },
+  {
+    "category_id": 2,
+    "name": "Women",
+    "parent_category": null
+  },
+  {
+    "category_id": 8,
+    "name": "Kurta",
+    "parent_category": 1
+  },
+  {
+    "category_id": 100,
+    "name": "Panjabi",
+    "parent_category": 1
+  },
+  {
+    "category_id": 9,
+    "name": "Fotua",
+    "parent_category": 1
+  },
+  {
+    "category_id": 101,
+    "name": "Shirt",
+    "parent_category": 1
+  },
+  {
+    "category_id": 11,
+    "name": "Pajama",
+    "parent_category": 1
+  },
+  {
+    "category_id": 12,
+    "name": "Saree",
+    "parent_category": 2
+  },
+  {
+    "category_id": 102,
+    "name": "Salwar Kameez",
+    "parent_category": 2
+  },
+  {
+    "category_id": 14,
+    "name": "Kurti",
+    "parent_category": 2
+  },
+  {
+    "category_id": 111,
+    "name": "Dupatta",
+    "parent_category": 2
+  },
+  {
+    "category_id": 106,
+    "name": "Shawl",
+    "parent_category": 2
+  },
+  {
+    "category_id": 28,
+    "name": "Jute Showpieces",
+    "parent_category": 4
+  },
+  {
+    "category_id": 71,
+    "name": "Wall Hanging",
+    "parent_category": 4
+  },
+  {
+    "category_id": 67,
+    "name": "Decorative Plates",
+    "parent_category": 4
+  },
+  {
+    "category_id": 31,
+    "name": "Vases",
+    "parent_category": 4
+  }
+]

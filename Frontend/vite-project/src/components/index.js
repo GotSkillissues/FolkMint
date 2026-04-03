@@ -10,4 +10,7 @@ export { default as ProductCard } from './Product/ProductCard';
 export { default as Loading } from './Common/Loading';
 export { default as ProtectedRoute } from './Common/ProtectedRoute';
 export { default as RequireAdmin } from './Common/RequireAdmin';
+export { default as Spin } from './Common/Spin';
+export { default as ImgFallback } from './Common/ImgFallback';
+export { default as CardActions } from './Common/CardActions';
 export { default as AdminLayout } from './Layout/AdminLayout';

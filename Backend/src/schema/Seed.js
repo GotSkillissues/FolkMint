@@ -25,10 +25,10 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const pool = new Pool({
-  host:     process.env.DB_HOST     || 'localhost',
-  port:     Number(process.env.DB_PORT || 5432),
-  database: process.env.DB_NAME     || 'folkmint',
-  user:     process.env.DB_USER     || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT || 5432),
+  database: process.env.DB_NAME || 'jobayer',
+  user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'hqhq',
 });
 
@@ -102,7 +102,7 @@ async function seed() {
 
     console.log('👤 Creating users…');
 
-    const adminHash    = await hash('FolkMintAdmin_1');
+    const adminHash = await hash('Admin1234');
     const customerHash = await hash('Customer@1234');
 
     const [admin] = await q(client,
@@ -110,16 +110,16 @@ async function seed() {
        VALUES ($1, $2, 'Admin', 'FolkMint', 'admin')
        ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, role = 'admin'
        RETURNING user_id`,
-      ['admin.folkmint@gmail.com', adminHash]
+      ['admin@gmail.com', adminHash]
     );
 
     const customers = [];
     const customerData = [
-      { email: 'ayesha@example.com',  first: 'Ayesha',  last: 'Rahman'  },
-      { email: 'tanvir@example.com',  first: 'Tanvir',  last: 'Ahmed'   },
-      { email: 'priya@example.com',   first: 'Priya',   last: 'Das'     },
-      { email: 'karim@example.com',   first: 'Karim',   last: 'Hossain' },
-      
+      { email: 'ayesha@example.com', first: 'Ayesha', last: 'Rahman' },
+      { email: 'tanvir@example.com', first: 'Tanvir', last: 'Ahmed' },
+      { email: 'priya@example.com', first: 'Priya', last: 'Das' },
+      { email: 'karim@example.com', first: 'Karim', last: 'Hossain' },
+
     ];
 
     for (const cd of customerData) {
@@ -133,7 +133,7 @@ async function seed() {
       customers.push({ ...u, ...cd });
     }
 
-    console.log(`   ✓ admin@folkmint.com (password: Admin@1234)`);
+    console.log(`   ✓ admin@gmail.com (password: Admin1234)`);
     console.log(`   ✓ ${customerData.map(c => c.email).join(', ')}`);
     console.log(`   ✓ All customer passwords: Customer@1234\n`);
 
@@ -145,12 +145,12 @@ async function seed() {
     const roots = {};
     let rootSort = 0;
     for (const [key, name, desc] of [
-      ['men',         'Men',                     'Traditional and contemporary clothing for men'],
-      ['women',       'Women',                   'Handcrafted garments and accessories for women'],
-      ['homedecor',   'Home Décor / Showpieces', 'Artisan-crafted home décor and showpieces'],
-      ['handicrafts', 'Handicrafts',             'Authentic Bangladeshi handicrafts and crafts'],
-      ['bags',        'Bags & Accessories',      'Handmade bags, jewellery and accessories'],
-      ['giftcards',   'Gift Cards',              'Digital gift cards for any occasion'],
+      ['men', 'Men', 'Traditional and contemporary clothing for men'],
+      ['women', 'Women', 'Handcrafted garments and accessories for women'],
+      ['homedecor', 'Home Décor / Showpieces', 'Artisan-crafted home décor and showpieces'],
+      ['handicrafts', 'Handicrafts', 'Authentic Bangladeshi handicrafts and crafts'],
+      ['bags', 'Bags & Accessories', 'Handmade bags, jewellery and accessories'],
+      ['giftcards', 'Gift Cards', 'Digital gift cards for any occasion'],
     ]) {
       const cat = await ensureCategory(client, {
         name,
@@ -166,23 +166,23 @@ async function seed() {
     let childSort = 0;
     const childData = [
       // Men
-      ['panjabi',       'Panjabi',        roots.men,         'Handcrafted Panjabi for men'],
-      ['sherwani',      'Sherwani',       roots.men,         'Traditional Sherwani for formal occasions'],
-      ['lungi',         'Lungi & Dhoti',  roots.men,         'Classic lungis and dhotis'],
+      ['panjabi', 'Panjabi', roots.men, 'Handcrafted Panjabi for men'],
+      ['sherwani', 'Sherwani', roots.men, 'Traditional Sherwani for formal occasions'],
+      ['lungi', 'Lungi & Dhoti', roots.men, 'Classic lungis and dhotis'],
       // Women
-      ['saree',         'Saree',          roots.women,       'Jamdani, silk and cotton sarees'],
-      ['salwarkameez',  'Salwar Kameez',  roots.women,       'Handmade salwar kameez sets'],
-      ['jewellery',     'Jewellery',      roots.women,       'Traditional Bangladeshi jewellery'],
+      ['saree', 'Saree', roots.women, 'Jamdani, silk and cotton sarees'],
+      ['salwarkameez', 'Salwar Kameez', roots.women, 'Handmade salwar kameez sets'],
+      ['jewellery', 'Jewellery', roots.women, 'Traditional Bangladeshi jewellery'],
       // Home Décor
-      ['terracotta',    'Terracotta',     roots.homedecor,   'Terracotta figurines and pottery'],
-      ['nakshikantha',  'Nakshi Kantha',  roots.homedecor,   'Embroidered Nakshi Kantha art'],
-      ['bamboo',        'Bamboo & Cane',  roots.homedecor,   'Bamboo and cane crafts'],
+      ['terracotta', 'Terracotta', roots.homedecor, 'Terracotta figurines and pottery'],
+      ['nakshikantha', 'Nakshi Kantha', roots.homedecor, 'Embroidered Nakshi Kantha art'],
+      ['bamboo', 'Bamboo & Cane', roots.homedecor, 'Bamboo and cane crafts'],
       // Handicrafts
-      ['pottery',       'Pottery',        roots.handicrafts, 'Hand-thrown pottery and ceramics'],
-      ['jute',          'Jute Craft',     roots.handicrafts, 'Eco-friendly jute products'],
+      ['pottery', 'Pottery', roots.handicrafts, 'Hand-thrown pottery and ceramics'],
+      ['jute', 'Jute Craft', roots.handicrafts, 'Eco-friendly jute products'],
       // Bags
-      ['jutebags',      'Jute Bags',      roots.bags,        'Handwoven jute bags and totes'],
-      ['clutches',      'Clutches',       roots.bags,        'Handmade clutch bags'],
+      ['jutebags', 'Jute Bags', roots.bags, 'Handwoven jute bags and totes'],
+      ['clutches', 'Clutches', roots.bags, 'Handmade clutch bags'],
     ];
 
     for (const [key, name, parentId, desc] of childData) {
@@ -206,29 +206,29 @@ async function seed() {
     // sizes_or_null: array of {size, stock} for sized products, or {stock} for unsized
     const productDefs = [
       // Sized clothing
-      ['Jamdani Saree — Ivory & Gold',     'Hand-woven Jamdani saree from Narayanganj with gold floral motifs. UNESCO heritage craft.',                                      '4500.00', 'saree',        true,  null, [{stock:5},{stock:8},{stock:3}]],
-      ['Dhakai Muslin Saree',              'Ultra-fine Dhakai Muslin saree, almost translucent. Passed through a ring.',                                                    '8500.00', 'saree',        true,  null, [{stock:2},{stock:4},{stock:1}]],
-      ['Cotton Block Print Saree',         'Vegetable dye block-printed cotton saree from Rajshahi. Cool, comfortable, vibrant.',                                           '1800.00', 'saree',        true,  null, [{stock:10},{stock:12},{stock:6}]],
-      ['Embroidered Panjabi — White',      'Fine cotton Panjabi with hand-embroidered collar and cuffs. Perfect for Eid.',                                                  '1200.00', 'panjabi',      true,  ['S','M','L','XL','XXL'], null],
-      ['Silk Panjabi — Navy',              'Blended silk Panjabi in deep navy with subtle woven stripe.',                                                                   '2200.00', 'panjabi',      true,  ['S','M','L','XL'], null],
-      ['Festive Panjabi — Off-White Katan','Katan silk Panjabi for weddings and festivals. Subtle zari border.',                                                            '3500.00', 'panjabi',      true,  ['M','L','XL'], null],
-      ['Silk Sherwani — Charcoal',         'Full-length charcoal silk sherwani with gold embroidery. Traditional wedding wear.',                                            '12000.00','sherwani',     true,  ['S','M','L','XL'], null],
-      ['Khadi Salwar Kameez — Powder Blue','Hand-spun khadi cotton salwar kameez. Breathable and elegant.',                                                                 '2400.00', 'salwarkameez', true,  ['S','M','L','XL'], null],
-      ['Block Print Salwar Kameez — Rust', 'Block-printed cotton salwar kameez. Bold geometric motifs.',                                                                   '1600.00', 'salwarkameez', true,  ['S','M','L'], null],
-      ['Muslin Lungi — Classic White',     'Fine muslin lungi with traditional red border. Lightweight and durable.',                                                       '800.00',  'lungi',        true,  null, [{stock:20}]],
+      ['Jamdani Saree — Ivory & Gold', 'Hand-woven Jamdani saree from Narayanganj with gold floral motifs. UNESCO heritage craft.', '4500.00', 'saree', true, null, [{ stock: 5 }, { stock: 8 }, { stock: 3 }]],
+      ['Dhakai Muslin Saree', 'Ultra-fine Dhakai Muslin saree, almost translucent. Passed through a ring.', '8500.00', 'saree', true, null, [{ stock: 2 }, { stock: 4 }, { stock: 1 }]],
+      ['Cotton Block Print Saree', 'Vegetable dye block-printed cotton saree from Rajshahi. Cool, comfortable, vibrant.', '1800.00', 'saree', true, null, [{ stock: 10 }, { stock: 12 }, { stock: 6 }]],
+      ['Embroidered Panjabi — White', 'Fine cotton Panjabi with hand-embroidered collar and cuffs. Perfect for Eid.', '1200.00', 'panjabi', true, ['S', 'M', 'L', 'XL', 'XXL'], null],
+      ['Silk Panjabi — Navy', 'Blended silk Panjabi in deep navy with subtle woven stripe.', '2200.00', 'panjabi', true, ['S', 'M', 'L', 'XL'], null],
+      ['Festive Panjabi — Off-White Katan', 'Katan silk Panjabi for weddings and festivals. Subtle zari border.', '3500.00', 'panjabi', true, ['M', 'L', 'XL'], null],
+      ['Silk Sherwani — Charcoal', 'Full-length charcoal silk sherwani with gold embroidery. Traditional wedding wear.', '12000.00', 'sherwani', true, ['S', 'M', 'L', 'XL'], null],
+      ['Khadi Salwar Kameez — Powder Blue', 'Hand-spun khadi cotton salwar kameez. Breathable and elegant.', '2400.00', 'salwarkameez', true, ['S', 'M', 'L', 'XL'], null],
+      ['Block Print Salwar Kameez — Rust', 'Block-printed cotton salwar kameez. Bold geometric motifs.', '1600.00', 'salwarkameez', true, ['S', 'M', 'L'], null],
+      ['Muslin Lungi — Classic White', 'Fine muslin lungi with traditional red border. Lightweight and durable.', '800.00', 'lungi', true, null, [{ stock: 20 }]],
       // Unsized home + handicrafts
-      ['Terracotta Horse — Large',         'Hand-sculpted terracotta horse from Rajshahi. Traditional Pala-period style. Approx 28cm tall.',                               '950.00',  'terracotta',   true,  null, [{stock:7}]],
-      ['Nakshi Kantha — Red & Black',      'Large hand-embroidered Nakshi Kantha quilt. Each stitch tells a story. Measures 120x180cm.',                                   '5500.00', 'nakshikantha', true,  null, [{stock:3}]],
-      ['Bamboo Wall Basket — Set of 3',    'Hand-woven bamboo wall baskets from Chittagong. Sustainable and decorative.',                                                   '1400.00', 'bamboo',       true,  null, [{stock:15}]],
-      ['Pottery Tea Set — Earthy Brown',   'Hand-thrown pottery tea set: teapot + 4 cups. Glazed in earthy brown.',                                                        '2200.00', 'pottery',      true,  null, [{stock:5}]],
-      ['Jute Placemats — Set of 6',        'Hand-woven natural jute placemats. Eco-friendly and heat-resistant.',                                                           '650.00',  'jute',         true,  null, [{stock:25}]],
-      ['Jute Tote Bag — Natural',          'Large hand-woven jute tote. Strong, eco-friendly. 40x35cm with cotton lining.',                                                '750.00',  'jutebags',     true,  null, [{stock:18}]],
-      ['Brass Bangle Set — Traditional',   'Set of 6 hand-crafted brass bangles with intricate engraving. One size fits most.',                                            '480.00',  'jewellery',    true,  null, [{stock:30}]],
-      ['Embroidered Clutch — Crimson',     'Hand-embroidered silk clutch in crimson with gold thread. 20x12cm.',                                                           '1100.00', 'clutches',     true,  null, [{stock:8}]],
+      ['Terracotta Horse — Large', 'Hand-sculpted terracotta horse from Rajshahi. Traditional Pala-period style. Approx 28cm tall.', '950.00', 'terracotta', true, null, [{ stock: 7 }]],
+      ['Nakshi Kantha — Red & Black', 'Large hand-embroidered Nakshi Kantha quilt. Each stitch tells a story. Measures 120x180cm.', '5500.00', 'nakshikantha', true, null, [{ stock: 3 }]],
+      ['Bamboo Wall Basket — Set of 3', 'Hand-woven bamboo wall baskets from Chittagong. Sustainable and decorative.', '1400.00', 'bamboo', true, null, [{ stock: 15 }]],
+      ['Pottery Tea Set — Earthy Brown', 'Hand-thrown pottery tea set: teapot + 4 cups. Glazed in earthy brown.', '2200.00', 'pottery', true, null, [{ stock: 5 }]],
+      ['Jute Placemats — Set of 6', 'Hand-woven natural jute placemats. Eco-friendly and heat-resistant.', '650.00', 'jute', true, null, [{ stock: 25 }]],
+      ['Jute Tote Bag — Natural', 'Large hand-woven jute tote. Strong, eco-friendly. 40x35cm with cotton lining.', '750.00', 'jutebags', true, null, [{ stock: 18 }]],
+      ['Brass Bangle Set — Traditional', 'Set of 6 hand-crafted brass bangles with intricate engraving. One size fits most.', '480.00', 'jewellery', true, null, [{ stock: 30 }]],
+      ['Embroidered Clutch — Crimson', 'Hand-embroidered silk clutch in crimson with gold thread. 20x12cm.', '1100.00', 'clutches', true, null, [{ stock: 8 }]],
       // Out of stock product (tests wishlist prompt)
-      ['Katan Silk Saree — Deep Red',      'Premium Katan silk saree in deep red with gold zari border. Wedding special.',                                                  '9500.00', 'saree',        true,  null, [{stock:0}]],
+      ['Katan Silk Saree — Deep Red', 'Premium Katan silk saree in deep red with gold zari border. Wedding special.', '9500.00', 'saree', true, null, [{ stock: 0 }]],
       // Draft product (tests admin draft visibility)
-      ['Muslin Panjabi — Unreleased',      'Premium muslin Panjabi currently in quality review. Not yet released.',                                                         '2800.00', 'panjabi',      false, ['S','M','L','XL'], null],
+      ['Muslin Panjabi — Unreleased', 'Premium muslin Panjabi currently in quality review. Not yet released.', '2800.00', 'panjabi', false, ['S', 'M', 'L', 'XL'], null],
     ];
 
     const products = [];
@@ -319,10 +319,10 @@ async function seed() {
     console.log('📍 Creating addresses and payment methods…');
 
     const addressData = [
-      { userId: customers[0].user_id, street: '12 Dhanmondi Road 7',   city: 'Dhaka',      postal: '1205' },
-      { userId: customers[1].user_id, street: '45 Gulshan Avenue 2',   city: 'Dhaka',      postal: '1212' },
+      { userId: customers[0].user_id, street: '12 Dhanmondi Road 7', city: 'Dhaka', postal: '1205' },
+      { userId: customers[1].user_id, street: '45 Gulshan Avenue 2', city: 'Dhaka', postal: '1212' },
       { userId: customers[2].user_id, street: '8 Chittagong Hill Road', city: 'Chittagong', postal: '4000' },
-      { userId: customers[3].user_id, street: '23 Sylhet Zindabazar',   city: 'Sylhet',     postal: '3100' },
+      { userId: customers[3].user_id, street: '23 Sylhet Zindabazar', city: 'Sylhet', postal: '3100' },
     ];
 
     const addressIds = [];
@@ -385,8 +385,8 @@ async function seed() {
 
       // Payment record
       const paymentStatus = status === 'cancelled' ? 'refunded'
-        : status === 'delivered'  ? 'completed'
-        : 'pending';
+        : ['confirmed', 'processing', 'shipped', 'delivered'].includes(status) ? 'completed'
+          : 'pending';
 
       await q(client,
         `INSERT INTO payment (order_id, payment_method_id, amount, status)
@@ -498,7 +498,7 @@ async function seed() {
       customers[3].user_id, addressIds[3], pmIds[3],
       [
         { product_id: activeProducts[16].product_id, variant_id: activeProducts[16].variantIds[0], price: activeProducts[16].price, qty: 2 },
-        { product_id: activeProducts[8].product_id,  variant_id: activeProducts[8].variantIds[1],  price: activeProducts[8].price,  qty: 1 },
+        { product_id: activeProducts[8].product_id, variant_id: activeProducts[8].variantIds[1], price: activeProducts[8].price, qty: 1 },
       ],
       'delivered', 12
     );
@@ -534,7 +534,7 @@ async function seed() {
       { userId: customers[3].user_id, product_id: activeProducts[14].product_id, rating: 4, comment: 'Good quality jute placemats. Very eco-friendly. Colour is slightly different from photo but still lovely.' },
       { userId: customers[3].user_id, product_id: activeProducts[15].product_id, rating: 5, comment: 'Sturdy, well-made tote bag. Perfect size for daily use. Will definitely buy again.' },
       { userId: customers[3].user_id, product_id: activeProducts[16].product_id, rating: 5, comment: 'These bangles are exquisite. The engraving is very detailed. Great gift item.' },
-      { userId: customers[3].user_id, product_id: activeProducts[8].product_id,  rating: 4, comment: 'Nice salwar kameez. The block print is vibrant and the fabric is comfortable.' },
+      { userId: customers[3].user_id, product_id: activeProducts[8].product_id, rating: 4, comment: 'Nice salwar kameez. The block print is vibrant and the fabric is comfortable.' },
     ];
 
     for (const r of reviewData) {
@@ -585,7 +585,7 @@ async function seed() {
 
     // Tanvir has items in cart (tests cart persistence + sync)
     const cartItems = [
-      { variantId: activeProducts[9].variantIds[0],  qty: 1 },
+      { variantId: activeProducts[9].variantIds[0], qty: 1 },
       { variantId: activeProducts[10].variantIds[0], qty: 2 },
     ];
 
@@ -607,20 +607,20 @@ async function seed() {
     // Order notifications for all customers
     const orderNotifData = [
       // Ayesha — delivered order notifications
-      { userId: customers[0].user_id, type: 'order_placed',     title: 'Order placed',     message: `Your order #${ayeshaDelivered} has been placed. We'll confirm it shortly.`,         orderId: ayeshaDelivered },
-      { userId: customers[0].user_id, type: 'order_confirmed',  title: 'Order confirmed',  message: `Your order #${ayeshaDelivered} has been confirmed and is being prepared.`,          orderId: ayeshaDelivered },
-      { userId: customers[0].user_id, type: 'order_shipped',    title: 'Order shipped',    message: `Your order #${ayeshaDelivered} is on its way. Estimated delivery: 2-3 days.`,       orderId: ayeshaDelivered },
-      { userId: customers[0].user_id, type: 'order_delivered',  title: 'Order delivered',  message: `Your order #${ayeshaDelivered} has been delivered. We hope you love it!`,           orderId: ayeshaDelivered },
+      { userId: customers[0].user_id, type: 'order_placed', title: 'Order placed', message: `Your order #${ayeshaDelivered} has been placed. We'll confirm it shortly.`, orderId: ayeshaDelivered },
+      { userId: customers[0].user_id, type: 'order_confirmed', title: 'Order confirmed', message: `Your order #${ayeshaDelivered} has been confirmed and is being prepared.`, orderId: ayeshaDelivered },
+      { userId: customers[0].user_id, type: 'order_shipped', title: 'Order shipped', message: `Your order #${ayeshaDelivered} is on its way. Estimated delivery: 2-3 days.`, orderId: ayeshaDelivered },
+      { userId: customers[0].user_id, type: 'order_delivered', title: 'Order delivered', message: `Your order #${ayeshaDelivered} has been delivered. We hope you love it!`, orderId: ayeshaDelivered },
       // Ayesha — pending order notification
-      { userId: customers[0].user_id, type: 'order_placed',     title: 'Order placed',     message: `Your order #${ayeshaPending} has been placed. We'll confirm it shortly.`,           orderId: ayeshaPending },
+      { userId: customers[0].user_id, type: 'order_placed', title: 'Order placed', message: `Your order #${ayeshaPending} has been placed. We'll confirm it shortly.`, orderId: ayeshaPending },
       // Tanvir — delivered order
-      { userId: customers[1].user_id, type: 'order_placed',     title: 'Order placed',     message: `Your order #${tanvirDelivered} has been placed.`,                                   orderId: tanvirDelivered },
-      { userId: customers[1].user_id, type: 'order_delivered',  title: 'Order delivered',  message: `Your order #${tanvirDelivered} has been delivered. Enjoy your purchase!`,           orderId: tanvirDelivered },
+      { userId: customers[1].user_id, type: 'order_placed', title: 'Order placed', message: `Your order #${tanvirDelivered} has been placed.`, orderId: tanvirDelivered },
+      { userId: customers[1].user_id, type: 'order_delivered', title: 'Order delivered', message: `Your order #${tanvirDelivered} has been delivered. Enjoy your purchase!`, orderId: tanvirDelivered },
       // Priya — delivered order
-      { userId: customers[2].user_id, type: 'order_placed',     title: 'Order placed',     message: `Your order #${priyaDelivered} has been placed.`,                                   orderId: priyaDelivered },
-      { userId: customers[2].user_id, type: 'order_delivered',  title: 'Order delivered',  message: `Your order #${priyaDelivered} has been delivered. Thank you for shopping!`,        orderId: priyaDelivered },
+      { userId: customers[2].user_id, type: 'order_placed', title: 'Order placed', message: `Your order #${priyaDelivered} has been placed.`, orderId: priyaDelivered },
+      { userId: customers[2].user_id, type: 'order_delivered', title: 'Order delivered', message: `Your order #${priyaDelivered} has been delivered. Thank you for shopping!`, orderId: priyaDelivered },
       // Karim — delivered
-      { userId: customers[3].user_id, type: 'order_delivered',  title: 'Order delivered',  message: `Your order #${karimDelivered} has been delivered. We hope you love it!`,           orderId: karimDelivered },
+      { userId: customers[3].user_id, type: 'order_delivered', title: 'Order delivered', message: `Your order #${karimDelivered} has been delivered. We hope you love it!`, orderId: karimDelivered },
     ];
 
     for (const n of orderNotifData) {
@@ -633,9 +633,9 @@ async function seed() {
 
     // System broadcast notifications (tests sent log)
     const broadcasts = [
-      { title: 'Eid Collection Launched 🎉',  message: 'Our special Eid collection is now live. Shop limited-edition Jamdani sarees, embroidered Panjabis, and more. Free shipping on orders above ৳999.' },
-      { title: 'New Artisan Partners',         message: 'We have partnered with 12 new artisan families from Sylhet and Rajshahi. Discover their unique handmade pottery, bamboo crafts, and textiles.' },
-      { title: 'App Update: Wishlist Alerts',  message: 'You can now add out-of-stock items to your wishlist and get notified the moment they are back. Never miss a piece you love.' },
+      { title: 'Eid Collection Launched 🎉', message: 'Our special Eid collection is now live. Shop limited-edition Jamdani sarees, embroidered Panjabis, and more. Free shipping on orders above ৳999.' },
+      { title: 'New Artisan Partners', message: 'We have partnered with 12 new artisan families from Sylhet and Rajshahi. Discover their unique handmade pottery, bamboo crafts, and textiles.' },
+      { title: 'App Update: Wishlist Alerts', message: 'You can now add out-of-stock items to your wishlist and get notified the moment they are back. Never miss a piece you love.' },
     ];
 
     for (const broadcast of broadcasts) {
@@ -666,7 +666,7 @@ async function seed() {
     console.log('━'.repeat(60));
     console.log('✅ Seed complete!\n');
     console.log('📋 Login credentials:');
-    console.log('   Admin:    admin@folkmint.com     / Admin@1234');
+    console.log('   Admin:    admin@gmail.com     / Admin1234');
     console.log('   Customer: ayesha@example.com     / Customer@1234  (5 orders, 11 wishlist, reviews)');
     console.log('   Customer: tanvir@example.com     / Customer@1234  (3 orders, cart items)');
     console.log('   Customer: priya@example.com      / Customer@1234  (2 orders)');

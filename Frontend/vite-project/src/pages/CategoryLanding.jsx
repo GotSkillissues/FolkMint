@@ -16,6 +16,8 @@ const CategoryLanding = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [category, setCategory] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [children, setChildren] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState('');
@@ -24,10 +26,15 @@ const CategoryLanding = () => {
     ? category.breadcrumb_path
     : category ? [category] : [];
 
+  const filteredChildren = children.filter(child => 
+    child.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       setLoading(true); setError('');
+      setSearchTerm('');
       try {
         const [catRes, childRes] = await Promise.all([
           categoryService.getCategoryById(id),
@@ -80,21 +87,69 @@ const CategoryLanding = () => {
           </nav>
 
           {/* Head */}
-          <div className="cl-head">
-            <p className="cl-eyebrow">Category</p>
-            <h1 className="cl-title">{category?.name || 'Category'}</h1>
-            {category?.description && <p className="cl-desc">{category.description}</p>}
+          <div className="cl-header-row">
+            <div className="cl-head">
+              <p className="cl-eyebrow">Category</p>
+              <h1 className="cl-title">{category?.name || 'Category'}</h1>
+              {category?.description && <p className="cl-desc">{category.description}</p>}
+            </div>
+
+            {children.length > 0 && (
+              <div className="cl-search-container">
+                <div className="cl-search-inner">
+                  <svg className="cl-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <input
+                    type="text"
+                    className="cl-search-input"
+                    placeholder={`Search in ${category?.name || 'subcategories'}...`}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                  />
+                  {searchTerm && (
+                    <button className="cl-search-clear" onClick={() => setSearchTerm('')}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {isSearchFocused && filteredChildren.length > 0 && (
+                  <div className="cl-search-dropdown">
+                    {filteredChildren.map(child => (
+                      <Link 
+                        key={child.category_id} 
+                        to={getCategoryUrl(child)}
+                        className="cl-search-dropdown-item"
+                      >
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Children sections */}
-          {!children.length ? (
+          {filteredChildren.length === 0 ? (
             <div className="cl-empty">
-              <p className="cl-empty-title">No subcategories found</p>
-              <Link to="/products" className="cl-btn-primary">Browse all products</Link>
+              <p className="cl-empty-title">
+                {searchTerm ? `No matches for "${searchTerm}"` : 'No subcategories found'}
+              </p>
+              {searchTerm ? (
+                <button className="cl-btn-primary" onClick={() => setSearchTerm('')}>Clear search</button>
+              ) : (
+                <Link to="/products" className="cl-btn-primary">Browse all products</Link>
+              )}
             </div>
           ) : (
             <div className="cl-sections">
-              {children.map(child => (
+              {filteredChildren.map(child => (
                 <CategorySection
                   key={child.category_id}
                   category={child}
@@ -131,7 +186,16 @@ const CategoryLanding = () => {
         .cl-breadcrumb a { color: var(--muted); text-decoration: none; transition: color .15s; }
         .cl-breadcrumb a:hover { color: var(--dark); }
         .cl-crumb-sep { margin: 0 2px; opacity: .4; }
-        .cl-head { display: flex; flex-direction: column; gap: 6px; }
+        
+        .cl-header-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 24px;
+          margin-bottom: 8px;
+        }
+
+        .cl-head { display: flex; flex-direction: column; gap: 6px; flex: 1; }
         .cl-eyebrow {
           font-size: 11px; font-weight: 700; letter-spacing: .22em;
           text-transform: uppercase; color: var(--gold); margin: 0;
@@ -142,6 +206,121 @@ const CategoryLanding = () => {
           font-weight: 600; color: var(--dark); line-height: 1.1; margin: 0;
         }
         .cl-desc { font-size: 14px; color: var(--muted); margin: 0; max-width: 680px; line-height: 1.7; }
+
+        .cl-search-container {
+          width: 300px;
+          position: relative;
+        }
+
+        .cl-search-dropdown {
+          position: absolute;
+          top: calc(100% + 8px);
+          left: 0;
+          width: 100%;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+          max-height: 250px;
+          overflow-y: auto;
+          z-index: 50;
+          display: flex;
+          flex-direction: column;
+          padding: 6px;
+        }
+
+        .cl-search-dropdown::-webkit-scrollbar {
+          width: 6px;
+        }
+        .cl-search-dropdown::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .cl-search-dropdown::-webkit-scrollbar-thumb {
+          background: var(--border);
+          border-radius: 6px;
+        }
+        .cl-search-dropdown::-webkit-scrollbar-thumb:hover {
+          background: var(--muted);
+        }
+
+        .cl-search-dropdown-item {
+          padding: 10px 12px;
+          text-decoration: none;
+          color: var(--dark);
+          font-size: 13.5px;
+          border-radius: 6px;
+          transition: background 0.2s, color 0.2s;
+        }
+
+        .cl-search-dropdown-item:hover {
+          background: var(--bg-alt);
+          color: var(--gold);
+        }
+
+        .cl-search-inner {
+          position: relative;
+          display: flex;
+          align-items: center;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          padding: 0 12px;
+          transition: all 0.3s ease;
+          box-shadow: var(--sh-sm);
+        }
+
+        .cl-search-inner:focus-within {
+          border-color: var(--gold);
+          box-shadow: 0 0 0 3px rgba(196, 146, 42, 0.1);
+          transform: translateY(-1px);
+        }
+
+        .cl-search-icon {
+          color: var(--muted);
+          flex-shrink: 0;
+        }
+
+        .cl-search-input {
+          width: 100%;
+          height: 44px;
+          border: none;
+          background: transparent;
+          padding: 0 10px;
+          font-size: 13.5px;
+          color: var(--dark);
+          outline: none;
+        }
+
+        .cl-search-clear {
+          background: var(--bg-alt);
+          border: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: var(--muted);
+          transition: all 0.2s;
+          padding: 0;
+          flex-shrink: 0;
+        }
+
+        .cl-search-clear:hover {
+          background: #eee;
+          color: var(--dark);
+        }
+
+        @media (max-width: 768px) {
+          .cl-header-row {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .cl-search-container {
+            width: 100%;
+          }
+        }
         .cl-sections { display: flex; flex-direction: column; gap: 32px; }
         .cl-empty {
           display: flex; flex-direction: column; align-items: center;

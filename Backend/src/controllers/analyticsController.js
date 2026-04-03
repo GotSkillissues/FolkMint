@@ -162,7 +162,7 @@ const getSalesReport = async (req, res) => {
          COALESCE(AVG(total_amount), 0)::text AS avg_order_value
        FROM orders
        WHERE status != 'cancelled'
-         AND created_at >= NOW() - ($2 || ' days')::INTERVAL
+         AND created_at >= NOW() - ($2 * INTERVAL '1 day')
        GROUP BY DATE_TRUNC($1, created_at)
        ORDER BY period_start ASC`,
       [dateTrunc, days]
@@ -358,6 +358,7 @@ const getCategoryPerformance = async (req, res) => {
          c.name,
          c.category_slug,
          c.depth,
+         c.parent_category,
          COUNT(DISTINCT p.product_id)::int AS product_count,
          COALESCE(
            SUM(CASE WHEN o.order_id IS NOT NULL THEN oi.quantity ELSE 0 END),
@@ -377,7 +378,7 @@ const getCategoryPerformance = async (req, res) => {
        LEFT JOIN orders o
          ON o.order_id = oi.order_id
         AND o.status != 'cancelled'
-       GROUP BY c.category_id, c.name, c.category_slug, c.depth
+       GROUP BY c.category_id, c.name, c.category_slug, c.depth, c.parent_category
        ORDER BY total_revenue_numeric DESC, c.name ASC`
     );
 
@@ -522,13 +523,13 @@ const getAnalytics = async (req, res) => {
           COALESCE(SUM(total_amount), 0)::text AS total_revenue,
           COALESCE(
             SUM(total_amount) FILTER (
-              WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+              WHERE created_at >= NOW() - ($1 * INTERVAL '1 day')
             ),
             0
           )::text AS period_revenue,
           COALESCE(
             AVG(total_amount) FILTER (
-              WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+              WHERE created_at >= NOW() - ($1 * INTERVAL '1 day')
             ),
             0
           )::text AS avg_order_value
@@ -540,7 +541,7 @@ const getAnalytics = async (req, res) => {
       pool.query(`
         SELECT
           COUNT(*)::int AS total_orders,
-          COUNT(*) FILTER (WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL)::int AS period_orders,
+          COUNT(*) FILTER (WHERE created_at >= NOW() - ($1 * INTERVAL '1 day'))::int AS period_orders,
           COUNT(*) FILTER (WHERE status = 'pending')::int AS pending_orders,
           COUNT(*) FILTER (WHERE status = 'cancelled')::int AS cancelled_orders
         FROM orders
@@ -550,7 +551,7 @@ const getAnalytics = async (req, res) => {
       pool.query(`
         SELECT
           COUNT(*)::int AS total_customers,
-          COUNT(*) FILTER (WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL)::int AS new_customers
+          COUNT(*) FILTER (WHERE created_at >= NOW() - ($1 * INTERVAL '1 day'))::int AS new_customers
         FROM users
         WHERE role = 'customer'
       `, [days]),
@@ -580,7 +581,7 @@ const getAnalytics = async (req, res) => {
           COALESCE(SUM(total_amount), 0)::text AS revenue
         FROM orders
         WHERE status != 'cancelled'
-          AND created_at >= NOW() - ($2 || ' days')::INTERVAL
+          AND created_at >= NOW() - ($2 * INTERVAL '1 day')
         GROUP BY DATE_TRUNC($1, created_at)
         ORDER BY period_start ASC
       `, [dateTrunc, days]),
@@ -608,7 +609,7 @@ const getAnalytics = async (req, res) => {
         JOIN order_item oi ON oi.product_id = p.product_id
         JOIN orders o ON o.order_id = oi.order_id
           AND o.status != 'cancelled'
-          AND o.created_at >= NOW() - ($1 || ' days')::INTERVAL
+          AND o.created_at >= NOW() - ($1 * INTERVAL '1 day')
         GROUP BY p.product_id, p.name, p.is_active
         ORDER BY SUM(oi.quantity * oi.unit_price) DESC
         LIMIT 5

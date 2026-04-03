@@ -4,6 +4,7 @@ import { categoryService, productService } from '../services';
 import { useAuth } from '../context';
 import { useCategoryTree } from '../hooks/useCategories';
 import { getCategoryUrl, getCardImageUrl } from '../utils';
+import { CardActions } from '../components';
 import './Home.css';
 
 /* ── Helpers ── */
@@ -86,51 +87,102 @@ const ArrBtn = ({ disabled, onClick, dir }) => (
 
 const Skel = () => (
   <div className="skel">
-    <div className="skel-img"><div className="skel-line" /></div>
+    <div className="skel-img" />
     <div className="skel-body">
-      <div className="skel-line" />
-      <div className="skel-line w60" />
+      <div className="skel-line w40" style={{ marginBottom: 10 }} />
+      <div className="skel-line w60" style={{ marginBottom: 6 }} />
       <div className="skel-line w40" />
     </div>
   </div>
 );
 
 const CatTileSkel = () => (
-  <div className="cat-tile cat-tile-skeleton" aria-hidden="true" />
+  <div className="cat-tile cat-tile-skeleton">
+    <div className="cat-tile-overlay" style={{ background: 'transparent' }} />
+  </div>
 );
 
 const EmptyMsg = ({ msg }) => (
-  <div className="empty-msg"><p>{msg}</p></div>
+  <div className="empty-msg">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.3, marginBottom: 12 }}>
+      <circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>
+    </svg>
+    <p>{msg}</p>
+  </div>
 );
 
 /* Product card — detail-page only.
    Cart/wishlist need variant_id, so quick actions stay off the homepage. */
 const ProdCard = ({ p, showRating }) => {
-  const img = getCardImageUrl(p, { width: 560, height: 720, crop: 'limit' });
-  const price = fmt(p?.price);
-  const cat = p?.category_name ?? '';
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [prevIdx, setPrevIdx] = useState(-1);
+  const [isHovering, setIsHovering] = useState(false);
+  
+  const rawList = Array.isArray(p.all_images) && p.all_images.length > 0 ? p.all_images : [p.primary_image];
+  const imageList = rawList.length === 1 ? [rawList[0], rawList[0], rawList[0], rawList[0]] : rawList;
+
+  useEffect(() => {
+    let interval;
+    if (isHovering && imageList.length > 1) {
+      interval = setInterval(() => {
+        setPrevIdx(activeIdx);
+        setActiveIdx((prev) => (prev + 1) % imageList.length);
+      }, 800);
+    } else {
+      setActiveIdx(0);
+      setPrevIdx(-1);
+    }
+    return () => clearInterval(interval);
+  }, [isHovering, activeIdx, imageList.length]);
+
   const rating = showRating && p?.avg_rating && parseFloat(p.avg_rating) > 0;
 
   return (
-    <Link to={`/products/${p.product_id}`} className="prod-card">
+    <Link 
+      to={`/products/${p.product_id}`} 
+      className="prod-card"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
       <div className="card-img">
-        {img ? (
-          <img src={img} alt={p.name} loading="lazy" />
+        {imageList.length > 0 ? (
+          imageList.map((img, idx) => {
+            const isSim = rawList.length === 1;
+            const effectClass = isSim ? ` sim-eff-${idx}` : '';
+            
+            let status = 'idle';
+            if (idx === activeIdx) status = 'active';
+            else if (idx === prevIdx) status = 'prev';
+
+            return (
+              <img 
+                key={idx}
+                src={getCardImageUrl({ ...p, primary_image: img }, { width: 560, height: 720, crop: 'limit' })} 
+                alt={p.name} 
+                loading="lazy" 
+                className={`card-slide-img slide-${status}${effectClass}`} 
+              />
+            );
+          })
         ) : (
           <div className="card-placeholder">
             <span className="card-placeholder-text">No image yet</span>
           </div>
         )}
+
+        {/* Doped Action Overlay — Love Heart & Product Link (Cart icon) */}
+        <CardActions productId={p.product_id} />
+
         <div className="card-view-layer">
           <span className="card-view-pill">View Product</span>
         </div>
       </div>
 
       <div className="card-body">
-        {cat && <p className="card-cat">{cat}</p>}
+        {p.category_name && <p className="card-cat">{p.category_name}</p>}
         <h3 className="card-name">{p.name}</h3>
         <div className="card-foot">
-          <span className="card-price">{price}</span>
+          <span className="card-price">{fmt(p.price)}</span>
           {rating && (
             <div className="card-rating">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="#f0a500">
@@ -430,7 +482,7 @@ const Home = () => {
                 <h2 className="sec-title">Recommended</h2>
               </div>
               <div className="sec-header-right">
-                <Link to="/products" className="sec-view-all">View All</Link>
+                <Link to="/products?sort=recommended" className="sec-view-all">View All</Link>
                 <div className="arr-group">
                   <ArrBtn dir="prev" disabled={fy.prevDis} onClick={fy.prev} />
                   <ArrBtn dir="next" disabled={fy.nextDis} onClick={fy.next} />
@@ -458,7 +510,7 @@ const Home = () => {
               <h2 className="sec-title">Most Loved This Month</h2>
             </div>
             <div className="sec-header-right">
-              <Link to="/products" className="sec-view-all">View All</Link>
+              <Link to="/products?sort=popular&period=month" className="sec-view-all">View All</Link>
               <div className="arr-group">
                 <ArrBtn dir="prev" disabled={pop.prevDis} onClick={pop.prev} />
                 <ArrBtn dir="next" disabled={pop.nextDis} onClick={pop.next} />
@@ -485,10 +537,10 @@ const Home = () => {
           <div className="sec-header">
             <div className="sec-header-text">
               <p className="sec-eyebrow">Customer Favourites</p>
-              <h2 className="sec-title">Top Rated</h2>
+              <h2 className="sec-title">All-Time Best Sellers</h2>
             </div>
             <div className="sec-header-right">
-              <Link to="/products" className="sec-view-all">View All</Link>
+              <Link to="/products?sort=popular&period=all" className="sec-view-all">View All</Link>
               <div className="arr-group">
                 <ArrBtn dir="prev" disabled={rated.prevDis} onClick={rated.prev} />
                 <ArrBtn dir="next" disabled={rated.nextDis} onClick={rated.next} />

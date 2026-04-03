@@ -1,30 +1,91 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth, useCart } from '../../context';
+import { useAuth, useCart, useNotifications, useWishlist, useTheme } from '../../context';
 import { useCategoryTree } from '../../hooks/useCategories';
-import { wishlistService, notificationService } from '../../services';
-import { getCategoryUrl } from '../../utils';
+import { getCategoryUrl, getCardImageUrl } from '../../utils';
+import { productService } from '../../services';
 import FloatingCategoriesPanel from './FloatingCategoriesPanel';
 import './Header.css';
 
 const Header = () => {
   const { isAuthenticated, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const { cartCount } = useCart();
-  const { tree: categoryTree } = useCategoryTree();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchVal, setSearchVal] = useState('');
-  const [wishlistCount, setWishlistCount] = useState(0);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [suggestions, setSuggestions] = useState({ categories: [], products: [] });
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchingSuggestions, setSearchingSuggestions] = useState(false);
   const searchRef = useRef(null);
+  const suggestionsRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const { tree: categoryTree, refetch: refetchCategoryTree } = useCategoryTree();
+
+  useEffect(() => {
+    window.addEventListener('folkmint:categories-updated', refetchCategoryTree);
+    return () => window.removeEventListener('folkmint:categories-updated', refetchCategoryTree);
+  }, [refetchCategoryTree]);
+
+  // Live suggest
+  useEffect(() => {
+    if (!searchVal.trim() || searchVal.length < 2) {
+      setSuggestions({ categories: [], products: [] });
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSearchingSuggestions(true);
+      try {
+        // Search local categories
+        const searchLow = searchVal.toLowerCase();
+        const cats = [];
+        const findInTree = (nodes) => {
+          nodes.forEach(n => {
+            if (n.name.toLowerCase().includes(searchLow)) cats.push(n);
+            if (n.children) findInTree(n.children);
+          });
+        };
+        findInTree(categoryTree || []);
+        
+        // Search API products
+        const res = await productService.searchProducts(searchVal, { limit: 5 });
+        const items = res?.products ?? res?.items ?? (Array.isArray(res) ? res : []);
+        
+        setSuggestions({
+          categories: cats.slice(0, 3),
+          products: items.slice(0, 5)
+        });
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error("Suggest error", err);
+      } finally {
+        setSearchingSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchVal, categoryTree]);
+
+  // Close suggestions on click-outside
+  useEffect(() => {
+    const clickOut = (e) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target) && !searchRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', clickOut);
+    return () => document.removeEventListener('mousedown', clickOut);
   }, []);
 
   const toggleSearch = () => {
@@ -53,51 +114,24 @@ const Header = () => {
     ? categoryTree.filter((node) => !node?.parent_category)
     : [];
 
+  const dynamicNavItems = rootCategories
+    .filter((node) => node?.category_slug && !node.name.toLowerCase().includes('jewel'))
+    .map((node) => ({
+      key: node.category_id,
+      label: node.name,
+      to: getCategoryUrl(node),
+      active: location.pathname === getCategoryUrl(node) || location.pathname.startsWith(`${getCategoryUrl(node)}/`),
+      children: Array.isArray(node.children) ? node.children : []
+    }));
+
   const navItems = [
     { key: 'home', label: 'Home', to: '/', active: location.pathname === '/' },
-    ...rootCategories
-      .filter((node) => node?.category_slug)
-      .map((node) => ({
-        key: `cat-${node.category_id}`,
-        label: node.name,
-        to: getCategoryUrl(node),
-        active:
-          (location.pathname.startsWith('/categories/') && String(activeCategoryRouteId) === String(node.category_id)) ||
-          (location.pathname === '/products' &&
-            (activeCategorySlug === node.category_slug || String(activeCategoryId) === String(node.category_id))),
-      })),
+    ...dynamicNavItems
   ];
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-
-    let active = true;
-
-    wishlistService.getWishlist({ limit: 1 })
-      .then((response) => {
-        if (!active) return;
-        const items = Array.isArray(response?.wishlist) ? response.wishlist : [];
-        setWishlistCount(items.length);
-      })
-      .catch(() => {
-        if (active) setWishlistCount(0);
-      });
-
-    notificationService.getUnreadCount()
-      .then((response) => {
-        if (!active) return;
-        setUnreadCount(response?.unread_count || 0);
-      })
-      .catch(() => {
-        if (active) setUnreadCount(0);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [isAuthenticated]);
+  const { unreadCount } = useNotifications();
+  const { wishlistProductIds } = useWishlist();
+  const wishlistCount = wishlistProductIds.size;
 
   return (
     <header className={`site-header${scrolled ? ' scrolled' : ''}`} id="site-header">
@@ -131,16 +165,44 @@ const Header = () => {
         </div>
 
         <nav className="hdr-nav" aria-label="Main navigation">
-          {navItems.map((item) => (
-            <Link
-              key={item.key}
-              to={item.to}
-              className={`hdr-nav-link${item.active ? ' active' : ''}`}
-              aria-current={item.active ? 'page' : undefined}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const children = item.children || [];
+
+            return (
+              <div key={item.key} className={`hdr-nav-item${children.length > 0 ? ' has-dropdown' : ''}`}>
+                <Link
+                  to={item.to}
+                  className={`hdr-nav-link${item.active ? ' active' : ''}`}
+                  aria-current={item.active ? 'page' : undefined}
+                >
+                  {item.label}
+                  {children.length > 0 && (
+                    <svg className="dropdown-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  )}
+                </Link>
+                {children.length > 0 && (
+                  <div className="hdr-dropdown">
+                    <div className="hdr-dropdown-inner">
+                      {children.map(child => (
+                        <Link 
+                          key={child.category_id} 
+                          to={getCategoryUrl(child)}
+                          className="hdr-dropdown-link"
+                        >
+                          <span className="hdr-dropdown-link-name">{child.name}</span>
+                          {child.product_count !== undefined && (
+                            <span className="hdr-dropdown-link-count">{child.product_count}</span>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Actions */}
@@ -156,6 +218,7 @@ const Header = () => {
               value={searchVal}
               onChange={e => setSearchVal(e.target.value)}
               onKeyDown={handleSearchKey}
+              onFocus={() => searchVal.length >= 2 && setShowSuggestions(true)}
               aria-label="Search"
             />
             <button className="icon-btn" onClick={toggleSearch} aria-label="Toggle search">
@@ -163,7 +226,102 @@ const Header = () => {
                 <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </button>
+
+            {/* LIVE SUGGESTIONS DROPDOWN */}
+            {searchOpen && showSuggestions && (searchVal.length >= 2) && (
+              <div className="search-suggestions" ref={suggestionsRef}>
+                {searchingSuggestions && <div className="suggest-loading">Searching…</div>}
+                
+                {!searchingSuggestions && suggestions.categories.length === 0 && suggestions.products.length === 0 && (
+                  <div className="suggest-empty">No quick results for "{searchVal}"</div>
+                )}
+
+                {/* Categories */}
+                {suggestions.categories.length > 0 && (
+                  <div className="suggest-group">
+                    <p className="suggest-label">Categories</p>
+                    {suggestions.categories.map(c => (
+                      <Link 
+                        key={c.category_id} 
+                        to={getCategoryUrl(c)} 
+                        className="suggest-item suggest-cat"
+                        onClick={() => { setShowSuggestions(false); setSearchVal(''); setSearchOpen(false); }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8, opacity: 0.6 }}>
+                          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                        </svg>
+                        {c.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+
+                {/* Products */}
+                {suggestions.products.length > 0 && (
+                  <div className="suggest-group">
+                    <p className="suggest-label">Products</p>
+                    {suggestions.products.map(p => {
+                      const img = getCardImageUrl(p, { width: 80, height: 80 });
+                      return (
+                        <Link 
+                          key={p.product_id} 
+                          to={`/products/${p.product_id}`} 
+                          className="suggest-item suggest-prod"
+                          onClick={() => { setShowSuggestions(false); setSearchVal(''); setSearchOpen(false); }}
+                        >
+                          <div className="suggest-prod-img">
+                            {img ? <img src={img} alt="" /> : <div className="suggest-prod-placeholder" />}
+                          </div>
+                          <div className="suggest-prod-info">
+                            <p className="suggest-prod-name">{p.name}</p>
+                            <p className="suggest-prod-price">৳{Number(p.price || 0).toLocaleString()}</p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <button 
+                  className="suggest-view-all" 
+                  onClick={() => {
+                    navigate(`/products?q=${encodeURIComponent(searchVal.trim())}`);
+                    setShowSuggestions(false);
+                    setSearchVal('');
+                    setSearchOpen(false);
+                  }}
+                >
+                  View all results for "{searchVal}" →
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Theme Toggle */}
+          <button 
+            className="theme-toggle-btn" 
+            onClick={toggleTheme} 
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? (
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            )}
+          </button>
 
           {/* Auth — guest */}
           {!isAuthenticated && (

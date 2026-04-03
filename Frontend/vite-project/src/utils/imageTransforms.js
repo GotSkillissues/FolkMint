@@ -39,6 +39,7 @@ export const getCardImageUrl = (product, options = {}) => {
     product?.variants?.[0]?.images?.[0]?.image_url ||
     product?.thumbnail_url ||
     product?.source_thumbnail_url ||
+    product?.primary_image ||
     product?.image_url ||
     product?.image ||
     product?.source_image_urls?.[0] ||
